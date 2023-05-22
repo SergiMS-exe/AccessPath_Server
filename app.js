@@ -25,21 +25,19 @@ app.use(function(req, res, next) {
 });
 
 //Configuracion de la base de datos mongo
-/*let mongo = require('mongodb');
-let gestorBD = require("./services/gestorBD");
-gestorBD.init(app, mongo);
-app.set('db', 'mongodb://admin:admin@cluster0-shard-00-00.ki0a0.mongodb.net:27017,cluster0-shard-00-01.ki0a0.mongodb.net:27017,cluster0-shard-00-02.ki0a0.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-1tr5oe-shard-0&authSource=admin&retryWrites=true&w=majority');
+const MongoClient = require('mongodb').MongoClient;
+const uri = "mongodb+srv://admin:admin@cluster0.xk8rxrb.mongodb.net/?retryWrites=true&w=majority";
+const dbName = "AccessPath"
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const gestorBD = require('./services/gestorBD');
+gestorBD.init(app,client, dbName);
 
 //Validadores
-var sanitize = require('mongo-sanitize');
+/*var sanitize = require('mongo-sanitize');
 const validatorUser = require('./services/validatorUser.js');
 validatorUser.init(gestorBD, sanitize);
 
-//Dependencias para mandar correos
-const nodemailer = require("nodemailer");
-const emailManager= require("./services/emails.js")
-emailManager.init(app, nodemailer)
 */
 
 //Rutas/controladores por lógica
-//require("./routes/users")(app, gestorBD,validatorUser,emailManager);  // (app, param1, param2, etc.)
+require("./routes/users")(app, gestorBD);
