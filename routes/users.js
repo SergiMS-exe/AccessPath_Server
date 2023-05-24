@@ -7,7 +7,7 @@ module.exports = function(app, gestorBD) {
             email: req.body.email,
             password: hashedPswd
         }
-
+        
         gestorBD.obtenerItem('usuarios', criterio).then(usuario => {
             if (usuario===null || usuario===undefined) {
                 console.error("Error al iniciar sesión. Usuario: "+req.body.email);
@@ -18,7 +18,7 @@ module.exports = function(app, gestorBD) {
                     res.send({status: 404, data: { msg: "Email o contraseña incorrectos", user: undefined}})
                 }
                 else 
-                    res.send({status: 200, info: { msg: "Sesión iniciada correctamente", user: usuario[0]}})
+                    res.send({status: 200, data: { msg: "Sesión iniciada correctamente", user: usuario[0]}})
             }
         })
     })
