@@ -1,3 +1,5 @@
+const res = require("express/lib/response");
+
 module.exports = {
     client:null,
     app:null,
@@ -15,8 +17,7 @@ module.exports = {
 
         var result;
         try {
-            result = await collection.find(criterio).toArray()
-
+            result = await collection.find(criterio).toArray();
         } catch (error) {
             console.error("Error al obtener: " + error);
             result = null;
