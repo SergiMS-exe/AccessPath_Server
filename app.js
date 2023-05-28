@@ -29,7 +29,7 @@ const MongoClient = require('mongodb').MongoClient;
 const uri = "mongodb+srv://admin:admin@cluster0.xk8rxrb.mongodb.net/?retryWrites=true&w=majority";
 const dbName = "AccessPath"
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-const gestorBD = require('./services/gestorBD');
+const gestorBD = require('./src/services/gestorBD');
 gestorBD.init(app,client, dbName);
 
 //Validadores
@@ -40,4 +40,4 @@ validatorUser.init(gestorBD, sanitize);
 */
 
 //Rutas/controladores por lógica
-require("./routes/users")(app, gestorBD);
+require("./src/routes/users")(app, gestorBD);
