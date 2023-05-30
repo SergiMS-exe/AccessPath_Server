@@ -39,9 +39,10 @@ validatorUser.init(gestorBD, sanitize);
 
 */
 
-//Rutas/controladores por lógica
-require("./src/routes/users")(app, gestorBD);
-
+//Default endpoint
 app.get('/', function(req, res){
     res.send({msg: 'main page here. Server up'})
 });
+
+//Rutas/controladores por lógica
+require("./src/routes/users")(app, gestorBD);
