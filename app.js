@@ -46,3 +46,4 @@ app.get('/', function(req, res){
 
 //Rutas/controladores por lógica
 require("./src/routes/users")(app, gestorBD);
+require("./src/routes/places")(app, gestorBD);
