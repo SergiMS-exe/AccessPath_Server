@@ -1,11 +1,11 @@
 const res = require("express/lib/response");
 
 module.exports = {
+    mongo: null,
     client:null,
-    app:null,
     dbName: null,
-    init: function(app, client, dbName) {
-        this.app=app;
+    init: function(mongo, client, dbName) {
+        this.mongo=mongo;
         this.client=client;
         this.dbName=dbName;
     },

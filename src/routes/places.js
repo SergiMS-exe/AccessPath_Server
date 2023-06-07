@@ -29,4 +29,22 @@ module.exports = function (app, gestorBD) {
         console.log(saving);
         res.send({ status: 200, data: { msg: "Sitio desguardado" } })
     })
+
+    app.get('/userSaved', async function(req, res){
+        const criterio = {
+            _id: new gestorBD.mongo.ObjectId(req.query.userId),
+        }
+
+        const usuario = await gestorBD.obtenerItem('usuarios', criterio);
+        console.log(usuario);
+        if (usuario[0] && usuario[0].saved.length>0) {
+            const criterioSaved = {
+                placeId: {$in: usuario[0]. saved}
+            }
+            const saved = await gestorBD.obtenerItem('sitios', criterioSaved);
+
+            console.log(saved);
+            res.send({status: 200, data: { msg: "Elementos guardados obtenidos", sitios: saved}})
+        }
+    })
 }

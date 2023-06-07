@@ -25,12 +25,12 @@ app.use(function(req, res, next) {
 });
 
 //Configuracion de la base de datos mongo
-const MongoClient = require('mongodb').MongoClient;
+const mongo = require('mongodb');
 const uri = "mongodb+srv://admin:admin@cluster0.xk8rxrb.mongodb.net/?retryWrites=true&w=majority";
 const dbName = "AccessPath"
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const client = new mongo.MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 const gestorBD = require('./src/services/gestorBD');
-gestorBD.init(app,client, dbName);
+gestorBD.init(mongo, client, dbName);
 
 //Validadores
 /*var sanitize = require('mongo-sanitize');
