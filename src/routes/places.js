@@ -83,6 +83,9 @@ module.exports = function (app, gestorBD) {
             return res.send({ status: 404, data: { msg: "No se encontró el sitio con el placeId proporcionado." } })
         }
 
+        if (!sitio[0].comentarios)
+            return res.send({data: { msg: 'No hay comentarios para este sitio' }});
+
         // Extraer los ids de usuario de los comentarios
         const userIds = sitio[0].comentarios.map(comentario => new gestorBD.mongo.ObjectId(comentario.user));
 
@@ -103,7 +106,7 @@ module.exports = function (app, gestorBD) {
         });
 
         // Enviar la respuesta
-        res.send({ status: 200, data: { msg: "Comentarios y detalles del usuario obtenidos correctamente", comentarios } });
+        res.send({ status: 200, data: { msg: "Comentarios obtenidos correctamente", comentarios } });
     });
 
 }
