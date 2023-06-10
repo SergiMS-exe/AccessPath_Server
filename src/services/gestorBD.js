@@ -89,6 +89,21 @@ module.exports = {
         }
         return result
     },
+    agregacion: async function (collectionType, pipeline) {
+        await this.client.connect();
+        console.log('Connected successfully to server');
+        const db = this.client.db(this.dbName);
+        const collection = db.collection(collectionType);
+
+        var result;
+        try {
+            result = await collection.aggregate(pipeline).toArray();
+        } catch (error) {
+            console.error("Error al ejecutar la agregacion: " + error);
+            result = null;
+        }
+        return result;
+    },
     createIndex: async function(collectionType, index){
         await this.client.connect();
         console.log('Connected successfully to server');
