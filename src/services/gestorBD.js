@@ -1,5 +1,3 @@
-const res = require("express/lib/response");
-
 module.exports = {
     mongo: null,
     client:null,
@@ -54,26 +52,7 @@ module.exports = {
         }
         return result;
     },
-    modificarItem: async function (collectionType, criterio, change, remove) {
-        await this.client.connect();
-        console.log('Connected successfully to server');
-        const db = this.client.db(this.dbName);
-        const collection = db.collection(collectionType);
-
-        var result;
-        try {
-            result = await collection.updateOne(criterio, {
-                $set: change,
-                $unset: remove
-            });
-        }
-        catch (error) {
-            console.error("Error al modificar: " + error)
-            result = null
-        }
-        return result
-    },
-    modificarItemPersonalizado: async function (collectionType, criterio, howToUpdate) {
+    modificarItem: async function (collectionType, criterio, howToUpdate) {
         await this.client.connect();
         console.log('Connected successfully to server');
         const db = this.client.db(this.dbName);
