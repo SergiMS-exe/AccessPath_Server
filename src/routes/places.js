@@ -54,12 +54,19 @@ module.exports = function (app, gestorBD) {
         const critToFindSite = {
             placeId: req.body.placeId
         }
+
+        const nuevoComentario = {
+            _id: new ObjectId(),
+            usuarioId: req.body.userId,
+            texto: req.body.comment
+        }
+
         const addCommentQuery = {
             $push: {
                 comentarios: {
                     _id: nuevoComentario._id,
-                    usuarioId: nuevoComentario.user,
-                    texto: nuevoComentario.text
+                    usuarioId: nuevoComentario.usuarioId,
+                    texto: nuevoComentario.texto
                 }
             }
         }
@@ -99,14 +106,14 @@ module.exports = function (app, gestorBD) {
             }
 
             comment.texto = newText;
-    
+
             const criterio = {
                 "placeId": sitio[0].placeId,
                 "comentarios._id": comment._id
             }
 
             const cambios = {
-                $set: {"comentarios.$": comment}
+                $set: { "comentarios.$": comment }
             };
 
             // Aplicar los cambios en la base de datos
@@ -121,6 +128,46 @@ module.exports = function (app, gestorBD) {
         }
     });
 
+
+    app.delete('/comment', async function (req, res) {
+        const commentId = req.body.commentId;
+        const placeId = req.body.placeId;
+
+        try {
+            // Encontrar el sitio que contiene el comentario
+            const sitio = await gestorBD.obtenerItem("sitios", { "placeId": placeId });
+
+            // Si no existe el sitio, regresar un error
+            if (sitio.length === 0) {
+                return res.status(404).send({ msg: "No se encontró el sitio con el placeId proporcionado." });
+            }
+
+            // Encontrar el índice del comentario en el array de comentarios
+            const commentIndex = sitio[0].comentarios.findIndex(comment => comment._id.toString() === commentId);
+
+            // Si no se encuentra el comentario, regresar un error
+            if (commentIndex === -1) {
+                return res.status(404).send({ msg: "No se encontró el comentario con el ID proporcionado." });
+            }
+
+            // Eliminar el comentario del array de comentarios
+            //sitio[0].comentarios.splice(commentIndex, 1);
+
+            const borrado = {
+                $pull: { "comentarios": { "_id": new ObjectId(commentId) } }
+            }
+
+            // Guardar los cambios en la base de datos
+            const deletinf = await gestorBD.modificarItem("sitios", { "placeId": placeId }, borrado);
+            console.log(deletinf)
+
+            // Enviar la respuesta de éxito
+            res.status(200).send({ msg: "Comentario eliminado correctamente" });
+        } catch (error) {
+            console.error("Error al eliminar el comentario:", error);
+            res.status(500).send({ msg: "Error al eliminar el comentario", error: error });
+        }
+    });
 
     app.get('/comments', async function (req, res) {
         // Primero, encontrar el sitio
