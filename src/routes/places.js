@@ -52,7 +52,7 @@ module.exports = function (app, gestorBD) {
 
     app.post('/comment', async function (req, res) {
         const critToFindSite = {
-            placeId: req.body.placeId
+            placeId: req.body.site.placeId
         }
 
         const nuevoComentario = {
@@ -70,18 +70,22 @@ module.exports = function (app, gestorBD) {
                 }
             }
         }
-        const sitio = await gestorBD.obtenerItem('sitios', critToFindSite);
+        try {
+            const sitio = await gestorBD.obtenerItem('sitios', critToFindSite);
+            //Llamar a controlador de errores de bd
 
-        //Llamar a controlador de errores de bd
+            if (sitio.length == 0) {
+                await gestorBD.insertarItem('sitios', req.body.site);
+            }
 
-        if (sitio.length == 0) {
-            await gestorBD.insertarItem('sitios', req.body.site);
+            const comment = gestorBD.modificarItem('sitios', critToFindSite, addCommentQuery)
+            console.log(comment);
+            //Controlar si se ha hecho modificacion o no y notificarlo al usuario
+            res.send({ status: 200, data: { msg: "Comentario enviado", comment: nuevoComentario } })
+        } catch (error) {
+            console.error("Error al insertar comentario: " + error)
+            res.status(500).send({ msg: "Error al enviar el comentario", error: error });
         }
-
-        const comment = gestorBD.modificarItem('sitios', critToFindSite, addCommentQuery)
-        console.log(comment);
-        //Controlar si se ha hecho modificacion o no y notificarlo al usuario
-        res.send({ status: 200, data: { msg: "Comentario enviado", comment: nuevoComentario } })
     })
 
     app.put('/comment', async function (req, res) {
