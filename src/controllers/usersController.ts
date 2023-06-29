@@ -5,7 +5,12 @@ import { logInUserService, registerUsuarioService } from "../services/usuariosSe
 const logInUserController = async (req: Request, res: Response) => {
     try {
         const responseLogIn = await logInUserService({ email: req.body.email, password: req.body.password });
-        res.send(responseLogIn)
+        //Check if the user was logged in
+        if (responseLogIn.error) {
+            res.send({ msg: responseLogIn.error })
+        } else {
+            res.send({ msg: "Sesion iniciada correctamente", user: responseLogIn.usuario })
+        }
     } catch (e) {
         handleHttp(res, "Error en el login: " + e)
     }
@@ -20,14 +25,17 @@ const registerUserController = async (req: Request, res: Response) => {
             nombre: req.body.nombre,
             apellidos: req.body.apellidos,
             tipoDiscapacidad: req.body.tipoDiscapacidad,
-          });          
-          //Check 
+        });
+        //Check if the user was created
+        if (responseReg.error) {
+            res.send({ msg: responseReg.error })
+        } else {
+            res.send({ msg: "Usuario creado correctamente", user: responseReg.usuario })
+        }
     } catch (e) {
-        handleHttp(res, "Error en el login: " + e)
-    } 
+        handleHttp(res, "Error en el registro: " + e)
+    }
 }
-
-//Generate a function that multpilies two params
 
 
 const dummyController = async (req: Request, res: Response) => {
