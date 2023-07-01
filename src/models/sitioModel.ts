@@ -1,7 +1,7 @@
 import { Schema, Types, model } from "mongoose";
 import Site from "../interfaces/Site";
 
-const SiteSchema = new Schema<Site>(
+const SitioSchema = new Schema<Site>(
     {
         placeId: {
             type: String,
@@ -33,5 +33,5 @@ const SiteSchema = new Schema<Site>(
     }
 );
 
-const SiteModel = model("sitios", SiteSchema);
-export default SiteModel;
+const SitioModel = model("sitios", SitioSchema);
+export default SitioModel;
