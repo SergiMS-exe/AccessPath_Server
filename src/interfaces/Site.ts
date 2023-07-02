@@ -1,3 +1,5 @@
+import CommentType from "./CommentType";
+
 type SiteLocation = {
     latitude: number;
     longitude: number;
@@ -7,6 +9,7 @@ type Site = {
     nombre: string;
     direccion: string;
     calificacionGoogle: number;
+    comments?: CommentType[];
     location: SiteLocation;
     types: string[];
 };

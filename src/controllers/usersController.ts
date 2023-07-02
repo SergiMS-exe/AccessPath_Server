@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { handleHttp } from "../utils/error.handle"
-import { logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
+import { getSavedSitesService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
 
 const logInUserController = async (req: Request, res: Response) => {
     try {
@@ -54,6 +54,24 @@ const saveSiteController = async (req: Request, res: Response) => {
 const unsaveSiteController = async (req: Request, res: Response) => {
     try {
         const responseUnsave = await unsaveSiteService(req.body.email, req.body.placeId);
+        if (responseUnsave.error) {
+            res.status(responseUnsave.status).send({ msg: responseUnsave.error })
+        } else {
+            res.send({ msg: "Sitio guardado correctamente" })
+        }
+    } catch (e) {
+        handleHttp(res, "Error en guardado de sitio: " + e)
+    }
+}
+
+const getSavedSitesController = async (req: Request, res: Response) => {
+    try {
+        const responseGetSaved = await getSavedSitesService(req.body.email);
+        if (responseGetSaved.error) {
+            res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })
+        } else {
+            res.send({ msg: "Sitios obtenidos correctamente", saved: responseGetSaved.savedSites })
+        }
     } catch (e) {
         handleHttp(res, "Error en guardado de sitio: " + e)
     }
@@ -68,4 +86,11 @@ const dummyController = async (req: Request, res: Response) => {
 }
 
 
-export { logInUserController, registerUserController, saveSiteController, unsaveSiteController, dummyController }
+export { 
+    logInUserController, 
+    registerUserController, 
+    saveSiteController, 
+    unsaveSiteController, 
+    getSavedSitesController, 
+    dummyController 
+}

@@ -6,8 +6,7 @@ import SitioModel from "../models/sitioModel";
 import Site from "../interfaces/Site";
 
 const registerUsuarioService = async (usuario: Person) => {
-    const userFound = await UsuarioModel.findOne({ email: usuario.email })
-    if (userFound) return { error: "Ya hay un usuario con ese email", status: 409 };
+    if (await getUserInDB(usuario.email)) return { error: "Ya hay un usuario con ese email", status: 409 };
 
     usuario.password = await encrypt(usuario.password!);
     const responseInsert = await UsuarioModel.create(usuario);
@@ -15,7 +14,7 @@ const registerUsuarioService = async (usuario: Person) => {
 }
 
 const logInUserService = async ({ email, password }: Auth) => {
-    const userFound = await UsuarioModel.findOne({ email })
+    const userFound = await getUserInDB(email);
     if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
 
     const passwdHash = userFound.password!;
@@ -27,15 +26,17 @@ const logInUserService = async ({ email, password }: Auth) => {
 }
 
 const saveSiteService = async (userEmail: string, site: Site) => {
-    const userFound = await UsuarioModel.findOne({ email: userEmail });
+    const userFound = await getUserInDB(userEmail);
     if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
 
     const savedPlaces = userFound.saved;
 
     //si no hay un sitio guardado en BD, se guarda
-    const siteFound = await SitioModel.findOne({ placeId: site.placeId })
-    if (!siteFound)
-        await SitioModel.create(site);
+    await SitioModel.findOneAndUpdate(
+        { placeId: site.placeId },
+        site,
+        { upsert: true }
+    );
 
     if (savedPlaces?.includes(site.placeId))
         return { error: "El sitio ya está guardado", status: 409 };
@@ -49,7 +50,7 @@ const saveSiteService = async (userEmail: string, site: Site) => {
 }
 
 const unsaveSiteService = async (userEmail: string, placeId: string) => {
-    const userFound = await UsuarioModel.findOne({ email: userEmail });
+    const userFound = await getUserInDB(userEmail);
     if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
 
     const savedPlaces = userFound.saved;
@@ -65,4 +66,27 @@ const unsaveSiteService = async (userEmail: string, placeId: string) => {
     }
 }
 
-export { registerUsuarioService, logInUserService, saveSiteService, unsaveSiteService }
+const getSavedSitesService = async (userEmail: string) => {
+    const userFound = await getUserInDB(userEmail);
+    if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
+
+    const savedPlaces = userFound.saved;
+    if (!savedPlaces) return { error: "No hay sitios guardados", status: 404 };
+
+    const savedSites = await SitioModel.find({ placeId: { $in: savedPlaces } });
+    return { savedSites };
+}
+
+//Utils
+const getUserInDB = async (userEmail: string) => {
+    const userFound = await UsuarioModel.findOne({ email: userEmail })
+    return userFound;
+}
+
+export {
+    registerUsuarioService,
+    logInUserService,
+    saveSiteService,
+    unsaveSiteService,
+    getSavedSitesService
+}
