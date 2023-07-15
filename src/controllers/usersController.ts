@@ -1,8 +1,9 @@
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import { handleHttp } from "../utils/error.handle"
-import { getSavedSitesService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
+import { deleteUsuarioService, getSavedSitesService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
 
-const logInUserController = async (req: Request, res: Response) => {
+const logInUserController = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.body.email || !req.body.password) return handleHttp(res, "Faltan datos en el body", 400)
     try {
         const responseLogIn = await logInUserService({ email: req.body.email, password: req.body.password });
         //Check if the user was logged in
@@ -13,6 +14,8 @@ const logInUserController = async (req: Request, res: Response) => {
         }
     } catch (e) {
         handleHttp(res, "Error en el login: " + e)
+    } finally {
+        next()
     }
 }
 
@@ -34,6 +37,20 @@ const registerUserController = async (req: Request, res: Response) => {
         }
     } catch (e) {
         handleHttp(res, "Error en el registro: " + e)
+    }
+}
+
+const deleteUserController = async (req: Request, res: Response) => {
+    try {
+        const responseDelete = await deleteUsuarioService(req.params.userId);
+        if (responseDelete.error) {
+            res.status(responseDelete.status).send({ msg: responseDelete.error })
+        }
+        else {
+            res.send({ msg: "Usuario borrado correctamente" })
+        }
+    } catch (e) {
+        handleHttp(res, "Error en el borrado de usuario: " + e)
     }
 }
 
@@ -66,7 +83,7 @@ const unsaveSiteController = async (req: Request, res: Response) => {
 
 const getSavedSitesController = async (req: Request, res: Response) => {
     try {
-        const responseGetSaved = await getSavedSitesService(req.body.email);
+        const responseGetSaved = await getSavedSitesService(req.params.userId);
         if (responseGetSaved.error) {
             res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })
         } else {
@@ -88,7 +105,8 @@ const dummyController = async (req: Request, res: Response) => {
 
 export { 
     logInUserController, 
-    registerUserController, 
+    registerUserController,
+    deleteUserController,
     saveSiteController, 
     unsaveSiteController, 
     getSavedSitesController, 

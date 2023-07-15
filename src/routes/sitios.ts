@@ -4,5 +4,7 @@ import { deleteCommentController, editCommentController, postCommentController }
 const router = Router();
 
 router.post("/comment", postCommentController);
-router.put("/comment", editCommentController);
-router.delete("/comment", deleteCommentController);
+router.put("/comment/:id", editCommentController);
+router.delete("/comment/:id", deleteCommentController);
+
+export { router }

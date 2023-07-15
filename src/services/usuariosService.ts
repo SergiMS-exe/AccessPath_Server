@@ -25,6 +25,12 @@ const logInUserService = async ({ email, password }: Auth) => {
     return { usuario: userFound };
 }
 
+const deleteUsuarioService = async (usuarioId: string) => {
+    const userFound = await UsuarioModel.findOneAndDelete({ _id: usuarioId });
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+    else return { status: 200 };
+}
+
 const saveSiteService = async (userEmail: string, site: Site) => {
     const userFound = await getUserInDB(userEmail);
     if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
@@ -86,6 +92,7 @@ const getUserInDB = async (userEmail: string) => {
 export {
     registerUsuarioService,
     logInUserService,
+    deleteUsuarioService,
     saveSiteService,
     unsaveSiteService,
     getSavedSitesService

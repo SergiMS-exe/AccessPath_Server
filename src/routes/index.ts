@@ -10,6 +10,8 @@ const cleanFileName = (fileName: string) => {
     return file;
 }
 
+router.get('/', dummyController)
+
 readdirSync(PATH_ROUTER).filter((fileName) => {
     const cleanName = cleanFileName(fileName);
     if (cleanName !== "index")
@@ -17,8 +19,5 @@ readdirSync(PATH_ROUTER).filter((fileName) => {
             router.use(`/${cleanName}`, moduleRouter.router)
         })
 })
-
-//router.use('/', dummyController)
-
 
 export { router } 
