@@ -3,23 +3,25 @@ import { handleHttp } from "../utils/error.handle"
 import { deleteUsuarioService, getSavedSitesService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
 
 const logInUserController = async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.body.email || !req.body.password) return handleHttp(res, "Faltan datos en el body", 400)
     try {
-        const responseLogIn = await logInUserService({ email: req.body.email, password: req.body.password });
-        //Check if the user was logged in
-        if (responseLogIn.error) {
-            res.status(responseLogIn.status).send({ msg: responseLogIn.error })
-        } else {
-            res.send({ msg: "Sesion iniciada correctamente", user: responseLogIn.usuario })
+        if (!req.body.email || !req.body.password) return handleHttp(res, "Faltan datos en el body", 400)
+        else {
+            const responseLogIn = await logInUserService({ email: req.body.email, password: req.body.password });
+            //Check if the user was logged in
+            if (responseLogIn.error) {
+                res.status(responseLogIn.status).send({ msg: responseLogIn.error })
+            } else {
+                res.status(200).send({ msg: "Sesion iniciada correctamente", user: responseLogIn.usuario })
+            }
         }
-    } catch (e) {
-        handleHttp(res, "Error en el login: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en el login: " + e.message)
     } finally {
         next()
     }
 }
 
-const registerUserController = async (req: Request, res: Response) => {
+const registerUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const responseReg = await registerUsuarioService({
             email: req.body.email,
@@ -33,64 +35,74 @@ const registerUserController = async (req: Request, res: Response) => {
         if (responseReg.error) {
             res.status(responseReg.status).send({ msg: responseReg.error })
         } else {
-            res.send({ msg: "Usuario creado correctamente", user: responseReg.usuario })
+            res.status(200).send({ msg: "Usuario creado correctamente", user: responseReg.usuario })
         }
-    } catch (e) {
-        handleHttp(res, "Error en el registro: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en el registro: " + e.message)
+    } finally {
+        next()
     }
 }
 
-const deleteUserController = async (req: Request, res: Response) => {
+const deleteUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const responseDelete = await deleteUsuarioService(req.params.userId);
         if (responseDelete.error) {
             res.status(responseDelete.status).send({ msg: responseDelete.error })
         }
         else {
-            res.send({ msg: "Usuario borrado correctamente" })
+            res.status(200).send({ msg: "Usuario borrado correctamente" })
         }
-    } catch (e) {
-        handleHttp(res, "Error en el borrado de usuario: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en el borrado de usuario: " + e.message)
+    } finally {
+        next()
     }
 }
 
-const saveSiteController = async (req: Request, res: Response) => {
+const saveSiteController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const responseSave = await saveSiteService(req.body.email, req.body.site);
 
         if (responseSave.error) {
             res.status(responseSave.status).send({ msg: responseSave.error })
         } else {
-            res.send({ msg: "Sitio guardado correctamente" })
+            res.status(200).send({ msg: "Sitio guardado correctamente" })
         }
-    } catch (e) {
-        handleHttp(res, "Error en guardado de sitio: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en guardado de sitio: " + e.message)
+    } finally {
+        next()
     }
 }
 
-const unsaveSiteController = async (req: Request, res: Response) => {
+const unsaveSiteController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const responseUnsave = await unsaveSiteService(req.body.email, req.body.placeId);
         if (responseUnsave.error) {
             res.status(responseUnsave.status).send({ msg: responseUnsave.error })
         } else {
-            res.send({ msg: "Sitio guardado correctamente" })
+            res.status(200).send({ msg: "Sitio guardado correctamente" })
         }
-    } catch (e) {
-        handleHttp(res, "Error en guardado de sitio: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en guardado de sitio: " + e.message)
+    } finally {
+        next()
     }
 }
 
-const getSavedSitesController = async (req: Request, res: Response) => {
+const getSavedSitesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const responseGetSaved = await getSavedSitesService(req.params.userId);
         if (responseGetSaved.error) {
             res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })
         } else {
-            res.send({ msg: "Sitios obtenidos correctamente", saved: responseGetSaved.savedSites })
+            res.status(200).send({ msg: "Sitios obtenidos correctamente", saved: responseGetSaved.savedSites })
         }
-    } catch (e) {
-        handleHttp(res, "Error en guardado de sitio: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en guardado de sitio: " + e.message)
+    } finally {
+        next()
     }
 }
 
@@ -103,12 +115,12 @@ const dummyController = async (req: Request, res: Response) => {
 }
 
 
-export { 
-    logInUserController, 
+export {
+    logInUserController,
     registerUserController,
     deleteUserController,
-    saveSiteController, 
-    unsaveSiteController, 
-    getSavedSitesController, 
-    dummyController 
+    saveSiteController,
+    unsaveSiteController,
+    getSavedSitesController,
+    dummyController
 }
