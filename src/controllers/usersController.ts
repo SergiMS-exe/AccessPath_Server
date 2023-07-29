@@ -26,7 +26,7 @@ const registerUserController = async (req: Request, res: Response, next: NextFun
         const responseReg = await registerUsuarioService({
             email: req.body.email,
             password: req.body.password,
-            saved: [req.body.saved], //TODO quitar
+            saved: req.body.saved, //TODO quitar
             nombre: req.body.nombre,
             apellidos: req.body.apellidos,
             tipoDiscapacidad: req.body.tipoDiscapacidad,
@@ -46,6 +46,7 @@ const registerUserController = async (req: Request, res: Response, next: NextFun
 
 const deleteUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        if (!req.params.userId) return handleHttp(res, "Falta el userId en los parametros", 400)
         const responseDelete = await deleteUsuarioService(req.params.userId);
         if (responseDelete.error) {
             res.status(responseDelete.status).send({ msg: responseDelete.error })
