@@ -1,11 +1,10 @@
 import { Types } from "mongoose";
 import { Request, Response, NextFunction } from 'express';
-import { registerUsuarioService } from "../../../src/services/usuariosService";
-import Person from "../../../src/interfaces/Person";
-import { registerUserController } from "../../../src/controllers/usersController";
-import { handleHttp } from "../../../src/utils/error.handle";
+import { registerUsuarioService } from "../../../../src/services/usuariosService";
+import Person from "../../../../src/interfaces/Person";
+import { registerUserController } from "../../../../src/controllers/usersController";
 
-jest.mock('../../../src/services/usuariosService', () => {
+jest.mock('../../../../src/services/usuariosService', () => {
     return {
         registerUsuarioService: jest.fn(),
     };
@@ -72,6 +71,23 @@ describe('registerUserController_function', () => {
 
         expect(res.status).toHaveBeenCalledWith(409);
         expect(res.send).toHaveBeenCalledWith({ msg: responseRegister.error });
+        expect(next).toHaveBeenCalled();
+    });
+
+    //Test that the function returns a 400 status code and error message when the input data is invalid
+    it('test_invalid_input_data', async () => {
+        const req: Request = {
+            body: {}
+        } as Request;
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            send: jest.fn()
+        } as unknown as Response;
+        const next: NextFunction = jest.fn();
+
+        await registerUserController(req, res, next);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith({ msg: 'Faltan datos en el body' });
         expect(next).toHaveBeenCalled();
     });
 

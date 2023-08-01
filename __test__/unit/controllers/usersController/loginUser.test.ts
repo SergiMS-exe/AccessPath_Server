@@ -1,12 +1,11 @@
 import { Types } from "mongoose";
 import { Request } from 'express';
 import { Response, NextFunction } from 'express';
-import { logInUserController } from "../../../src/controllers/usersController";
-import { logInUserService } from "../../../src/services/usuariosService";
-import { handleHttp } from "../../../src/utils/error.handle";
-import Person from '../../../src/interfaces/Person';
+import { logInUserController } from "../../../../src/controllers/usersController";
+import { logInUserService } from "../../../../src/services/usuariosService";
+import Person from '../../../../src/interfaces/Person';
 
-jest.mock('../../../src/services/usuariosService', () => {
+jest.mock('../../../../src/services/usuariosService', () => {
     return {
         logInUserService: jest.fn(),
     };

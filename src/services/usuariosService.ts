@@ -31,9 +31,9 @@ const deleteUsuarioService = async (usuarioId: string) => {
     else return { status: 200 };
 }
 
-const saveSiteService = async (userEmail: string, site: Site) => {
-    const userFound = await getUserInDB(userEmail);
-    if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
+const saveSiteService = async (usuarioId: string, site: Site) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
 
     const savedPlaces = userFound.saved;
 
@@ -47,7 +47,7 @@ const saveSiteService = async (userEmail: string, site: Site) => {
     if (savedPlaces?.includes(site.placeId))
         return { error: "El sitio ya está guardado", status: 409 };
     else {
-        const updateResult = await UsuarioModel.updateOne({ email: userEmail }, { $push: { saved: site.placeId } });
+        const updateResult = await UsuarioModel.updateOne({ _id: usuarioId }, { $push: { saved: site.placeId } });
         if (updateResult.modifiedCount === 1)
             return { status: 200 };
         else
@@ -55,16 +55,16 @@ const saveSiteService = async (userEmail: string, site: Site) => {
     }
 }
 
-const unsaveSiteService = async (userEmail: string, placeId: string) => {
-    const userFound = await getUserInDB(userEmail);
-    if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
+const unsaveSiteService = async (usuarioId: string, placeId: string) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
 
     const savedPlaces = userFound.saved;
 
     if (!savedPlaces?.includes(placeId))
         return { error: "El sitio ya se ha eliminado de la lista de guardados", status: 409 };
     else {
-        const updateResult = await UsuarioModel.updateOne({ email: userEmail }, { $pull: { saved: placeId } });
+        const updateResult = await UsuarioModel.updateOne({ _id: usuarioId }, { $pull: { saved: placeId } });
         if (updateResult.modifiedCount === 1)
             return { status: 200 };
         else
@@ -72,9 +72,9 @@ const unsaveSiteService = async (userEmail: string, placeId: string) => {
     }
 }
 
-const getSavedSitesService = async (userEmail: string) => {
-    const userFound = await getUserInDB(userEmail);
-    if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
+const getSavedSitesService = async (usuarioId: string) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
 
     const savedPlaces = userFound.saved;
     if (!savedPlaces) return { error: "No hay sitios guardados", status: 404 };
@@ -84,8 +84,8 @@ const getSavedSitesService = async (userEmail: string) => {
 }
 
 //Utils
-const getUserInDB = async (userEmail: string) => {
-    const userFound = await UsuarioModel.findOne({ email: userEmail })
+const getUserInDB = async (userId: string) => {
+    const userFound = await UsuarioModel.findOne({ _id: userId })
     return userFound;
 }
 

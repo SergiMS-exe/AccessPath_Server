@@ -23,13 +23,15 @@ const logInUserController = async (req: Request, res: Response, next: NextFuncti
 
 const registerUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const {email, password, nombre, apellidos, tipoDiscapacidad, saved} = req.body;
+        if (!email || !password || !nombre || !apellidos || !tipoDiscapacidad) return handleHttp(res, "Faltan datos en el body", 400)
         const responseReg = await registerUsuarioService({
-            email: req.body.email,
-            password: req.body.password,
-            saved: req.body.saved, //TODO quitar
-            nombre: req.body.nombre,
-            apellidos: req.body.apellidos,
-            tipoDiscapacidad: req.body.tipoDiscapacidad,
+            email: email,
+            password: password,
+            saved: saved, //TODO quitar
+            nombre: nombre,
+            apellidos: apellidos,
+            tipoDiscapacidad: tipoDiscapacidad,
         });
         //Check if the user was created
         if (responseReg.error) {
@@ -63,7 +65,9 @@ const deleteUserController = async (req: Request, res: Response, next: NextFunct
 
 const saveSiteController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const responseSave = await saveSiteService(req.body.email, req.body.site);
+        if (!req.body.userId || !req.body.site) return handleHttp(res, "Faltan datos en el body", 400);
+
+        const responseSave = await saveSiteService(req.body.userId, req.body.site);
 
         if (responseSave.error) {
             res.status(responseSave.status).send({ msg: responseSave.error })
@@ -79,11 +83,13 @@ const saveSiteController = async (req: Request, res: Response, next: NextFunctio
 
 const unsaveSiteController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const responseUnsave = await unsaveSiteService(req.body.email, req.body.placeId);
+        if (!req.body.userId || !req.body.placeId) return handleHttp(res, "Faltan datos en el body", 400);
+
+        const responseUnsave = await unsaveSiteService(req.body.userId, req.body.placeId);
         if (responseUnsave.error) {
             res.status(responseUnsave.status).send({ msg: responseUnsave.error })
         } else {
-            res.status(200).send({ msg: "Sitio guardado correctamente" })
+            res.status(200).send({ msg: "Sitio eliminado correctamente de la lista de guardados" })
         }
     } catch (e: any) {
         handleHttp(res, "Error en guardado de sitio: " + e.message)
@@ -94,6 +100,8 @@ const unsaveSiteController = async (req: Request, res: Response, next: NextFunct
 
 const getSavedSitesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        if (!req.params.userId) return handleHttp(res, "Falta el userId en los parametros", 400)
+        
         const responseGetSaved = await getSavedSitesService(req.params.userId);
         if (responseGetSaved.error) {
             res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })

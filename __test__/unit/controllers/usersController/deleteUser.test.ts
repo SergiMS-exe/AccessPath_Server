@@ -1,8 +1,8 @@
-import { deleteUserController } from "../../../src/controllers/usersController";
-import { deleteUsuarioService } from "../../../src/services/usuariosService";
+import { deleteUserController } from "../../../../src/controllers/usersController";
+import { deleteUsuarioService } from "../../../../src/services/usuariosService";
 import { Request, Response, NextFunction } from 'express';
 
-jest.mock('../../../src/services/usuariosService', () => {
+jest.mock('../../../../src/services/usuariosService', () => {
     return {
         deleteUsuarioService: jest.fn(),
     };
