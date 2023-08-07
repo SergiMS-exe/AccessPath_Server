@@ -9,6 +9,11 @@ jest.mock('../../../../src/services/usuariosService', () => {
 });
 
 describe('deleteUserController_function', () => {
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     // Tests that the function returns a 200 status code and success message when the user is deleted successfully
     it('test_successful_user_deletion', async () => {
         const req: Partial<Request> = {

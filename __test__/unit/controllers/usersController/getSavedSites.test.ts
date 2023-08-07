@@ -7,27 +7,8 @@ jest.mock("../../../../src/services/usuariosService", () => ({
 
 describe('getSavedSitesController_function', () => {
 
-    afterEach(() => {
-        jest.resetAllMocks();
-    });
-
-    // Tests that 400 status code and error message are returned when userId is missing from params
-    it('should return 400 with error message when userId is missing from params', async () => {
-        const req = { params: {} };
-        const res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
-        const next = jest.fn();
-
-        (getSavedSitesService as jest.MockedFunction<typeof getSavedSitesService>).mockResolvedValueOnce(
-            {
-                error: 'Falta el userId en los parametros',
-                status: 400
-            }
-        );
-
-        await getSavedSitesController(req as any, res as any, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.send).toHaveBeenCalledWith({ msg: 'Falta el userId en los parametros' });
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
     // Tests that 404 status code and error message are returned when user does not exist
@@ -98,6 +79,25 @@ describe('getSavedSitesController_function', () => {
 
         expect(res.status).toHaveBeenCalledWith(500)
         expect(res.send).toHaveBeenCalledWith({ msg: 'Error en guardado de sitio: Error in getSavedSitesService' })
+    });
+
+    // Tests that 400 status code and error message are returned when userId is missing from params
+    it('should return 400 with error message when userId is missing from params', async () => {
+        const req = { params: {} };
+        const res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
+        const next = jest.fn();
+
+        (getSavedSitesService as jest.MockedFunction<typeof getSavedSitesService>).mockResolvedValueOnce(
+            {
+                error: 'Falta el userId en los parametros',
+                status: 400
+            }
+        );
+
+        await getSavedSitesController(req as any, res as any, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith({ msg: 'Falta el userId en los parametros' });
     });
 
 });

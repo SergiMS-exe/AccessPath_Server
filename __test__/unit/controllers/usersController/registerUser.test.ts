@@ -11,6 +11,11 @@ jest.mock('../../../../src/services/usuariosService', () => {
 });
 
 describe('registerUserController_function', () => {
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     // Tests that a new user is successfully created with valid input data
     it('test_successful_user_creation', async () => {
         const req: Request = {

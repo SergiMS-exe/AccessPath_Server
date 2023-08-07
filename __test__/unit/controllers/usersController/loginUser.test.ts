@@ -12,6 +12,11 @@ jest.mock('../../../../src/services/usuariosService', () => {
 });
 
 describe('logInUserController_function', () => {
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     // Tests that the function returns a 200 status code, success message, and user object when the user logs in successfully
     it('test_successful_login', async () => {
         const req: Request = {

@@ -9,6 +9,11 @@ jest.mock('../../../../src/services/usuariosService', () => {
 });
 
 describe('saveSiteController_function', () => {
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     // Tests that the function returns a 200 status code and a success message when the site is saved successfully
     it('test_save_site_successfully', async () => {
         const req = {

@@ -7,6 +7,10 @@ jest.mock("../../../../src/services/usuariosService", () => ({
 
 describe('unsaveSiteController_function', () => {
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     // Tests that the function responds with status 400 and an error message when the email or placeId is missing from the request body
     it('responds with status 400 and an error message when email or placeId is missing', async () => {
         const req = { body: {} };
