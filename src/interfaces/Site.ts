@@ -9,7 +9,7 @@ type Site = {
     nombre: string;
     direccion: string;
     calificacionGoogle: number;
-    comments?: CommentType[];
+    comentarios?: CommentType[];
     location: SiteLocation;
     types: string[];
 };

@@ -1,6 +1,8 @@
 import CommentType from "../interfaces/CommentType"
 import Site from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
+import UsuarioModel from "../models/usuarioModel";
+import { ObjectId } from 'mongodb';
 
 const postCommentService = async (comment: CommentType, place: Site) => {
     const updateResult = await SitioModel.findOneAndUpdate(
@@ -18,10 +20,10 @@ const postCommentService = async (comment: CommentType, place: Site) => {
 
 
 
-const editCommentService = async (comment: CommentType, placeId: string) => {
+const editCommentService = async (placeId: string, commentId: string, newText: string) => {
     const updateResult = await SitioModel.findOneAndUpdate(
-        { placeId: placeId, "comments._id": comment._id },
-        { $set: { "comments.$.texto": comment.texto } },
+        { placeId: placeId, "comments._id": commentId },
+        { $set: { "comments.$.texto": newText } },
         { new: true }
     );
 
@@ -51,8 +53,36 @@ const deleteCommentService = async (commentId: string, placeId: string) => {
     }
 };
 
+const getCommentsService = async (placeId: string) => {
+    const siteFound = await SitioModel.findOne({ placeId: placeId });
+
+    if (!siteFound) {
+        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
+    } else {
+        const siteFoundObj = siteFound.toObject();
+        if (siteFoundObj.comentarios) {
+            for (let i = 0; i < siteFoundObj.comentarios.length; i++) {
+                const comment = siteFoundObj.comentarios[i];
+                const user = await UsuarioModel.findOne({ _id: comment.usuarioId });
+                if (user) {
+                    delete siteFoundObj.comentarios[i].usuarioId;
+                    siteFoundObj.comentarios[i].usuario = {
+                        _id: user._id,
+                        nombre: user.nombre,
+                        apellidos: user.apellidos
+                    };
+                } else {
+                    console.log("no user found");
+                }
+            }
+        }
+        return { comentarios: siteFoundObj.comentarios };
+    }
+}
+
 export {
     postCommentService,
     editCommentService,
-    deleteCommentService
+    deleteCommentService,
+    getCommentsService
 }

@@ -3,6 +3,10 @@ import Person  from "../interfaces/Person";
 
 const UsuarioSchema = new Schema<Person>(
     {
+        _id: {
+            type: Types.ObjectId,
+            required: false
+        },
         nombre: {
             type: String,
             required: true

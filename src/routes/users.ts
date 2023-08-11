@@ -13,9 +13,9 @@ const router = Router();
 
 router.post("/login", logMiddleware, logInUserController);
 router.post("/register", registerUserController);
-router.delete("/deleteUser/:userId", deleteUserController);
-router.post("/saveSite", saveSiteController);
-router.post("/unsaveSite", unsaveSiteController);
-router.get("/getSavedSites/:userId", getSavedSitesController);
+router.delete("/:userId", deleteUserController);
+router.put("/saveSite", saveSiteController);
+router.put("/unsaveSite", unsaveSiteController);
+router.get("/savedSites/:userId", getSavedSitesController);
 
 export { router };

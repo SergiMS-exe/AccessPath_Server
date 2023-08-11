@@ -1,6 +1,6 @@
 type CommentWithUserId = {
     _id: string;
-    userId: string;
+    usuarioId: string;
     usuario?: never; // Nunca puede existir si userId está presente
     texto: string;
     date: Date;
@@ -8,7 +8,7 @@ type CommentWithUserId = {
   
   type CommentWithUsuario = {
     _id: string;
-    userId?: never; // Nunca puede existir si usuario está presente
+    usuarioId?: never; // Nunca puede existir si usuario está presente
     usuario: {
       _id: string;
       nombre: string;
