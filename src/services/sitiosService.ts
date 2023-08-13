@@ -1,36 +1,45 @@
-import CommentType from "../interfaces/CommentType"
-import Site from "../interfaces/Site";
+import { ObjectId } from "mongodb";
+import CommentType from "../interfaces/CommentType";
+import { Site } from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
-import { ObjectId } from 'mongodb';
 
-const postCommentService = async (comment: CommentType, place: Site) => {
+const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
+
+    const commentToInsert: CommentType = {
+        _id: new ObjectId(),
+        usuarioId: comment.usuarioId,
+        texto: comment.texto,
+        date: new Date(),
+    };
+
     const updateResult = await SitioModel.findOneAndUpdate(
         { placeId: place.placeId },
-        { $push: { comments: comment }, $setOnInsert: place },
+        { $push: { comentarios: commentToInsert }, $setOnInsert: place },
         { upsert: true, new: true }
     );
 
     if (updateResult) {
-        return { status: 200, newPlace: updateResult };
+        return { status: 200, newPlace: updateResult, comment: commentToInsert };
     } else {
         return { error: "No se pudo guardar el comentario", status: 500 };
     }
+
 };
 
 
 
 const editCommentService = async (placeId: string, commentId: string, newText: string) => {
     const updateResult = await SitioModel.findOneAndUpdate(
-        { placeId: placeId, "comments._id": commentId },
-        { $set: { "comments.$.texto": newText } },
-        { new: true }
+        { placeId: placeId, "comentarios._id": commentId },
+        { $set: { "comentarios.$.texto": newText } },
+        { new: true, rawResult: true }
     );
 
-    if (!updateResult) {
+    if (updateResult.ok) {
+        return { status: 200, newPlace: updateResult.value };
+    } else if (updateResult.value === null) {
         return { error: "No hay un sitio registrado con ese placeId", status: 404 };
-    } else if (updateResult.isModified()) {
-        return { status: 200, newPlace: updateResult };
     } else {
         return { error: "No se pudo editar el comentario", status: 500 };
     }
@@ -40,14 +49,14 @@ const editCommentService = async (placeId: string, commentId: string, newText: s
 const deleteCommentService = async (commentId: string, placeId: string) => {
     const updateResult = await SitioModel.findOneAndUpdate(
         { placeId: placeId },
-        { $pull: { comments: { _id: commentId } } },
-        { new: true }
+        { $pull: { comentarios: { _id: commentId } } },
+        { new: true, rawResult: true }
     );
 
-    if (!updateResult) {
-        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
-    } else if (updateResult.isModified()) {
+    if (updateResult.ok) {
         return { status: 200, newPlace: updateResult };
+    } else if (updateResult.value === null) {
+        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
     } else {
         return { error: "No se pudo eliminar el comentario", status: 500 };
     }
@@ -64,6 +73,7 @@ const getCommentsService = async (placeId: string) => {
             for (let i = 0; i < siteFoundObj.comentarios.length; i++) {
                 const comment = siteFoundObj.comentarios[i];
                 const user = await UsuarioModel.findOne({ _id: comment.usuarioId });
+                
                 if (user) {
                     delete siteFoundObj.comentarios[i].usuarioId;
                     siteFoundObj.comentarios[i].usuario = {

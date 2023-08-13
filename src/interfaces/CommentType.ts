@@ -1,5 +1,7 @@
+import { ObjectId } from "mongodb";
+
 type CommentWithUserId = {
-    _id: string;
+    _id: ObjectId;
     usuarioId: string;
     usuario?: never; // Nunca puede existir si userId está presente
     texto: string;
@@ -7,7 +9,7 @@ type CommentWithUserId = {
   };
   
   type CommentWithUsuario = {
-    _id: string;
+    _id: ObjectId;
     usuarioId?: never; // Nunca puede existir si usuario está presente
     usuario: {
       _id: string;

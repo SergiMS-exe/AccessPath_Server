@@ -6,18 +6,18 @@ const getNearPlaces = () => { }
 
 const postCommentController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.body.comment || !req.body.placeId || !req.body.comment.userId || !req.body.comment.text || req.body.comment.text.trim().length < 1) {
+        if (!req.body.comment || !req.body.site || !req.body.comment.usuarioId || !req.body.comment.texto || req.body.comment.texto.trim().length < 1) {
             return handleHttp(res, "Faltan datos en el body", 400)
         }
 
-        const postCommentResponse = await postCommentService(req.body.comment, req.body.placeId);
+        const postCommentResponse = await postCommentService(req.body.comment, req.body.site);
 
         if (postCommentResponse.error) {
-            res.status(postCommentResponse.status).send({ msg: postCommentResponse.error })
+            res.status(postCommentResponse.status).send({ msg: postCommentResponse.error });
         } else {
-            const comment = postCommentResponse.newPlace?.comentarios?.find(comment => comment.usuarioId === req.body.comment.userId)
-            res.status(200).send({ msg: "Comentario enviado correctamente", comment })
+            res.status(200).send({ msg: "Comentario enviado correctamente", comment: postCommentResponse.comment });
         }
+
     } catch (e) {
         handleHttp(res, "Error en el envio de comentario: " + e)
     } finally {
@@ -36,11 +36,10 @@ const editCommentController = async (req: Request, res: Response, next: NextFunc
         }
 
         const editCommentResponse = await editCommentService(req.params.placeId, commentId, newText);
-
         if (editCommentResponse.error) {
             res.status(editCommentResponse.status).send({ msg: editCommentResponse.error })
         } else {
-            const comment = editCommentResponse.newPlace?.comentarios?.find(comment => comment.usuarioId === req.body.comment.userId)
+            const comment = editCommentResponse.newPlace?.comentarios?.find(comment => comment._id === req.body.commentId)
             res.send({ msg: "Comentario editado correctamente", comment })
         }
     } catch (e) {
@@ -52,16 +51,16 @@ const editCommentController = async (req: Request, res: Response, next: NextFunc
 
 const deleteCommentController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.params.placeId || !req.params.commentId) {
+        const { commentId, placeId } = req.params
+        if (!placeId || !commentId) {
             return handleHttp(res, "Faltan datos en los parametros", 400)
         }
-
-        const deleteCommentResponse = await deleteCommentService(req.params.commentId, req.params.placeId);
+        const deleteCommentResponse = await deleteCommentService(commentId as string, placeId as string);
 
         if (deleteCommentResponse.error) {
             res.status(deleteCommentResponse.status).send({ msg: deleteCommentResponse.error })
         } else {
-            res.status(200).send({ msg: "Comentario eliminado correctamente", comment: req.body.comment })
+            res.status(200).send({ msg: "Comentario eliminado correctamente" })
         }
     } catch (e) {
         handleHttp(res, "Error en la eliminacion de comentario: " + e)
@@ -77,7 +76,6 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
             return handleHttp(res, "Faltan datos en los parametros", 400)
         }
         const getCommentsResponse = await getCommentsService(placeId as string);
-        console.log(getCommentsResponse)
 
         if (getCommentsResponse.error) {
             res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })

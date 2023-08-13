@@ -3,7 +3,7 @@ import Auth from "../interfaces/Auth";
 import UsuarioModel from "../models/usuarioModel"
 import { encrypt, verified } from "../utils/bcrypt.handle";
 import SitioModel from "../models/sitioModel";
-import Site from "../interfaces/Site";
+import { Site } from "../interfaces/Site";
 
 const registerUsuarioService = async (usuario: Person) => {
     if (await getUserInDB(usuario.email)) return { error: "Ya hay un usuario con ese email", status: 409 };
@@ -14,7 +14,7 @@ const registerUsuarioService = async (usuario: Person) => {
 }
 
 const logInUserService = async ({ email, password }: Auth) => {
-    const userFound = await getUserInDB(email);
+    const userFound = await UsuarioModel.findOne({ email: email })
     if (!userFound) return { error: "No hay un usuario registrado con ese email", status: 404 };
 
     const passwdHash = userFound.password!;
