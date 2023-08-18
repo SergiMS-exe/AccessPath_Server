@@ -15,22 +15,38 @@ describe('editCommentController', () => {
 
     // Tests that a valid request body results in a successful comment edit
     it('should edit comment when request body is valid', async () => {
-        const req = { body: { comment: { _id: '123', text: 'new comment', userId: '456' }, placeId: '789' } };
+        const req = {
+            params: {
+                placeId: 'placeId'
+            },
+            body: {
+                commentId: 'commentId',
+                newText: 'newText'
+            }
+        } as any;
         const res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
         const next = jest.fn();
-        const serviceResponse = { newPlace: { comments: [{ _id: '123', texto: 'new comment', userId: '456' }] } } as any;
+        const serviceResponse = { editedComment: { _id: '123', texto: 'new comment', userId: '456' } } as any;
         (editCommentService as jest.MockedFunction<typeof editCommentService>).mockResolvedValueOnce(serviceResponse);
 
         await editCommentController(req as any, res as any, next);
 
         expect(editCommentService).toHaveBeenCalled();
-        expect(res.send).toHaveBeenCalledWith({ msg: 'Comentario editado correctamente', comment: serviceResponse.newPlace.comments[0] });
+        expect(res.send).toHaveBeenCalledWith({ msg: 'Comentario editado correctamente', newComment: serviceResponse.editedComment });
         expect(next).toHaveBeenCalled();
     });
 
     // Tests that a comment not found in place results in a 404 error
     it('should return 404 error when comment is not found in place', async () => {
-        const req = { body: { comment: { _id: '123', text: 'new comment', userId: '456' }, placeId: '789' } } as any;
+        const req = {
+            params: {
+                placeId: 'placeId'
+            },
+            body: {
+                commentId: 'unknownCommentId',
+                newText: 'newText'
+            }
+        } as any;
         const res = { status: jest.fn().mockReturnThis(), send: jest.fn() } as any;
         const serviceResponse = { error: 'No hay un sitio registrado con ese placeId', status: 404 };
         const next = jest.fn();
@@ -47,7 +63,7 @@ describe('editCommentController', () => {
 
     // Tests that missing comment or placeId in request body results in a 400 error
     it('should return 400 error when comment or placeId is missing in request body', async () => {
-        const req = { body: {} } as any;
+        const req = { params: {}, body: {} } as any;
         const res = { status: jest.fn().mockReturnThis(), send: jest.fn() } as any;
         const next = jest.fn();
 
@@ -55,13 +71,21 @@ describe('editCommentController', () => {
 
         expect(editCommentService).not.toHaveBeenCalled();
         expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.send).toHaveBeenCalledWith({ msg: 'Faltan datos en el body' });
+        expect(res.send).toHaveBeenCalledWith({ msg: 'Faltan datos en los parametros' });
         expect(next).toHaveBeenCalled();
     });
 
     // Tests that an error in editCommentService results in a 500 error
     it('should return 500 error when editCommentService throws an error', async () => {
-        const req = { body: { comment: { _id: '123', text: 'new comment', userId: '456' }, placeId: '789' } } as any;
+        const req = {
+            params: {
+                placeId: 'placeId'
+            },
+            body: {
+                commentId: 'commentId',
+                newText: 'newText'
+            }
+        } as any;
         const res = { status: jest.fn().mockReturnThis(), send: jest.fn() } as any;
         const next = jest.fn();
 
@@ -77,7 +101,15 @@ describe('editCommentController', () => {
 
     // Tests that empty comment text results in a 400 error
     it('should return 400 error when comment text is empty', async () => {
-        const req = { body: { comment: { _id: '123', text: '', userId: '456' }, placeId: '789' } } as any;
+        const req = {
+            params: {
+                placeId: 'placeId'
+            },
+            body: {
+                commentId: 'commentId',
+                newText: ''
+            }
+        } as any;
         const res = { status: jest.fn().mockReturnThis(), send: jest.fn() } as any;
         const next = jest.fn();
 
@@ -91,7 +123,15 @@ describe('editCommentController', () => {
 
     // Tests that a comment with non-existent userId results in null comment in response
     it('should return null comment when userId does not exist in edited comment', async () => {
-        const req = { body: { comment: { _id: '123', text: 'new comment', userId: '456' }, placeId: '789' } } as any;
+        const req = {
+            params: {
+                placeId: 'placeId'
+            },
+            body: {
+                commentId: 'commentId',
+                newText: 'newText'
+            }
+        } as any;
         const res = { send: jest.fn() } as any;
         const next = jest.fn();
 

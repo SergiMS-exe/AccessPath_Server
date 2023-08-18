@@ -37,7 +37,15 @@ const editCommentService = async (placeId: string, commentId: string, newText: s
     );
 
     if (updateResult.ok) {
-        return { status: 200, newPlace: updateResult.value };
+        // Encuentra el comentario específico en la lista actualizada de comentarios.
+        const editedComment = updateResult.value?.comentarios?.find(comment => comment._id.toString() === commentId);
+
+        // Si el comentario no se encuentra (aunque esto es poco probable porque acaba de ser actualizado), devuelve un error.
+        if (!editedComment) {
+            return { error: "Error al recuperar el comentario editado", status: 500 };
+        }
+
+        return { status: 200, editedComment };
     } else if (updateResult.value === null) {
         return { error: "No hay un sitio registrado con ese placeId", status: 404 };
     } else {
@@ -66,14 +74,14 @@ const getCommentsService = async (placeId: string) => {
     const siteFound = await SitioModel.findOne({ placeId: placeId });
 
     if (!siteFound) {
-        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
+        return { comentarios: [] };
     } else {
         const siteFoundObj = siteFound.toObject();
         if (siteFoundObj.comentarios) {
             for (let i = 0; i < siteFoundObj.comentarios.length; i++) {
                 const comment = siteFoundObj.comentarios[i];
                 const user = await UsuarioModel.findOne({ _id: comment.usuarioId });
-                
+
                 if (user) {
                     delete siteFoundObj.comentarios[i].usuarioId;
                     siteFoundObj.comentarios[i].usuario = {
@@ -82,11 +90,12 @@ const getCommentsService = async (placeId: string) => {
                         apellidos: user.apellidos
                     };
                 } else {
-                    console.log("no user found");
+                    return { error: "Usuario no encontrado para el comentario", status: 500 };
                 }
             }
-        }
-        return { comentarios: siteFoundObj.comentarios };
+            return { comentarios: siteFoundObj.comentarios };
+        } else
+            return { comentarios: [] };
     }
 }
 

@@ -34,7 +34,7 @@ describe('registerUserController_function', () => {
         } as unknown as Response;
         const next: NextFunction = jest.fn();
         const mockUser: Person = {
-            _id: new Types.ObjectId().toHexString(),
+            _id: new Types.ObjectId(),
             nombre: 'Test',
             apellidos: 'User',
             email: 'test@test.com',
@@ -166,7 +166,7 @@ describe('registerUserController_function', () => {
         } as unknown as Response;
         const next: NextFunction = jest.fn();
         const mockUser: Person = {
-            _id: new Types.ObjectId().toHexString(),
+            _id: new Types.ObjectId(),
             nombre: 'Test',
             apellidos: 'User',
             email: 'test@test.com',

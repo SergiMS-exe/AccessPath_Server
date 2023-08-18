@@ -39,8 +39,8 @@ const editCommentController = async (req: Request, res: Response, next: NextFunc
         if (editCommentResponse.error) {
             res.status(editCommentResponse.status).send({ msg: editCommentResponse.error })
         } else {
-            const comment = editCommentResponse.newPlace?.comentarios?.find(comment => comment._id === req.body.commentId)
-            res.send({ msg: "Comentario editado correctamente", comment })
+            
+            res.send({ msg: "Comentario editado correctamente", newComment: editCommentResponse.editedComment })
         }
     } catch (e) {
         handleHttp(res, "Error en la edicion de comentario: " + e)

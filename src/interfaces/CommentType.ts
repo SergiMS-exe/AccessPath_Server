@@ -12,7 +12,7 @@ type CommentWithUserId = {
     _id: ObjectId;
     usuarioId?: never; // Nunca puede existir si usuario está presente
     usuario: {
-      _id: string;
+      _id: ObjectId;
       nombre: string;
       apellidos: string;
     };

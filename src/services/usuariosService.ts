@@ -4,10 +4,11 @@ import UsuarioModel from "../models/usuarioModel"
 import { encrypt, verified } from "../utils/bcrypt.handle";
 import SitioModel from "../models/sitioModel";
 import { Site } from "../interfaces/Site";
+import { ObjectId } from "mongodb";
 
 const registerUsuarioService = async (usuario: Person) => {
-    if (await getUserInDB(usuario.email)) return { error: "Ya hay un usuario con ese email", status: 409 };
-
+    if (await UsuarioModel.findOne({ email: usuario.email })) return { error: "Ya hay un usuario con ese email", status: 409 };
+    usuario._id = new ObjectId();
     usuario.password = await encrypt(usuario.password!);
     const responseInsert = await UsuarioModel.create(usuario);
     return { usuario: responseInsert };
