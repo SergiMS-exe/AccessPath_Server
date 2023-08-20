@@ -1,10 +1,9 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, Types, model, ObjectId } from "mongoose";
 import CommentType from "../interfaces/CommentType";
-import { ObjectId } from "mongodb";
 import { Site } from "../interfaces/Site";
 
 const CommentSchema = new Schema<CommentType>({
-    _id: { type: ObjectId, required: true },
+    _id: { type: Types.ObjectId, required: true },
     usuarioId: { type: String },
     usuario: {
         _id: { type: String },
