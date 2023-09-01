@@ -9,9 +9,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = void 0;
+exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
+const sitesIndexController = (req, res, next) => {
+    res.json({
+        availableSubendpoints: [
+            {
+                path: "/comments",
+                method: "GET"
+            },
+            {
+                path: "/comment",
+                method: "POST",
+                body: ["content", "author"]
+            },
+            {
+                path: "/comment/:placeId",
+                method: "PUT",
+                params: ["placeId"],
+                body: ["content"]
+            },
+            {
+                path: "/comment/:placeId/:commentId",
+                method: "DELETE",
+                params: ["placeId", "commentId"]
+            }
+        ]
+    });
+};
+exports.sitesIndexController = sitesIndexController;
 const getNearPlaces = () => { };
 exports.getNearPlaces = getNearPlaces;
 const postCommentController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

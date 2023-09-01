@@ -3,7 +3,7 @@ import CommentType from "../interfaces/CommentType";
 import { Site } from "../interfaces/Site";
 
 const CommentSchema = new Schema<CommentType>({
-    _id: { type: Types.ObjectId, required: true },
+    _id: { type: Schema.Types.ObjectId, required: true },
     usuarioId: { type: String },
     usuario: {
         _id: { type: String },

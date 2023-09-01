@@ -5,12 +5,14 @@ import {
     deleteUserController,
     registerUserController, 
     saveSiteController, 
-    unsaveSiteController 
+    unsaveSiteController, 
+    usersIndexController
 } from "../controllers/usersController";
 import { logMiddleware } from "../middleware/logger";
 
 const router = Router();
 
+router.get("/", usersIndexController);
 router.post("/login", logMiddleware, logInUserController);
 router.post("/register", registerUserController);
 router.delete("/:userId", deleteUserController);

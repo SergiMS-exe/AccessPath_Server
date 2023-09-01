@@ -2,6 +2,43 @@ import { NextFunction, Request, Response } from "express"
 import { handleHttp } from "../utils/error.handle"
 import { deleteUsuarioService, getSavedSitesService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
 
+const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
+    res.json({
+        availableSubendpoints: [
+            { 
+                path: "/login", 
+                method: "POST", 
+                body: ["username", "password"] 
+            },
+            { 
+                path: "/register", 
+                method: "POST", 
+                body: ["username", "password", "email"] 
+            },
+            { 
+                path: "/:userId", 
+                method: "DELETE", 
+                params: ["userId"] 
+            },
+            { 
+                path: "/saveSite", 
+                method: "PUT", 
+                body: ["siteId"] 
+            },
+            { 
+                path: "/unsaveSite", 
+                method: "PUT", 
+                body: ["siteId"] 
+            },
+            { 
+                path: "/savedSites/:userId", 
+                method: "GET", 
+                params: ["userId"] 
+            }
+        ]
+    });
+};
+
 const logInUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body.email || !req.body.password) return handleHttp(res, "Faltan datos en el body", 400)
@@ -125,6 +162,7 @@ const dummyController = async (req: Request, res: Response) => {
 
 
 export {
+    usersIndexController,
     logInUserController,
     registerUserController,
     deleteUserController,

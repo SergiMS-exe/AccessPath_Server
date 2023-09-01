@@ -9,9 +9,46 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dummyController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = void 0;
+exports.dummyController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = exports.usersIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const usuariosService_1 = require("../services/usuariosService");
+const usersIndexController = (req, res, next) => {
+    res.json({
+        availableSubendpoints: [
+            {
+                path: "/login",
+                method: "POST",
+                body: ["username", "password"]
+            },
+            {
+                path: "/register",
+                method: "POST",
+                body: ["username", "password", "email"]
+            },
+            {
+                path: "/:userId",
+                method: "DELETE",
+                params: ["userId"]
+            },
+            {
+                path: "/saveSite",
+                method: "PUT",
+                body: ["siteId"]
+            },
+            {
+                path: "/unsaveSite",
+                method: "PUT",
+                body: ["siteId"]
+            },
+            {
+                path: "/savedSites/:userId",
+                method: "GET",
+                params: ["userId"]
+            }
+        ]
+    });
+};
+exports.usersIndexController = usersIndexController;
 const logInUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.body.email || !req.body.password)

@@ -2,6 +2,33 @@ import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
 import { deleteCommentService, editCommentService, getCommentsService, postCommentService } from "../services/sitiosService";
 
+const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
+    res.json({
+        availableSubendpoints: [
+            { 
+                path: "/comments", 
+                method: "GET" 
+            },
+            { 
+                path: "/comment", 
+                method: "POST", 
+                body: ["content", "author"] 
+            },
+            { 
+                path: "/comment/:placeId", 
+                method: "PUT", 
+                params: ["placeId"], 
+                body: ["content"] 
+            },
+            { 
+                path: "/comment/:placeId/:commentId", 
+                method: "DELETE", 
+                params: ["placeId", "commentId"] 
+            }
+        ]
+    });
+};
+
 const getNearPlaces = () => { }
 
 const postCommentController = async (req: Request, res: Response, next: NextFunction) => {
@@ -89,6 +116,7 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
     }
 }
 export {
+    sitesIndexController,
     getNearPlaces,
     postCommentController,
     editCommentController,

@@ -6,6 +6,7 @@ const usersController_1 = require("../controllers/usersController");
 const logger_1 = require("../middleware/logger");
 const router = (0, express_1.Router)();
 exports.router = router;
+router.get("/", usersController_1.usersIndexController);
 router.post("/login", logger_1.logMiddleware, usersController_1.logInUserController);
 router.post("/register", usersController_1.registerUserController);
 router.delete("/:userId", usersController_1.deleteUserController);

@@ -5,6 +5,7 @@ const express_1 = require("express");
 const sitiosController_1 = require("../controllers/sitiosController");
 const router = (0, express_1.Router)();
 exports.router = router;
+router.get("/", sitiosController_1.sitesIndexController);
 router.get("/comments", sitiosController_1.getCommentsController);
 router.post("/comment", sitiosController_1.postCommentController);
 router.put("/comment/:placeId", sitiosController_1.editCommentController);

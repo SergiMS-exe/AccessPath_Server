@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const CommentSchema = new mongoose_1.Schema({
-    _id: { type: mongoose_1.Types.ObjectId, required: true },
+    _id: { type: mongoose_1.Schema.Types.ObjectId, required: true },
     usuarioId: { type: String },
     usuario: {
         _id: { type: String },
