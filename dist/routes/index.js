@@ -1,44 +1,15 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const express_1 = require("express");
-const fs_1 = require("fs");
 const usersController_1 = require("../controllers/usersController");
-const PATH_ROUTER = `${__dirname}`;
+const users_1 = __importDefault(require("./users"));
+const sites_1 = __importDefault(require("./sites"));
 const router = (0, express_1.Router)();
 exports.router = router;
-const cleanFileName = (fileName) => {
-    const file = fileName.split(".").shift();
-    return file;
-};
 router.get('/', usersController_1.dummyController);
-(0, fs_1.readdirSync)(PATH_ROUTER).filter((fileName) => {
-    const cleanName = cleanFileName(fileName);
-    if (cleanName !== "index")
-        Promise.resolve(`${`./${cleanName}`}`).then(s => __importStar(require(s))).then((moduleRouter) => {
-            router.use(`/${cleanName}`, moduleRouter.router);
-        });
-});
+router.use('/users', users_1.default);
+router.use('/sites', sites_1.default);

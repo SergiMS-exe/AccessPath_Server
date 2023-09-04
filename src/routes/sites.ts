@@ -9,4 +9,4 @@ router.post("/comment", postCommentController);
 router.put("/comment/:placeId", editCommentController);
 router.delete("/comment/:placeId/:commentId", deleteCommentController);
 
-export { router }
+export default router

@@ -20,4 +20,4 @@ router.put("/saveSite", saveSiteController);
 router.put("/unsaveSite", unsaveSiteController);
 router.get("/savedSites/:userId", getSavedSitesController);
 
-export { router };
+export default router;
