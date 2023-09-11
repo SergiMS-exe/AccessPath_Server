@@ -23,18 +23,53 @@ CommentSchema.pre('save', function (next) {
         next();
     }
 });
+const LocationSchema = new mongoose_1.Schema({
+    latitude: Number,
+    longitude: Number
+});
+const ValoracionesSchema = new mongoose_1.Schema({
+    fisica: {
+        average: Number,
+        entrada: Number,
+        taza_bano: Number,
+        rampas: Number,
+        ascensores: Number,
+        pasillos: Number,
+        banos_adaptados: Number,
+        senaletica_clara: Number
+    },
+    sensorial: {
+        average: Number,
+        senaletica_braille: Number,
+        sistemas_amplificacion: Number,
+        iluminacion_adecuada: Number,
+        informacion_accesible: Number,
+        pictogramas_claros: Number
+    },
+    psiquico: {
+        average: Number,
+        informacion_simple: Number,
+        senaletica_intuitiva: Number,
+        espacios_tranquilos: Number,
+        interaccion_personal: Number
+    }
+});
 const SitioSchema = new mongoose_1.Schema({
     placeId: { type: String, required: true },
     nombre: { type: String, required: true },
     direccion: { type: String, required: true },
     calificacionGoogle: { type: Number, required: true },
     location: {
-        type: { latitude: Number, longitude: Number },
+        type: LocationSchema,
         required: true,
     },
     types: { type: [String], required: true },
     comentarios: {
         type: [CommentSchema],
+        required: false
+    },
+    valoraciones: {
+        type: ValoracionesSchema,
         required: false
     }
 });

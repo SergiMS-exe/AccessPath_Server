@@ -11,4 +11,5 @@ router.delete("/:userId", usersController_1.deleteUserController);
 router.put("/saveSite", usersController_1.saveSiteController);
 router.put("/unsaveSite", usersController_1.unsaveSiteController);
 router.get("/savedSites/:userId", usersController_1.getSavedSitesController);
+router.get("/comments/:userId", usersController_1.getUserCommentsController);
 exports.default = router;

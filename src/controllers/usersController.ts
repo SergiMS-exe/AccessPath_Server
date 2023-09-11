@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express"
 import { handleHttp } from "../utils/error.handle"
-import { deleteUsuarioService, getSavedSitesService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
+import { deleteUsuarioService, getSavedSitesService, getUserCommentsService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
 
 const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -152,6 +152,20 @@ const getSavedSitesController = async (req: Request, res: Response, next: NextFu
     }
 }
 
+const getUserCommentsController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const responseGetComments = await getUserCommentsService(req.params.userId);
+
+        if (responseGetComments.error) {
+            res.status(responseGetComments.status).send({ msg: responseGetComments.error })
+        } else {
+            res.status(200).send({ msg: "Comentarios obtenidos correctamente", sites: responseGetComments.sites })
+        }
+    } catch (e: any) {
+        handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
+    }
+}
+
 const dummyController = async (req: Request, res: Response) => {
     try {
         res.send({ msg: "Server up" })
@@ -169,5 +183,6 @@ export {
     saveSiteController,
     unsaveSiteController,
     getSavedSitesController,
+    getUserCommentsController,
     dummyController
 }

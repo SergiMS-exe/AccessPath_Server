@@ -6,7 +6,8 @@ import {
     registerUserController, 
     saveSiteController, 
     unsaveSiteController, 
-    usersIndexController
+    usersIndexController,
+    getUserCommentsController
 } from "../controllers/usersController";
 import { logMiddleware } from "../middleware/logger";
 
@@ -19,5 +20,6 @@ router.delete("/:userId", deleteUserController);
 router.put("/saveSite", saveSiteController);
 router.put("/unsaveSite", unsaveSiteController);
 router.get("/savedSites/:userId", getSavedSitesController);
+router.get("/comments/:userId", getUserCommentsController);
 
 export default router;

@@ -84,6 +84,31 @@ const getSavedSitesService = async (usuarioId: string) => {
     return { savedSites };
 }
 
+const getUserCommentsService = async (usuarioId: string) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+
+    //Obtain commentrs from all sites where userId in comment is the same as the one in the params
+    const sites = await SitioModel.aggregate([
+        { $unwind: "$comentarios" },
+        { $match: { "comentarios.usuarioId": usuarioId } },
+        { $group: {
+            _id: "$_id",  
+            comentarios: { $push: "$comentarios" },  
+            sitio: { $first: "$$ROOT" }  
+        }},
+        { $replaceRoot: { newRoot: {
+            $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]  
+        }}},
+        { $project: { _id: 0 } }
+    ]);
+    
+
+    if (!sites) return { error: "No hay comentarios", status: 404 };
+
+    return { sites };
+}
+
 //Utils
 const getUserInDB = async (userId: string) => {
     const userFound = await UsuarioModel.findOne({ _id: userId })
@@ -96,5 +121,6 @@ export {
     deleteUsuarioService,
     saveSiteService,
     unsaveSiteService,
-    getSavedSitesService
+    getSavedSitesService,
+    getUserCommentsService
 }

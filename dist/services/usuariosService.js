@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
+exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const bcrypt_handle_1 = require("../utils/bcrypt.handle");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
@@ -91,6 +91,29 @@ const getSavedSitesService = (usuarioId) => __awaiter(void 0, void 0, void 0, fu
     return { savedSites };
 });
 exports.getSavedSitesService = getSavedSitesService;
+const getUserCommentsService = (usuarioId) => __awaiter(void 0, void 0, void 0, function* () {
+    const userFound = yield getUserInDB(usuarioId);
+    if (!userFound)
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    //Obtain commentrs from all sites where userId in comment is the same as the one in the params
+    const sites = yield sitioModel_1.default.aggregate([
+        { $unwind: "$comentarios" },
+        { $match: { "comentarios.usuarioId": usuarioId } },
+        { $group: {
+                _id: "$_id",
+                comentarios: { $push: "$comentarios" },
+                sitio: { $first: "$$ROOT" }
+            } },
+        { $replaceRoot: { newRoot: {
+                    $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]
+                } } },
+        { $project: { _id: 0 } }
+    ]);
+    if (!sites)
+        return { error: "No hay comentarios", status: 404 };
+    return { sites };
+});
+exports.getUserCommentsService = getUserCommentsService;
 //Utils
 const getUserInDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const userFound = yield usuarioModel_1.default.findOne({ _id: userId });

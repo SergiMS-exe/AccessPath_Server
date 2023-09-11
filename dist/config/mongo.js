@@ -13,7 +13,7 @@ require("dotenv/config");
 const mongoose_1 = require("mongoose");
 function dbConnect() {
     return __awaiter(this, void 0, void 0, function* () {
-        const DB_URI = "mongodb+srv://admin:admin@cluster0.xk8rxrb.mongodb.net/?retryWrites=true&w=majority";
+        const DB_URI = process.env.DB_URI;
         yield (0, mongoose_1.connect)(DB_URI, { dbName: 'AccessPath' });
     });
 }
