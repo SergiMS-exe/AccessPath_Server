@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
+exports.editPasswordService = exports.editUserService = exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const bcrypt_handle_1 = require("../utils/bcrypt.handle");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
@@ -114,6 +114,33 @@ const getUserCommentsService = (usuarioId) => __awaiter(void 0, void 0, void 0, 
     return { sites };
 });
 exports.getUserCommentsService = getUserCommentsService;
+const editUserService = (usuario) => __awaiter(void 0, void 0, void 0, function* () {
+    const userFound = yield getUserInDB(usuario._id.toString());
+    if (!userFound)
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    const userUpdated = yield usuarioModel_1.default.updateOne({ _id: usuario._id }, usuario);
+    if (userUpdated.modifiedCount === 1)
+        return { status: 200 };
+    else
+        return { error: "No se pudo actualizar el usuario", status: 500 };
+});
+exports.editUserService = editUserService;
+const editPasswordService = (usuarioId, oldPassword, newPassword) => __awaiter(void 0, void 0, void 0, function* () {
+    const userFound = yield getUserInDB(usuarioId);
+    if (!userFound)
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    const passwdHash = userFound.password;
+    const isPasswdCorrect = yield (0, bcrypt_handle_1.verified)(oldPassword, passwdHash);
+    if (!isPasswdCorrect)
+        return { error: "Contraseña incorrecta", status: 401 };
+    const newPasswdHash = yield (0, bcrypt_handle_1.encrypt)(newPassword);
+    const userUpdated = yield usuarioModel_1.default.updateOne({ _id: usuarioId }, { password: newPasswdHash });
+    if (userUpdated.modifiedCount === 1)
+        return { status: 200 };
+    else
+        return { error: "No se pudo actualizar la contraseña", status: 500 };
+});
+exports.editPasswordService = editPasswordService;
 //Utils
 const getUserInDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const userFound = yield usuarioModel_1.default.findOne({ _id: userId });

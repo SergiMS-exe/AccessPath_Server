@@ -109,6 +109,33 @@ const getUserCommentsService = async (usuarioId: string) => {
     return { sites };
 }
 
+const editUserService = async (usuario: Person) => {
+    const userFound = await getUserInDB(usuario._id!.toString());
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+
+    const userUpdated = await UsuarioModel.updateOne({ _id: usuario._id }, usuario);
+    if (userUpdated.modifiedCount === 1)
+        return { status: 200 };
+    else
+        return { error: "No se pudo actualizar el usuario", status: 500 };
+}
+
+const editPasswordService = async (usuarioId: string, oldPassword: string, newPassword: string) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+
+    const passwdHash = userFound.password!;
+    const isPasswdCorrect = await verified(oldPassword, passwdHash);
+    if (!isPasswdCorrect) return { error: "Contraseña incorrecta", status: 401 };
+
+    const newPasswdHash = await encrypt(newPassword);
+    const userUpdated = await UsuarioModel.updateOne({ _id: usuarioId }, { password: newPasswdHash });
+    if (userUpdated.modifiedCount === 1)
+        return { status: 200 };
+    else
+        return { error: "No se pudo actualizar la contraseña", status: 500 };
+}
+
 //Utils
 const getUserInDB = async (userId: string) => {
     const userFound = await UsuarioModel.findOne({ _id: userId })
@@ -122,5 +149,7 @@ export {
     saveSiteService,
     unsaveSiteService,
     getSavedSitesService,
-    getUserCommentsService
+    getUserCommentsService,
+    editUserService,
+    editPasswordService
 }

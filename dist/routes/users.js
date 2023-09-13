@@ -7,6 +7,8 @@ const router = (0, express_1.Router)();
 router.get("/", usersController_1.usersIndexController);
 router.post("/login", logger_1.logMiddleware, usersController_1.logInUserController);
 router.post("/register", usersController_1.registerUserController);
+router.put("/:userId", usersController_1.editUserController);
+router.put("/password/:userId", usersController_1.editPasswordController);
 router.delete("/:userId", usersController_1.deleteUserController);
 router.put("/saveSite", usersController_1.saveSiteController);
 router.put("/unsaveSite", usersController_1.unsaveSiteController);

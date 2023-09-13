@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dummyController = exports.getUserCommentsController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = exports.usersIndexController = void 0;
+exports.dummyController = exports.editPasswordController = exports.editUserController = exports.getUserCommentsController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = exports.usersIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const usuariosService_1 = require("../services/usuariosService");
 const usersIndexController = (req, res, next) => {
@@ -196,6 +196,46 @@ const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, 
     }
 });
 exports.getUserCommentsController = getUserCommentsController;
+const editUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { _id, nombre, apellidos, email, tipoDiscapacidad } = req.body.person;
+        //Person interface
+        const user = {
+            _id: _id,
+            nombre: nombre,
+            apellidos: apellidos,
+            email: email,
+            tipoDiscapacidad: tipoDiscapacidad
+        };
+        const responseEdit = yield (0, usuariosService_1.editUserService)(user);
+        if (responseEdit.error) {
+            res.status(responseEdit.status).send({ msg: responseEdit.error });
+        }
+        else {
+            res.status(200).send({ msg: "Usuario editado correctamente" });
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en edicion de usuario: " + e.message);
+    }
+});
+exports.editUserController = editUserController;
+const editPasswordController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const response = yield (0, usuariosService_1.editPasswordService)(req.params.userId, oldPassword, newPassword);
+        if (response.error) {
+            res.status(response.status).send({ msg: response.error });
+        }
+        else {
+            res.status(200).send({ msg: "Contraseña editada correctamente" });
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en edicion de usuario: " + e.message);
+    }
+});
+exports.editPasswordController = editPasswordController;
 const dummyController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.send({ msg: "Server up" });

@@ -1,6 +1,15 @@
 import { NextFunction, Request, Response } from "express"
 import { handleHttp } from "../utils/error.handle"
-import { deleteUsuarioService, getSavedSitesService, getUserCommentsService, logInUserService, registerUsuarioService, saveSiteService, unsaveSiteService } from "../services/usuariosService"
+import { deleteUsuarioService, 
+    getSavedSitesService, 
+    getUserCommentsService, 
+    logInUserService, 
+    registerUsuarioService, 
+    saveSiteService, 
+    unsaveSiteService,
+    editUserService,
+    editPasswordService } from "../services/usuariosService"
+import Person from "../interfaces/Person";
 
 const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -166,6 +175,42 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
     }
 }
 
+const editUserController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { _id, nombre, apellidos, email, tipoDiscapacidad } = req.body.person;
+        //Person interface
+        const user: Person = {
+            _id: _id,
+            nombre: nombre,
+            apellidos: apellidos,
+            email: email,
+            tipoDiscapacidad: tipoDiscapacidad
+        };
+        const responseEdit = await editUserService(user);
+        if (responseEdit.error) {
+            res.status(responseEdit.status).send({ msg: responseEdit.error })
+        } else {
+            res.status(200).send({ msg: "Usuario editado correctamente" })
+        }
+    } catch (e: any) {
+        handleHttp(res, "Error en edicion de usuario: " + e.message)
+    }
+}
+
+const editPasswordController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const response = await editPasswordService(req.params.userId, oldPassword, newPassword);
+        if (response.error) {
+            res.status(response.status).send({ msg: response.error })
+        } else {
+            res.status(200).send({ msg: "Contraseña editada correctamente" })
+        }
+    } catch (e: any) {
+        handleHttp(res, "Error en edicion de usuario: " + e.message)
+    }
+}
+
 const dummyController = async (req: Request, res: Response) => {
     try {
         res.send({ msg: "Server up" })
@@ -184,5 +229,7 @@ export {
     unsaveSiteController,
     getSavedSitesController,
     getUserCommentsController,
+    editUserController,
+    editPasswordController,
     dummyController
 }
