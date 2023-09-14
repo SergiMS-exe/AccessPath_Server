@@ -90,7 +90,12 @@ const getCommentsService = async (placeId: string) => {
                         apellidos: user.apellidos
                     };
                 } else {
-                    return { error: "Usuario no encontrado para el comentario", status: 500 };
+                    delete siteFoundObj.comentarios[i].usuarioId;
+                    siteFoundObj.comentarios[i].usuario = {
+                        _id: new ObjectId(comment.usuarioId),
+                        nombre: "Usuario",
+                        apellidos: "No Encontrado"
+                    };
                 }
             }
             return { comentarios: siteFoundObj.comentarios };

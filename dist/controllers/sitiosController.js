@@ -116,12 +116,11 @@ const getCommentsController = (req, res, next) => __awaiter(void 0, void 0, void
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
         }
         const getCommentsResponse = yield (0, sitiosService_1.getCommentsService)(placeId);
-        if (getCommentsResponse.error) {
-            res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error });
-        }
-        else {
-            res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios });
-        }
+        // if (getCommentsResponse.error) {
+        //     res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })
+        // } else {
+        res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios });
+        // }
     }
     catch (e) {
         (0, error_handle_1.handleHttp)(res, "Error en la obtencion de comentarios: " + e);

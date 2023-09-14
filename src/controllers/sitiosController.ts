@@ -104,11 +104,11 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
         }
         const getCommentsResponse = await getCommentsService(placeId as string);
 
-        if (getCommentsResponse.error) {
-            res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })
-        } else {
+        // if (getCommentsResponse.error) {
+        //     res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })
+        // } else {
             res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios })
-        }
+        // }
     } catch (e) {
         handleHttp(res, "Error en la obtencion de comentarios: " + e)
     } finally {
