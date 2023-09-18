@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
+const valoracionModel_1 = require("./valoracionModel");
 const CommentSchema = new mongoose_1.Schema({
     _id: { type: mongoose_1.Schema.Types.ObjectId, required: true },
     usuarioId: { type: String },
@@ -27,33 +28,20 @@ const LocationSchema = new mongoose_1.Schema({
     latitude: Number,
     longitude: Number
 });
-const ValoracionesSchema = new mongoose_1.Schema({
+const AveragesSchema = new mongoose_1.Schema({
     fisica: {
-        average: Number,
-        entrada: Number,
-        taza_bano: Number,
-        rampas: Number,
-        ascensores: Number,
-        pasillos: Number,
-        banos_adaptados: Number,
-        senaletica_clara: Number
+        valoracion: valoracionModel_1.FisicaSchema,
+        average: Number
     },
     sensorial: {
-        average: Number,
-        senaletica_braille: Number,
-        sistemas_amplificacion: Number,
-        iluminacion_adecuada: Number,
-        informacion_accesible: Number,
-        pictogramas_claros: Number
+        valoracion: valoracionModel_1.SensorialSchema,
+        average: Number
     },
-    psiquico: {
-        average: Number,
-        informacion_simple: Number,
-        senaletica_intuitiva: Number,
-        espacios_tranquilos: Number,
-        interaccion_personal: Number
+    psiquica: {
+        valoracion: valoracionModel_1.PsiquicaSchema,
+        average: Number
     }
-});
+}, { _id: false });
 const SitioSchema = new mongoose_1.Schema({
     placeId: { type: String, required: true },
     nombre: { type: String, required: true },
@@ -69,7 +57,7 @@ const SitioSchema = new mongoose_1.Schema({
         required: false
     },
     valoraciones: {
-        type: ValoracionesSchema,
+        type: AveragesSchema,
         required: false
     }
 });

@@ -8,4 +8,5 @@ router.get("/comments", sitiosController_1.getCommentsController);
 router.post("/comment", sitiosController_1.postCommentController);
 router.put("/comment/:placeId", sitiosController_1.editCommentController);
 router.delete("/comment/:placeId/:commentId", sitiosController_1.deleteCommentController);
+router.post("/review", sitiosController_1.postReviewController);
 exports.default = router;

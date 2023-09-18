@@ -92,17 +92,23 @@ const getUserCommentsService = async (usuarioId: string) => {
     const sites = await SitioModel.aggregate([
         { $unwind: "$comentarios" },
         { $match: { "comentarios.usuarioId": usuarioId } },
-        { $group: {
-            _id: "$_id",  
-            comentarios: { $push: "$comentarios" },  
-            sitio: { $first: "$$ROOT" }  
-        }},
-        { $replaceRoot: { newRoot: {
-            $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]  
-        }}},
+        {
+            $group: {
+                _id: "$_id",
+                comentarios: { $push: "$comentarios" },
+                sitio: { $first: "$$ROOT" }
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: {
+                    $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]
+                }
+            }
+        },
         { $project: { _id: 0 } }
     ]);
-    
+
 
     if (!sites) return { error: "No hay comentarios", status: 404 };
 

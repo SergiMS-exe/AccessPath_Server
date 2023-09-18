@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = exports.sitesIndexController = void 0;
+exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
 const sitesIndexController = (req, res, next) => {
@@ -130,3 +130,27 @@ const getCommentsController = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.getCommentsController = getCommentsController;
+const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.body.review || !req.body.place || !req.body.usuarioId) {
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
+        }
+        const usuarioId = req.body.usuarioId;
+        const place = req.body.place;
+        const review = req.body.review;
+        const postReviewResponse = yield (0, sitiosService_1.postReviewService)(usuarioId, place, review);
+        if (postReviewResponse.error) {
+            res.status(postReviewResponse.status).send({ msg: postReviewResponse.error });
+        }
+        else {
+            res.status(200).send({ msg: "Valoracion enviada correctamente", review: postReviewResponse.averages });
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en el envio de valoracion: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.postReviewController = postReviewController;

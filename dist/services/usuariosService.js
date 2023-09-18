@@ -99,14 +99,20 @@ const getUserCommentsService = (usuarioId) => __awaiter(void 0, void 0, void 0, 
     const sites = yield sitioModel_1.default.aggregate([
         { $unwind: "$comentarios" },
         { $match: { "comentarios.usuarioId": usuarioId } },
-        { $group: {
+        {
+            $group: {
                 _id: "$_id",
                 comentarios: { $push: "$comentarios" },
                 sitio: { $first: "$$ROOT" }
-            } },
-        { $replaceRoot: { newRoot: {
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: {
                     $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]
-                } } },
+                }
+            }
+        },
         { $project: { _id: 0 } }
     ]);
     if (!sites)

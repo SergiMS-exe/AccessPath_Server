@@ -3,6 +3,8 @@ import CommentType from "../interfaces/CommentType";
 import { Site } from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
+import { FisicaEnum, FisicaKey, PsiquicaEnum, PsiquicaKey, SensorialEnum, SensorialKey, Valoracion } from '../interfaces/Valoracion';
+import ValoracionModel from "../models/valoracionModel";
 
 const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
 
@@ -104,9 +106,123 @@ const getCommentsService = async (placeId: string) => {
     }
 }
 
+const postReviewService = async (userId: string, place: Site, valoracion: Valoracion) => {
+    //Insert new review in valoracionModel
+    const newValoracion = { placeId: place.placeId, userId: userId, fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica }
+    const insertResult = await ValoracionModel.create(newValoracion);
+    if (insertResult) {
+        //Update sitioModel averages with new review
+        const averages = await updateAverages(place);
+        if (averages) {
+            return { averages: averages };
+        }
+        else {
+            return { error: "No se pudo actualizar el promedio", status: 500 };
+        }
+    } else {
+        return { error: "No se pudo guardar la valoracion", status: 500 };
+    }
+}
+
+const updateAverages = async (place: Site) => {
+    //Find all reviews for placeId
+    const reviews = await ValoracionModel.find({ placeId: place.placeId });
+    if (reviews) {
+        //calculate averages
+        const averages = calculateAverages(reviews);
+        //update averages in sitioModel
+        const updateResult = await SitioModel.findOneAndUpdate(
+            { placeId: place.placeId },
+            { $set: { valoraciones: averages }, $setOnInsert: place },
+            { new: true, rawResult: true }
+        );
+        if (updateResult.ok) {
+            return averages;
+        }
+        else {
+            return { error: "No se pudo actualizar el promedio", status: 500 };
+        }
+    } else {
+        return { error: "No se pudo calcular el promedio", status: 500 };
+    }
+}
+
+const calculateAverages = (reviews: Valoracion[]) => {
+    let fisicaSum = {} as Record<FisicaKey, number>;
+    let sensorialSum = {} as Record<SensorialKey, number>;
+    let psiquicaSum = {} as Record<PsiquicaKey, number>;
+
+    let fisicaCount = {} as Record<FisicaKey, number>;
+    let sensorialCount = {} as Record<SensorialKey, number>;
+    let psiquicaCount = {} as Record<PsiquicaKey, number>;
+
+    // Initialize counts and sums to 0
+    Object.values(FisicaEnum).forEach(key => {
+        fisicaSum[key] = 0;
+        fisicaCount[key] = 0;
+    });
+    Object.values(SensorialEnum).forEach(key => {
+        sensorialSum[key] = 0;
+        sensorialCount[key] = 0;
+    });
+    Object.values(PsiquicaEnum).forEach(key => {
+        psiquicaSum[key] = 0;
+        psiquicaCount[key] = 0;
+    });
+
+    for (const review of reviews) {
+        for (const key of Object.values(FisicaEnum)) {
+            if (review.fisica && review.fisica[key]) {
+                fisicaSum[key] += review.fisica[key];
+                fisicaCount[key]++;
+            }
+        }
+        for (const key of Object.values(SensorialEnum)) {
+            if (review.sensorial && review.sensorial[key]) {
+                sensorialSum[key] += review.sensorial[key];
+                sensorialCount[key]++;
+            }
+        }
+        for (const key of Object.values(PsiquicaEnum)) {
+            if (review.psiquica && review.psiquica[key]) {
+                psiquicaSum[key] += review.psiquica[key];
+                psiquicaCount[key]++;
+            }
+        }
+    }
+
+    const computeAverageForCategory = (
+        sum: Record<string, number>,
+        count: Record<string, number>
+    ) => {
+        let total = 0;
+        let totalCount = 0;
+        const valoracion: Record<string, number> = {};
+
+        for (const key in sum) {
+            valoracion[key] = count[key] > 0 ? sum[key] / count[key] : 0;
+            total += valoracion[key];
+            totalCount += count[key];
+        }
+        const average = totalCount > 0 ? total / Object.keys(sum).length : 0;
+
+        return { valoracion, average };
+    };
+
+    return {
+        fisica: computeAverageForCategory(fisicaSum, fisicaCount),
+        sensorial: computeAverageForCategory(sensorialSum, sensorialCount),
+        psiquica: computeAverageForCategory(psiquicaSum, psiquicaCount)
+    };
+};
+
+
+
+
 export {
     postCommentService,
     editCommentService,
     deleteCommentService,
-    getCommentsService
+    getCommentsService,
+    postReviewService
 }

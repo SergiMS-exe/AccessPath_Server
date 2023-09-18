@@ -1,29 +1,31 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, editCommentService, getCommentsService, postCommentService } from "../services/sitiosService";
+import { deleteCommentService, editCommentService, getCommentsService, postCommentService, postReviewService } from "../services/sitiosService";
+import { Valoracion } from "../interfaces/Valoracion";
+import { Site } from "../interfaces/Site";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
         availableSubendpoints: [
-            { 
-                path: "/comments", 
-                method: "GET" 
+            {
+                path: "/comments",
+                method: "GET"
             },
-            { 
-                path: "/comment", 
-                method: "POST", 
-                body: ["content", "author"] 
+            {
+                path: "/comment",
+                method: "POST",
+                body: ["content", "author"]
             },
-            { 
-                path: "/comment/:placeId", 
-                method: "PUT", 
-                params: ["placeId"], 
-                body: ["content"] 
+            {
+                path: "/comment/:placeId",
+                method: "PUT",
+                params: ["placeId"],
+                body: ["content"]
             },
-            { 
-                path: "/comment/:placeId/:commentId", 
-                method: "DELETE", 
-                params: ["placeId", "commentId"] 
+            {
+                path: "/comment/:placeId/:commentId",
+                method: "DELETE",
+                params: ["placeId", "commentId"]
             }
         ]
     });
@@ -66,7 +68,7 @@ const editCommentController = async (req: Request, res: Response, next: NextFunc
         if (editCommentResponse.error) {
             res.status(editCommentResponse.status).send({ msg: editCommentResponse.error })
         } else {
-            
+
             res.send({ msg: "Comentario editado correctamente", newComment: editCommentResponse.editedComment })
         }
     } catch (e) {
@@ -107,7 +109,7 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
         // if (getCommentsResponse.error) {
         //     res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })
         // } else {
-            res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios })
+        res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios })
         // }
     } catch (e) {
         handleHttp(res, "Error en la obtencion de comentarios: " + e)
@@ -115,11 +117,37 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
         next()
     }
 }
+
+const postReviewController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.body.review || !req.body.place || !req.body.usuarioId) {
+            return handleHttp(res, "Faltan datos en el body", 400)
+        }
+
+        const usuarioId: string = req.body.usuarioId;
+        const place: Site = req.body.place;
+        const review: Valoracion = req.body.review;
+
+        const postReviewResponse = await postReviewService(usuarioId, place, review);
+
+        if (postReviewResponse.error) {
+            res.status(postReviewResponse.status).send({ msg: postReviewResponse.error });
+        } else {
+            res.status(200).send({ msg: "Valoracion enviada correctamente", review: postReviewResponse.averages });
+        }
+    } catch (e) {
+        handleHttp(res, "Error en el envio de valoracion: " + e)
+    } finally {
+        next()
+    }
+}
+
 export {
     sitesIndexController,
     getNearPlaces,
     postCommentController,
     editCommentController,
     deleteCommentController,
-    getCommentsController
+    getCommentsController,
+    postReviewController
 }
