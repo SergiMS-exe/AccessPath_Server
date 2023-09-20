@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, editCommentService, getCommentsService, postCommentService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getCommentsService, postCommentService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Site } from "../interfaces/Site";
 
@@ -133,10 +133,49 @@ const postReviewController = async (req: Request, res: Response, next: NextFunct
         if (postReviewResponse.error) {
             res.status(postReviewResponse.status).send({ msg: postReviewResponse.error });
         } else {
-            res.status(200).send({ msg: "Valoracion enviada correctamente", review: postReviewResponse.averages });
+            res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
         }
     } catch (e) {
         handleHttp(res, "Error en el envio de valoracion: " + e)
+    } finally {
+        next()
+    }
+}
+
+const editReviewController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.body.review) {
+            return handleHttp(res, "Faltan datos en el body", 400)
+        }
+
+        const review: Valoracion = req.body.review;
+        const reviewId: string = req.params.reviewId;
+
+        const editReviewResponse = await editReviewService(reviewId, review);
+        if (editReviewResponse.error) {
+            res.status(editReviewResponse.status).send({ msg: editReviewResponse.error })
+        } else {
+            res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace })
+        }
+    } catch (e) {
+        handleHttp(res, "Error en la edicion de valoracion: " + e)
+    } finally {
+        next()
+    }
+}
+
+const deleteReviewController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const reviewId: string = req.params.reviewId;
+
+        const deleteReviewResponse = await deleteReviewService(reviewId);
+        if (deleteReviewResponse.error) {
+            res.status(deleteReviewResponse.status).send({ msg: deleteReviewResponse.error })
+        } else {
+            res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace })
+        }
+    } catch (e) {
+        handleHttp(res, "Error en la eliminacion de valoracion: " + e)
     } finally {
         next()
     }
@@ -149,5 +188,7 @@ export {
     editCommentController,
     deleteCommentController,
     getCommentsController,
-    postReviewController
+    postReviewController,
+    editReviewController,
+    deleteReviewController
 }

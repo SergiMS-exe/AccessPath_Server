@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PsiquicaEnum = exports.SensorialEnum = exports.FisicaEnum = void 0;
-// Defining enums from the provided keys
 var FisicaEnum;
 (function (FisicaEnum) {
     FisicaEnum["entrada"] = "entrada";

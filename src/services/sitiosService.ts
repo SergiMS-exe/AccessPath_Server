@@ -111,10 +111,10 @@ const postReviewService = async (userId: string, place: Site, valoracion: Valora
     const newValoracion = { placeId: place.placeId, userId: userId, fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica }
     const insertResult = await ValoracionModel.create(newValoracion);
     if (insertResult) {
-        //Update sitioModel averages with new review
-        const averages = await updateAverages(place);
-        if (averages) {
-            return { averages: averages };
+
+        const newAveragesResult = await updateAverages(place);
+        if (newAveragesResult && !newAveragesResult.error) {
+            return { newPlace: newAveragesResult.newPlace };
         }
         else {
             return { error: "No se pudo actualizar el promedio", status: 500 };
@@ -124,28 +124,82 @@ const postReviewService = async (userId: string, place: Site, valoracion: Valora
     }
 }
 
-const updateAverages = async (place: Site) => {
-    //Find all reviews for placeId
-    const reviews = await ValoracionModel.find({ placeId: place.placeId });
-    if (reviews) {
-        //calculate averages
-        const averages = calculateAverages(reviews);
-        //update averages in sitioModel
-        const updateResult = await SitioModel.findOneAndUpdate(
-            { placeId: place.placeId },
-            { $set: { valoraciones: averages }, $setOnInsert: place },
-            { new: true, rawResult: true }
-        );
-        if (updateResult.ok) {
-            return averages;
+const editReviewService = async (reviewId: string, valoracion: Valoracion) => {
+    const editResult = await ValoracionModel.findOneAndUpdate(
+        { _id: reviewId },
+        { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } },
+        { new: true, rawResult: true }
+    );
+
+    if (editResult.ok && editResult.value) {
+        const newAveragesResult = await updateAverages(editResult.value?.placeId);
+
+        if (newAveragesResult && !newAveragesResult.error) {
+            return { newPlace: newAveragesResult.newPlace, status: 200 };
         }
         else {
             return { error: "No se pudo actualizar el promedio", status: 500 };
         }
     } else {
+        return { error: "No se pudo editar la valoracion", status: 500 };
+    }
+}
+
+const deleteReviewService = async (reviewId: string) => {
+    const deleteResult = await ValoracionModel.findByIdAndDelete(reviewId);
+
+    if (deleteResult) {
+        const newAveragesResult = await updateAverages(deleteResult.placeId);
+
+        if (newAveragesResult && !newAveragesResult.error) {
+            return { newPlace: newAveragesResult.newPlace, status: 200 };
+        }
+        else {
+            return { error: "No se pudo actualizar el promedio", status: 500 };
+        }
+    } else {
+        return { error: "No se pudo eliminar la valoracion", status: 500 };
+    }
+}
+
+//Aux functions
+const updateAverages = async (input: Site | string) => {
+    let placeId: string;
+    let place: Site | null = null;
+
+    if (typeof input === "string") {
+        placeId = input;
+    } else {
+        placeId = input.placeId;
+        place = input;
+    }
+
+    // Find all reviews for placeId
+    const reviews = await ValoracionModel.find({ placeId: placeId });
+
+    if (reviews) {
+        const averages = calculateAverages(reviews);
+
+        // Parametros para actualizar el sitio
+        const updateOptions: any = { $set: { valoraciones: averages } };
+        if (place)
+            updateOptions.$setOnInsert = place;
+
+        const updateResult = await SitioModel.findOneAndUpdate(
+            { placeId: placeId },
+            updateOptions,
+            { new: true }
+        );
+
+        if (updateResult)
+            return { newPlace: updateResult.toObject() };
+        else
+            return { error: "No se pudo actualizar el promedio", status: 500 };
+    } else {
         return { error: "No se pudo calcular el promedio", status: 500 };
     }
 }
+
 
 const calculateAverages = (reviews: Valoracion[]) => {
     let fisicaSum = {} as Record<FisicaKey, number>;
@@ -196,33 +250,42 @@ const calculateAverages = (reviews: Valoracion[]) => {
         count: Record<string, number>
     ) => {
         let total = 0;
-        let totalCount = 0;
         const valoracion: Record<string, number> = {};
 
+        let fieldsWithValue = 0;
+
         for (const key in sum) {
-            valoracion[key] = count[key] > 0 ? sum[key] / count[key] : 0;
-            total += valoracion[key];
-            totalCount += count[key];
+            const averageForKey = count[key] > 0 ? sum[key] / count[key] : 0;
+
+            if (averageForKey > 0) {
+                valoracion[key] = averageForKey;
+                total += valoracion[key];
+                fieldsWithValue++;
+            }
         }
-        const average = totalCount > 0 ? total / Object.keys(sum).length : 0;
+
+        const average = fieldsWithValue > 0 ? total / fieldsWithValue : undefined;
 
         return { valoracion, average };
     };
 
+    const fisicaResult = computeAverageForCategory(fisicaSum, fisicaCount);
+    const sensorialResult = computeAverageForCategory(sensorialSum, sensorialCount);
+    const psiquicaResult = computeAverageForCategory(psiquicaSum, psiquicaCount);
+
     return {
-        fisica: computeAverageForCategory(fisicaSum, fisicaCount),
-        sensorial: computeAverageForCategory(sensorialSum, sensorialCount),
-        psiquica: computeAverageForCategory(psiquicaSum, psiquicaCount)
+        ...(fisicaResult.average !== undefined ? { fisica: fisicaResult } : {}),
+        ...(sensorialResult.average !== undefined ? { sensorial: sensorialResult } : {}),
+        ...(psiquicaResult.average !== undefined ? { psiquica: psiquicaResult } : {})
     };
 };
-
-
-
 
 export {
     postCommentService,
     editCommentService,
     deleteCommentService,
     getCommentsService,
-    postReviewService
+    postReviewService,
+    editReviewService,
+    deleteReviewService
 }

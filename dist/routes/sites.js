@@ -9,4 +9,6 @@ router.post("/comment", sitiosController_1.postCommentController);
 router.put("/comment/:placeId", sitiosController_1.editCommentController);
 router.delete("/comment/:placeId/:commentId", sitiosController_1.deleteCommentController);
 router.post("/review", sitiosController_1.postReviewController);
+router.put("/review/:reviewId", sitiosController_1.editReviewController);
+router.delete("/review/:reviewId", sitiosController_1.deleteReviewController);
 exports.default = router;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = void 0;
+exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
@@ -107,10 +107,9 @@ const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 
     const newValoracion = { placeId: place.placeId, userId: userId, fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica };
     const insertResult = yield valoracionModel_1.default.create(newValoracion);
     if (insertResult) {
-        //Update sitioModel averages with new review
-        const averages = yield updateAverages(place);
-        if (averages) {
-            return { averages: averages };
+        const newAveragesResult = yield updateAverages(place);
+        if (newAveragesResult && !newAveragesResult.error) {
+            return { newPlace: newAveragesResult.newPlace };
         }
         else {
             return { error: "No se pudo actualizar el promedio", status: 500 };
@@ -121,20 +120,63 @@ const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 
     }
 });
 exports.postReviewService = postReviewService;
-const updateAverages = (place) => __awaiter(void 0, void 0, void 0, function* () {
-    //Find all reviews for placeId
-    const reviews = yield valoracionModel_1.default.find({ placeId: place.placeId });
-    if (reviews) {
-        //calculate averages
-        const averages = calculateAverages(reviews);
-        //update averages in sitioModel
-        const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: place.placeId }, { $set: { valoraciones: averages }, $setOnInsert: place }, { new: true, rawResult: true });
-        if (updateResult.ok) {
-            return averages;
+const editReviewService = (reviewId, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
+    const editResult = yield valoracionModel_1.default.findOneAndUpdate({ _id: reviewId }, { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } }, { new: true, rawResult: true });
+    if (editResult.ok && editResult.value) {
+        const newAveragesResult = yield updateAverages((_c = editResult.value) === null || _c === void 0 ? void 0 : _c.placeId);
+        if (newAveragesResult && !newAveragesResult.error) {
+            return { newPlace: newAveragesResult.newPlace, status: 200 };
         }
         else {
             return { error: "No se pudo actualizar el promedio", status: 500 };
         }
+    }
+    else {
+        return { error: "No se pudo editar la valoracion", status: 500 };
+    }
+});
+exports.editReviewService = editReviewService;
+const deleteReviewService = (reviewId) => __awaiter(void 0, void 0, void 0, function* () {
+    const deleteResult = yield valoracionModel_1.default.findByIdAndDelete(reviewId);
+    if (deleteResult) {
+        const newAveragesResult = yield updateAverages(deleteResult.placeId);
+        if (newAveragesResult && !newAveragesResult.error) {
+            return { newPlace: newAveragesResult.newPlace, status: 200 };
+        }
+        else {
+            return { error: "No se pudo actualizar el promedio", status: 500 };
+        }
+    }
+    else {
+        return { error: "No se pudo eliminar la valoracion", status: 500 };
+    }
+});
+exports.deleteReviewService = deleteReviewService;
+//Aux functions
+const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    let placeId;
+    let place = null;
+    if (typeof input === "string") {
+        placeId = input;
+    }
+    else {
+        placeId = input.placeId;
+        place = input;
+    }
+    // Find all reviews for placeId
+    const reviews = yield valoracionModel_1.default.find({ placeId: placeId });
+    if (reviews) {
+        const averages = calculateAverages(reviews);
+        // Parametros para actualizar el sitio
+        const updateOptions = { $set: { valoraciones: averages } };
+        if (place)
+            updateOptions.$setOnInsert = place;
+        const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, updateOptions, { new: true });
+        if (updateResult)
+            return { newPlace: updateResult.toObject() };
+        else
+            return { error: "No se pudo actualizar el promedio", status: 500 };
     }
     else {
         return { error: "No se pudo calcular el promedio", status: 500 };
@@ -182,19 +224,21 @@ const calculateAverages = (reviews) => {
     }
     const computeAverageForCategory = (sum, count) => {
         let total = 0;
-        let totalCount = 0;
         const valoracion = {};
+        let fieldsWithValue = 0;
         for (const key in sum) {
-            valoracion[key] = count[key] > 0 ? sum[key] / count[key] : 0;
-            total += valoracion[key];
-            totalCount += count[key];
+            const averageForKey = count[key] > 0 ? sum[key] / count[key] : 0;
+            if (averageForKey > 0) {
+                valoracion[key] = averageForKey;
+                total += valoracion[key];
+                fieldsWithValue++;
+            }
         }
-        const average = totalCount > 0 ? total / Object.keys(sum).length : 0;
+        const average = fieldsWithValue > 0 ? total / fieldsWithValue : undefined;
         return { valoracion, average };
     };
-    return {
-        fisica: computeAverageForCategory(fisicaSum, fisicaCount),
-        sensorial: computeAverageForCategory(sensorialSum, sensorialCount),
-        psiquica: computeAverageForCategory(psiquicaSum, psiquicaCount)
-    };
+    const fisicaResult = computeAverageForCategory(fisicaSum, fisicaCount);
+    const sensorialResult = computeAverageForCategory(sensorialSum, sensorialCount);
+    const psiquicaResult = computeAverageForCategory(psiquicaSum, psiquicaCount);
+    return Object.assign(Object.assign(Object.assign({}, (fisicaResult.average !== undefined ? { fisica: fisicaResult } : {})), (sensorialResult.average !== undefined ? { sensorial: sensorialResult } : {})), (psiquicaResult.average !== undefined ? { psiquica: psiquicaResult } : {}));
 };

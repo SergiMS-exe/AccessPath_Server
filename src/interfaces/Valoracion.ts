@@ -9,7 +9,6 @@ export interface Valoracion {
 
 }
 
-// Defining enums from the provided keys
 export enum FisicaEnum {
     entrada = 'entrada',
     taza_bano = 'taza_bano',
@@ -35,7 +34,6 @@ export enum PsiquicaEnum {
     interaccion_personal = 'interaccion_personal'
 }
 
-// Generating types from the enums
 export type FisicaKey = keyof typeof FisicaEnum;
 export type SensorialKey = keyof typeof SensorialEnum;
 export type PsiquicaKey = keyof typeof PsiquicaEnum;

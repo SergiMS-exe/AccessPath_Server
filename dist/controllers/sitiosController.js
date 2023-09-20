@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = exports.sitesIndexController = void 0;
+exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
 const sitesIndexController = (req, res, next) => {
@@ -143,7 +143,7 @@ const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
             res.status(postReviewResponse.status).send({ msg: postReviewResponse.error });
         }
         else {
-            res.status(200).send({ msg: "Valoracion enviada correctamente", review: postReviewResponse.averages });
+            res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
         }
     }
     catch (e) {
@@ -154,3 +154,45 @@ const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
     }
 });
 exports.postReviewController = postReviewController;
+const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.body.review) {
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
+        }
+        const review = req.body.review;
+        const reviewId = req.params.reviewId;
+        const editReviewResponse = yield (0, sitiosService_1.editReviewService)(reviewId, review);
+        if (editReviewResponse.error) {
+            res.status(editReviewResponse.status).send({ msg: editReviewResponse.error });
+        }
+        else {
+            res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace });
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en la edicion de valoracion: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.editReviewController = editReviewController;
+const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const reviewId = req.params.reviewId;
+        const deleteReviewResponse = yield (0, sitiosService_1.deleteReviewService)(reviewId);
+        if (deleteReviewResponse.error) {
+            res.status(deleteReviewResponse.status).send({ msg: deleteReviewResponse.error });
+        }
+        else {
+            res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace });
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de valoracion: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.deleteReviewController = deleteReviewController;
