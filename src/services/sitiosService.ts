@@ -1,10 +1,36 @@
 import { ObjectId } from "mongodb";
 import CommentType from "../interfaces/CommentType";
-import { Site } from "../interfaces/Site";
+import { Site, SiteLocation } from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
 import { FisicaEnum, FisicaKey, PsiquicaEnum, PsiquicaKey, SensorialEnum, SensorialKey, Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
+
+
+const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
+    const closePlaces = await SitioModel.find({
+        $or: [
+            { "valoraciones": { $exists: true, $ne: {} } },
+            { "comentarios": { $exists: true, $ne: [] } }
+        ],
+        location: {
+            $near: {
+                $geometry: {
+                    type: "Point",
+                    coordinates: [location.longitude, location.latitude]
+                },
+                $maxDistance: radius
+            }
+        }
+    }).limit(limit);
+
+    if (closePlaces) {
+        return { sitios: closePlaces };
+    } else {
+        return { error: "No se pudo encontrar ningun lugar cercano", status: 404 };
+    }
+}
+
 
 const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
 
@@ -57,20 +83,42 @@ const editCommentService = async (placeId: string, commentId: string, newText: s
 
 
 const deleteCommentService = async (commentId: string, placeId: string) => {
-    const updateResult = await SitioModel.findOneAndUpdate(
-        { placeId: placeId },
-        { $pull: { comentarios: { _id: commentId } } },
-        { new: true, rawResult: true }
-    );
+    const session = await SitioModel.startSession();
+    let response;
+    try {
+        await session.withTransaction(async () => {
+            // Primero, elimina el comentario especificado
+            const updateResult = await SitioModel.findOneAndUpdate(
+                { placeId: placeId },
+                { $pull: { comentarios: { _id: commentId } } },
+                { new: true, session }
+            );
 
-    if (updateResult.ok) {
-        return { status: 200, newPlace: updateResult };
-    } else if (updateResult.value === null) {
-        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
-    } else {
-        return { error: "No se pudo eliminar el comentario", status: 500 };
+            if (updateResult) { // Si se hizo bien el primer update
+                const isCommentsEmpty = updateResult.comentarios!.length === 0;
+
+                // Si el campo comentarios no existe o está vacío, elimina el campo comentarios.
+                if (isCommentsEmpty) {
+                    await SitioModel.findOneAndUpdate(
+                        { placeId: placeId },
+                        { $unset: { comentarios: 1 } },
+                        { session }
+                    );
+                }
+
+                response = { status: 200, newPlace: updateResult };
+            } else {
+                response = { error: "No hay un sitio registrado con ese placeId", status: 404 };
+            }
+        });
+    } catch (error) {
+        response = { error: "No se pudo eliminar el comentario", status: 500 };
+    } finally {
+        await session.endSession();
+        return response;
     }
 };
+
 
 const getCommentsService = async (placeId: string) => {
     const siteFound = await SitioModel.findOne({ placeId: placeId });
@@ -165,7 +213,7 @@ const deleteReviewService = async (reviewId: string) => {
 //Aux functions
 const updateAverages = async (input: Site | string) => {
     let placeId: string;
-    let place: Site | null = null;
+    let place: Site | undefined = undefined;
 
     if (typeof input === "string") {
         placeId = input;
@@ -174,31 +222,37 @@ const updateAverages = async (input: Site | string) => {
         place = input;
     }
 
-    // Find all reviews for placeId
+    // Busca todas las valoraciones del sitio
     const reviews = await ValoracionModel.find({ placeId: placeId });
 
-    if (reviews) {
+    const updateOptions: any = {};
+
+    if (!reviews)
+        return { error: "No se pudo actualizar el promedio", status: 500 };
+
+    if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
         const averages = calculateAverages(reviews);
-
-        // Parametros para actualizar el sitio
-        const updateOptions: any = { $set: { valoraciones: averages } };
-        if (place)
-            updateOptions.$setOnInsert = place;
-
-        const updateResult = await SitioModel.findOneAndUpdate(
-            { placeId: placeId },
-            updateOptions,
-            { new: true }
-        );
-
-        if (updateResult)
-            return { newPlace: updateResult.toObject() };
-        else
-            return { error: "No se pudo actualizar el promedio", status: 500 };
-    } else {
-        return { error: "No se pudo calcular el promedio", status: 500 };
+        updateOptions.$set = { valoraciones: averages };
+    } else { // Si no hay valoraciones, elimina el campo valoraciones
+        updateOptions.$unset = { valoraciones: 1 };
     }
-}
+
+    if (place) {
+        updateOptions.$setOnInsert = place;
+    }
+
+    const updateResult = await SitioModel.findOneAndUpdate(
+        { placeId: placeId },
+        updateOptions,
+        { new: true }
+    );
+
+    if (updateResult) {
+        return { newPlace: updateResult.toObject() };
+    } else {
+        return { error: "No se pudo actualizar el promedio", status: 500 };
+    }
+};
 
 
 const calculateAverages = (reviews: Valoracion[]) => {
@@ -281,6 +335,7 @@ const calculateAverages = (reviews: Valoracion[]) => {
 };
 
 export {
+    getClosePlacesService,
     postCommentService,
     editCommentService,
     deleteCommentService,

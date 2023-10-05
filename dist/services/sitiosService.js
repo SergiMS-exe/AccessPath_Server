@@ -12,12 +12,36 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = void 0;
+exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const Valoracion_1 = require("../interfaces/Valoracion");
 const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
+const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, void 0, void 0, function* () {
+    const closePlaces = yield sitioModel_1.default.find({
+        $or: [
+            { "valoraciones": { $exists: true, $ne: {} } },
+            { "comentarios": { $exists: true, $ne: [] } }
+        ],
+        location: {
+            $near: {
+                $geometry: {
+                    type: "Point",
+                    coordinates: [location.longitude, location.latitude]
+                },
+                $maxDistance: radius
+            }
+        }
+    }).limit(limit);
+    if (closePlaces) {
+        return { sitios: closePlaces };
+    }
+    else {
+        return { error: "No se pudo encontrar ningun lugar cercano", status: 404 };
+    }
+});
+exports.getClosePlacesService = getClosePlacesService;
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
     const commentToInsert = {
         _id: new mongodb_1.ObjectId(),
@@ -55,15 +79,31 @@ const editCommentService = (placeId, commentId, newText) => __awaiter(void 0, vo
 });
 exports.editCommentService = editCommentService;
 const deleteCommentService = (commentId, placeId) => __awaiter(void 0, void 0, void 0, function* () {
-    const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, { $pull: { comentarios: { _id: commentId } } }, { new: true, rawResult: true });
-    if (updateResult.ok) {
-        return { status: 200, newPlace: updateResult };
+    const session = yield sitioModel_1.default.startSession();
+    let response;
+    try {
+        yield session.withTransaction(() => __awaiter(void 0, void 0, void 0, function* () {
+            // Primero, elimina el comentario especificado
+            const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, { $pull: { comentarios: { _id: commentId } } }, { new: true, session });
+            if (updateResult) { // Si se hizo bien el primer update
+                const isCommentsEmpty = updateResult.comentarios.length === 0;
+                // Si el campo comentarios no existe o está vacío, elimina el campo comentarios.
+                if (isCommentsEmpty) {
+                    yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, { $unset: { comentarios: 1 } }, { session });
+                }
+                response = { status: 200, newPlace: updateResult };
+            }
+            else {
+                response = { error: "No hay un sitio registrado con ese placeId", status: 404 };
+            }
+        }));
     }
-    else if (updateResult.value === null) {
-        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
+    catch (error) {
+        response = { error: "No se pudo eliminar el comentario", status: 500 };
     }
-    else {
-        return { error: "No se pudo eliminar el comentario", status: 500 };
+    finally {
+        yield session.endSession();
+        return response;
     }
 });
 exports.deleteCommentService = deleteCommentService;
@@ -156,7 +196,7 @@ exports.deleteReviewService = deleteReviewService;
 //Aux functions
 const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* () {
     let placeId;
-    let place = null;
+    let place = undefined;
     if (typeof input === "string") {
         placeId = input;
     }
@@ -164,22 +204,27 @@ const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* ()
         placeId = input.placeId;
         place = input;
     }
-    // Find all reviews for placeId
+    // Busca todas las valoraciones del sitio
     const reviews = yield valoracionModel_1.default.find({ placeId: placeId });
-    if (reviews) {
+    const updateOptions = {};
+    if (!reviews)
+        return { error: "No se pudo actualizar el promedio", status: 500 };
+    if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
         const averages = calculateAverages(reviews);
-        // Parametros para actualizar el sitio
-        const updateOptions = { $set: { valoraciones: averages } };
-        if (place)
-            updateOptions.$setOnInsert = place;
-        const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, updateOptions, { new: true });
-        if (updateResult)
-            return { newPlace: updateResult.toObject() };
-        else
-            return { error: "No se pudo actualizar el promedio", status: 500 };
+        updateOptions.$set = { valoraciones: averages };
+    }
+    else { // Si no hay valoraciones, elimina el campo valoraciones
+        updateOptions.$unset = { valoraciones: 1 };
+    }
+    if (place) {
+        updateOptions.$setOnInsert = place;
+    }
+    const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, updateOptions, { new: true });
+    if (updateResult) {
+        return { newPlace: updateResult.toObject() };
     }
     else {
-        return { error: "No se pudo calcular el promedio", status: 500 };
+        return { error: "No se pudo actualizar el promedio", status: 500 };
     }
 });
 const calculateAverages = (reviews) => {

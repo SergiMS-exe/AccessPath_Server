@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getCommentsService, postCommentService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
-import { Site } from "../interfaces/Site";
+import { Site, SiteLocation } from "../interfaces/Site";
+import { transformArrayToClientFormat } from "../utils/auxiliar.handle";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -31,7 +32,37 @@ const sitesIndexController = (req: Request, res: Response, next: NextFunction) =
     });
 };
 
-const getNearPlaces = () => { }
+const getClosePlacesController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.query.location)
+            handleHttp(res, "Faltan datos en los parametros", 400);
+        else if (typeof req.query.location !== "string" || !req.query.location.includes('%'))
+            handleHttp(res, "El formato de la ubicacion es incorrecto", 400);
+
+        const location: SiteLocation = {
+            latitude: parseFloat((req.query.location as string).split('%')[0]),
+            longitude: parseFloat((req.query.location as string).split('%')[1])
+        };
+
+        const radius = req.query.radius ? parseInt(req.query.radius as string) : 50000; // 50km
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
+
+        const closePlacesResponse = await getClosePlacesService(location, radius, limit);
+
+        if (closePlacesResponse.error) {
+            res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
+        } else {
+            const transformedPlaces = transformArrayToClientFormat(closePlacesResponse.sitios as any[]);
+            res.locals.sitios = closePlacesResponse.sitios;
+            res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
+            //res.status(200).send({ msg: "Sitios cercanos obtenidos correctamente", sitios: transformedPlaces });
+        }
+    } catch (e) {
+        handleHttp(res, "Error en la obtencion de sitios cercanos: " + e)
+    } finally {
+        next()
+    }
+}
 
 const postCommentController = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -86,8 +117,8 @@ const deleteCommentController = async (req: Request, res: Response, next: NextFu
         }
         const deleteCommentResponse = await deleteCommentService(commentId as string, placeId as string);
 
-        if (deleteCommentResponse.error) {
-            res.status(deleteCommentResponse.status).send({ msg: deleteCommentResponse.error })
+        if (deleteCommentResponse!.error) {
+            res.status(deleteCommentResponse!.status).send({ msg: deleteCommentResponse!.error })
         } else {
             res.status(200).send({ msg: "Comentario eliminado correctamente" })
         }
@@ -183,7 +214,7 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
 
 export {
     sitesIndexController,
-    getNearPlaces,
+    getClosePlacesController,
     postCommentController,
     editCommentController,
     deleteCommentController,

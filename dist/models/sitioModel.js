@@ -25,9 +25,21 @@ CommentSchema.pre('save', function (next) {
     }
 });
 const LocationSchema = new mongoose_1.Schema({
-    latitude: Number,
-    longitude: Number
+    type: {
+        type: String,
+        enum: ['Point'],
+        required: true
+    },
+    coordinates: {
+        type: [{ type: Number }],
+        required: true,
+        validate: [coordinateArrayLimit, '{PATH} exceeds the limit of 2']
+    }
 });
+function coordinateArrayLimit(val) {
+    return val.length === 2;
+}
+//LocationSchema.index({ type: '2dsphere' });
 const AveragesSchema = new mongoose_1.Schema({
     fisica: {
         valoracion: valoracionModel_1.FisicaSchema,
@@ -61,5 +73,6 @@ const SitioSchema = new mongoose_1.Schema({
         required: false
     }
 });
+SitioSchema.index({ 'location': '2dsphere' });
 const SitioModel = (0, mongoose_1.model)("sitios", SitioSchema);
 exports.default = SitioModel;

@@ -170,7 +170,10 @@ const getSavedSitesController = (req, res, next) => __awaiter(void 0, void 0, vo
             res.status(responseGetSaved.status).send({ msg: responseGetSaved.error });
         }
         else {
-            res.status(200).send({ msg: "Sitios obtenidos correctamente", saved: responseGetSaved.savedSites });
+            // const transformedSites = transformArrayToClientFormat(responseGetSaved.savedSites as any[]);
+            // console.log(transformedSites[0])
+            res.locals.sitios = responseGetSaved.savedSites;
+            res.locals.mensaje = "Sitios guardados obtenidos correctamente";
         }
     }
     catch (e) {

@@ -28,9 +28,23 @@ CommentSchema.pre('save', function (next) {
 });
 
 const LocationSchema = new Schema({
-    latitude: Number,
-    longitude: Number
+    type: {
+        type: String,
+        enum: ['Point'],
+        required: true
+    },
+    coordinates: {
+        type: [{ type: Number }],
+        required: true,
+        validate: [coordinateArrayLimit, '{PATH} exceeds the limit of 2']
+    }
 });
+
+function coordinateArrayLimit(val: any) {
+    return val.length === 2;
+}
+
+//LocationSchema.index({ type: '2dsphere' });
 
 const AveragesSchema = new Schema({
     fisica: {
@@ -68,6 +82,8 @@ const SitioSchema = new Schema<Site>(
         }
     }
 );
+
+SitioSchema.index({ 'location': '2dsphere' });
 
 const SitioModel = model("sitios", SitioSchema);
 export default SitioModel;

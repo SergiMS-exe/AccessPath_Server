@@ -1,48 +1,51 @@
 import { NextFunction, Request, Response } from "express"
 import { handleHttp } from "../utils/error.handle"
-import { deleteUsuarioService, 
-    getSavedSitesService, 
-    getUserCommentsService, 
-    logInUserService, 
-    registerUsuarioService, 
-    saveSiteService, 
+import {
+    deleteUsuarioService,
+    getSavedSitesService,
+    getUserCommentsService,
+    logInUserService,
+    registerUsuarioService,
+    saveSiteService,
     unsaveSiteService,
     editUserService,
-    editPasswordService } from "../services/usuariosService"
+    editPasswordService
+} from "../services/usuariosService"
 import Person from "../interfaces/Person";
+import { transformArrayToClientFormat } from "../utils/auxiliar.handle";
 
 const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
         availableSubendpoints: [
-            { 
-                path: "/login", 
-                method: "POST", 
-                body: ["username", "password"] 
+            {
+                path: "/login",
+                method: "POST",
+                body: ["username", "password"]
             },
-            { 
-                path: "/register", 
-                method: "POST", 
-                body: ["username", "password", "email"] 
+            {
+                path: "/register",
+                method: "POST",
+                body: ["username", "password", "email"]
             },
-            { 
-                path: "/:userId", 
-                method: "DELETE", 
-                params: ["userId"] 
+            {
+                path: "/:userId",
+                method: "DELETE",
+                params: ["userId"]
             },
-            { 
-                path: "/saveSite", 
-                method: "PUT", 
-                body: ["siteId"] 
+            {
+                path: "/saveSite",
+                method: "PUT",
+                body: ["siteId"]
             },
-            { 
-                path: "/unsaveSite", 
-                method: "PUT", 
-                body: ["siteId"] 
+            {
+                path: "/unsaveSite",
+                method: "PUT",
+                body: ["siteId"]
             },
-            { 
-                path: "/savedSites/:userId", 
-                method: "GET", 
-                params: ["userId"] 
+            {
+                path: "/savedSites/:userId",
+                method: "GET",
+                params: ["userId"]
             }
         ]
     });
@@ -69,7 +72,7 @@ const logInUserController = async (req: Request, res: Response, next: NextFuncti
 
 const registerUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {email, password, nombre, apellidos, tipoDiscapacidad, saved} = req.body;
+        const { email, password, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
         if (!email || !password || !nombre || !apellidos || !tipoDiscapacidad) return handleHttp(res, "Faltan datos en el body", 400)
         const responseReg = await registerUsuarioService({
             email: email,
@@ -147,12 +150,15 @@ const unsaveSiteController = async (req: Request, res: Response, next: NextFunct
 const getSavedSitesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.params.userId) return handleHttp(res, "Falta el userId en los parametros", 400)
-        
+
         const responseGetSaved = await getSavedSitesService(req.params.userId);
         if (responseGetSaved.error) {
             res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })
         } else {
-            res.status(200).send({ msg: "Sitios obtenidos correctamente", saved: responseGetSaved.savedSites })
+            // const transformedSites = transformArrayToClientFormat(responseGetSaved.savedSites as any[]);
+            // console.log(transformedSites[0])
+            res.locals.sitios = responseGetSaved.savedSites;
+            res.locals.mensaje = "Sitios guardados obtenidos correctamente";
         }
     } catch (e: any) {
         handleHttp(res, "Error en guardado de sitio: " + e.message)

@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getNearPlaces = exports.sitesIndexController = void 0;
+exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
+const auxiliar_handle_1 = require("../utils/auxiliar.handle");
 const sitesIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
@@ -39,8 +40,37 @@ const sitesIndexController = (req, res, next) => {
     });
 };
 exports.sitesIndexController = sitesIndexController;
-const getNearPlaces = () => { };
-exports.getNearPlaces = getNearPlaces;
+const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.query.location)
+            (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
+        else if (typeof req.query.location !== "string" || !req.query.location.includes('%'))
+            (0, error_handle_1.handleHttp)(res, "El formato de la ubicacion es incorrecto", 400);
+        const location = {
+            latitude: parseFloat(req.query.location.split('%')[0]),
+            longitude: parseFloat(req.query.location.split('%')[1])
+        };
+        const radius = req.query.radius ? parseInt(req.query.radius) : 50000; // 50km
+        const limit = req.query.limit ? parseInt(req.query.limit) : 30;
+        const closePlacesResponse = yield (0, sitiosService_1.getClosePlacesService)(location, radius, limit);
+        if (closePlacesResponse.error) {
+            res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
+        }
+        else {
+            const transformedPlaces = (0, auxiliar_handle_1.transformArrayToClientFormat)(closePlacesResponse.sitios);
+            res.locals.sitios = closePlacesResponse.sitios;
+            res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
+            //res.status(200).send({ msg: "Sitios cercanos obtenidos correctamente", sitios: transformedPlaces });
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios cercanos: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.getClosePlacesController = getClosePlacesController;
 const postCommentController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.body.comment || !req.body.site || !req.body.comment.usuarioId || !req.body.comment.texto || req.body.comment.texto.trim().length < 1) {
