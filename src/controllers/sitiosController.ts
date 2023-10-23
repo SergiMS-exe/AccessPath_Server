@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
-import { Site, SiteLocation } from "../interfaces/Site";
+import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import { transformArrayToClientFormat } from "../utils/auxiliar.handle";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
@@ -164,7 +164,9 @@ const postReviewController = async (req: Request, res: Response, next: NextFunct
         if (postReviewResponse.error) {
             res.status(postReviewResponse.status).send({ msg: postReviewResponse.error });
         } else {
-            res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
+            res.locals.newPlace = postReviewResponse.newPlace;
+            res.locals.mensaje = "Valoracion enviada correctamente";
+            //res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
         }
     } catch (e) {
         handleHttp(res, "Error en el envio de valoracion: " + e)
@@ -212,6 +214,36 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
     }
 }
 
+const postPhotoController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!req.body.place || !req.body.usuarioId || !req.file || !req.body.alternativeText)
+            return handleHttp(res, "Faltan datos en el body", 400)
+
+        const place: Site = typeof req.body.place === "string" ? JSON.parse(req.body.place) : req.body.place;
+        const photoBuffer: Buffer = req.file!.buffer;
+        const usuarioId: string = req.body.usuarioId;
+        const alternativeText: string = req.body.alternativeText;
+
+        const photo: Photo = {
+            usuarioId: usuarioId,
+            fotoBuffer: photoBuffer,
+            alternativeText: alternativeText
+        }
+
+        const postPhotoResponse = await postPhotoService(place, photo);
+        if (postPhotoResponse.error) {
+            res.status(postPhotoResponse.status).send({ msg: postPhotoResponse.error })
+        } else {
+            res.locals.newPlace = postPhotoResponse.newPlace;
+            res.locals.mensaje = "Foto enviada correctamente";
+        }
+    } catch (e) {
+        handleHttp(res, "Error en el envio de foto: " + e)
+    } finally {
+        next()
+    }
+}
+
 export {
     sitesIndexController,
     getClosePlacesController,
@@ -221,5 +253,6 @@ export {
     getCommentsController,
     postReviewController,
     editReviewController,
-    deleteReviewController
+    deleteReviewController,
+    postPhotoController
 }

@@ -6,25 +6,33 @@ export type SiteLocation = {
     longitude: number;
 };
 
+export type Photo = {
+    usuarioId: string;
+    fotoBuffer: Buffer;
+    alternativeText?: string;
+}
+
 export class Site {
     public placeId: string;
     public nombre: string;
     public direccion: string;
     public calificacionGoogle: number;
     public comentarios?: CommentType[];
-    public location: Location;
+    public location: SiteLocation;
     public types: string[];
-    public valoraciones?: Valoracion
+    public valoraciones?: Valoracion;
+    public fotos?: Photo[];
 
     constructor(
         placeId: string,
         nombre: string,
         direccion: string,
         calificacionGoogle: number,
-        location: Location,
+        location: SiteLocation,
         types: string[],
         valoraciones?: Valoracion,
-        comentarios?: CommentType[]
+        comentarios?: CommentType[],
+        fotos?: Photo[]
     ) {
         this.placeId = placeId;
         this.nombre = nombre;
@@ -34,5 +42,6 @@ export class Site {
         this.types = types;
         this.valoraciones = valoraciones;
         this.comentarios = comentarios;
+        this.fotos = fotos;
     }
 }

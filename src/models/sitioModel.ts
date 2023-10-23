@@ -2,30 +2,31 @@ import { Schema, model } from "mongoose";
 import CommentType from "../interfaces/CommentType";
 import { Site } from "../interfaces/Site";
 import { FisicaSchema, PsiquicaSchema, SensorialSchema } from "./valoracionModel";
+import { transformToServerFormat } from '../utils/auxiliar.handle';
 
 const CommentSchema = new Schema<CommentType>({
     _id: { type: Schema.Types.ObjectId, required: true },
     usuarioId: { type: String },
-    usuario: {
-        _id: { type: String },
-        nombre: String,
-        apellidos: String,
-    },
+    // usuario: {
+    //     _id: { type: String },
+    //     nombre: String,
+    //     apellidos: String,
+    // },
     texto: { type: String, required: true },
     date: { type: Date, required: true },
 });
 
-CommentSchema.pre('save', function (next) {
-    // Aserción de tipo para this
-    const doc = this as any;
+// CommentSchema.pre('save', function (next) {
+//     // Aserción de tipo para this
+//     const doc = this;
 
-    // Si ambos, usuarioId y usuario, están presentes o ausentes, detiene la operación
-    if ((doc.usuarioId && doc.usuario) || (!doc.usuarioId && !doc.usuario)) {
-        next(new Error('Debe tener usuarioId o usuario, pero no ambos.'));
-    } else {
-        next();
-    }
-});
+//     // Si ambos, usuarioId y usuario, están presentes o ausentes, detiene la operación
+//     if ((doc.usuarioId && doc.usuario) || (!doc.usuarioId && !doc.usuario)) {
+//         next(new Error('Debe tener usuarioId o usuario, pero no ambos.'));
+//     } else {
+//         next();
+//     }
+// });
 
 const LocationSchema = new Schema({
     type: {
@@ -61,6 +62,11 @@ const AveragesSchema = new Schema({
     }
 }, { _id: false });
 
+const PhotoSchema = new Schema({
+    usuarioId: { type: String, required: true },
+    fotoBuffer: { type: Buffer, required: true }
+}, { _id: false });
+
 const SitioSchema = new Schema<Site>(
     {
         placeId: { type: String, required: true },
@@ -78,6 +84,10 @@ const SitioSchema = new Schema<Site>(
         },
         valoraciones: {
             type: AveragesSchema,
+            required: false
+        },
+        fotos: {
+            type: [PhotoSchema],
             required: false
         }
     }

@@ -12,7 +12,7 @@ import {
     editPasswordController
 } from "../controllers/usersController";
 import { logMiddleware } from "../middleware/logger";
-import { convertToClientMiddleware } from "../middleware/clientConvert";
+import { convertToClientMiddleware } from "../middleware/locationConvert";
 
 const router = Router();
 

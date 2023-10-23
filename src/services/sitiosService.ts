@@ -1,10 +1,12 @@
 import { ObjectId } from "mongodb";
 import CommentType from "../interfaces/CommentType";
-import { Site, SiteLocation } from "../interfaces/Site";
+import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
 import { FisicaEnum, FisicaKey, PsiquicaEnum, PsiquicaKey, SensorialEnum, SensorialKey, Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
+import { transformToServerFormat } from "../utils/auxiliar.handle";
+import sharp from "sharp";
 
 
 const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
@@ -32,27 +34,64 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
 }
 
 
+// const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
+
+//     const commentToInsert: CommentType = {
+//         _id: new ObjectId(),
+//         usuarioId: comment.usuarioId,
+//         texto: comment.texto,
+//         date: new Date(),
+//     };
+
+//     const placeConverted = transformToServerFormat(place);
+
+//     const updateResult = await SitioModel.findOneAndUpdate(
+//         { placeId: place.placeId },
+//         { $push: { comentarios: commentToInsert }, $setOnInsert: placeConverted },
+//         { upsert: true, new: true }
+//     );
+
+//     if (updateResult) {
+//         return { status: 200, newPlace: updateResult, comment: commentToInsert };
+//     } else {
+//         return { error: "No se pudo guardar el comentario", status: 500 };
+//     }
+
+// };
+
 const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
+    try {
+        // Primero, buscamos el sitio usando el placeId
+        const site = await SitioModel.findOne({ placeId: place.placeId });
 
-    const commentToInsert: CommentType = {
-        _id: new ObjectId(),
-        usuarioId: comment.usuarioId,
-        texto: comment.texto,
-        date: new Date(),
-    };
+        // Creamos un nuevo comentario con los datos proporcionados
+        const newComment = {
+            _id: new ObjectId(),
+            date: new Date(),
+            texto: comment.texto,
+            usuarioId: comment.usuarioId
+        };
 
-    const updateResult = await SitioModel.findOneAndUpdate(
-        { placeId: place.placeId },
-        { $push: { comentarios: commentToInsert }, $setOnInsert: place },
-        { upsert: true, new: true }
-    );
+        // Si no encontramos el sitio, lo creamos
+        if (!site) {
+            const newSite: Site = {
+                ...place, // Aquí copiamos todas las propiedades de place
+                comentarios: [newComment] // Inicializamos el array de comentarios con el comentario proporcionado
+            };
+            const createdSite = new SitioModel(newSite);
+            await createdSite.save();
+            return { status: 200, newPlace: createdSite, comment: newComment };
+        }
 
-    if (updateResult) {
-        return { status: 200, newPlace: updateResult, comment: commentToInsert };
-    } else {
-        return { error: "No se pudo guardar el comentario", status: 500 };
+        // Si el sitio ya existe, simplemente añadimos el comentario al array de comentarios
+        site.comentarios!.push(newComment);
+        await site.save();
+
+        return { status: 200, newPlace: site, comment: newComment };
+    } catch (error) {
+        console.error("Error al publicar comentario:", error); // Puedes registrar el error para futuras revisiones
+        return { status: 500, error: "Error al guardar el comentario: " + error };
     }
-
 };
 
 
@@ -210,7 +249,88 @@ const deleteReviewService = async (reviewId: string) => {
     }
 }
 
+const postPhotoService = async (place: Site, photo: Photo) => {
+    try {
+        // Comprimimos la calidad de la foto
+        // const compressedPhotoBuffer = await sharp(photo.fotoBuffer)
+        //     .jpeg({ quality: 80 })  // Puedes ajustar la calidad según tus necesidades
+        //     .toBuffer();
+
+        // // Reemplazamos el buffer original de la foto con el buffer comprimido
+        // photo.fotoBuffer = compressedPhotoBuffer;
+
+        // Luego, el resto del código permanece igual...
+
+        // Primero, buscamos el sitio usando el placeId
+        const site = await SitioModel.findOne({ placeId: place.placeId });
+
+        // Si no encontramos el sitio, lo creamos
+        if (!site) {
+            const newSite: Site = {
+                ...place,
+                fotos: [photo]
+            };
+            const createdSite = new SitioModel(newSite);
+            await createdSite.save();
+            return { newPlace: createdSite };
+        }
+
+        // Si el sitio ya existe, simplemente añadimos la foto al array de fotos
+        site.fotos!.push(photo);
+        await site.save();
+
+        return { newPlace: site };
+    } catch (error) {
+        console.error("Error al enviar la foto:", error);
+        return { error: "No se pudo guardar la foto", status: 500 };
+    }
+};
+
+
 //Aux functions
+// const updateAverages = async (input: Site | string) => {
+//     let placeId: string;
+//     let place: Site | undefined = undefined;
+
+//     if (typeof input === "string") {
+//         placeId = input;
+//     } else {
+//         placeId = input.placeId;
+//         place = input;
+//     }
+
+//     // Busca todas las valoraciones del sitio
+//     const reviews = await ValoracionModel.find({ placeId: placeId });
+
+//     const updateOptions: any = {};
+
+//     if (!reviews)
+//         return { error: "No se pudo actualizar el promedio", status: 500 };
+
+//     if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
+//         const averages = calculateAverages(reviews);
+//         updateOptions.$set = { valoraciones: averages };
+//     } else { // Si no hay valoraciones, elimina el campo valoraciones
+//         updateOptions.$unset = { valoraciones: 1 };
+//     }
+
+//     if (place) {
+//         updateOptions.$setOnInsert = place;
+//     }
+
+//     const updateResult = await SitioModel.findOneAndUpdate(
+//         { placeId: placeId },
+//         updateOptions,
+//         { new: true, upsert: true }
+//     );
+
+//     if (updateResult) {
+//         return { newPlace: updateResult.toObject() };
+//     } else {
+//         return { error: "No se pudo actualizar el promedio", status: 500 };
+//     }
+// };
+
 const updateAverages = async (input: Site | string) => {
     let placeId: string;
     let place: Site | undefined = undefined;
@@ -222,38 +342,40 @@ const updateAverages = async (input: Site | string) => {
         place = input;
     }
 
+    const siteFound = await SitioModel.findOne({ placeId: placeId });
+
     // Busca todas las valoraciones del sitio
     const reviews = await ValoracionModel.find({ placeId: placeId });
-
-    const updateOptions: any = {};
 
     if (!reviews)
         return { error: "No se pudo actualizar el promedio", status: 500 };
 
-    if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
-        const averages = calculateAverages(reviews);
-        updateOptions.$set = { valoraciones: averages };
-    } else { // Si no hay valoraciones, elimina el campo valoraciones
-        updateOptions.$unset = { valoraciones: 1 };
+    const averages = reviews.length > 0 ? calculateAverages(reviews) : undefined;
+
+
+    if (!siteFound && averages) {
+        if (!place)
+            return { error: "No se proporcionó información sobre el sitio", status: 500 };
+
+        const newSite: Site = {
+            ...place,
+            valoraciones: averages as Valoracion
+        };
+
+        const createdSite = new SitioModel(newSite);
+        await createdSite.save();
+        return { status: 200, newPlace: createdSite };
     }
-
-    if (place) {
-        updateOptions.$setOnInsert = place;
-    }
-
-    const updateResult = await SitioModel.findOneAndUpdate(
-        { placeId: placeId },
-        updateOptions,
-        { new: true }
-    );
-
-    if (updateResult) {
-        return { newPlace: updateResult.toObject() };
+    if (averages) {
+        siteFound!.valoraciones = averages as Valoracion;
     } else {
-        return { error: "No se pudo actualizar el promedio", status: 500 };
+        delete siteFound!.valoraciones;
     }
-};
 
+    await siteFound!.save();
+    return { status: 200, newPlace: siteFound!.toObject() };
+
+};
 
 const calculateAverages = (reviews: Valoracion[]) => {
     let fisicaSum = {} as Record<FisicaKey, number>;
@@ -342,5 +464,6 @@ export {
     getCommentsService,
     postReviewService,
     editReviewService,
-    deleteReviewService
+    deleteReviewService,
+    postPhotoService
 }

@@ -9,8 +9,10 @@ import {
     editReviewController,
     deleteReviewController,
     getClosePlacesController,
+    postPhotoController,
 } from "../controllers/sitiosController";
-import { convertToClientMiddleware } from "../middleware/clientConvert";
+import { convertToClientMiddleware } from "../middleware/locationConvert";
+import upload from "../config/multer";
 
 const router = Router();
 
@@ -20,8 +22,9 @@ router.get("/comments", getCommentsController)
 router.post("/comment", postCommentController);
 router.put("/comment/:placeId", editCommentController);
 router.delete("/comment/:placeId/:commentId", deleteCommentController); //Meterle middleware de transformacion de sitio
-router.post("/review", postReviewController); //Meterle middleware de transformacion de sitio
+router.post("/review", postReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.put("/review/:reviewId", editReviewController); //Meterle middleware de transformacion de sitio
 router.delete("/review/:reviewId", deleteReviewController); //Meterle middleware de transformacion de sitio
+router.post("/photo", upload.single("photo"), postPhotoController, convertToClientMiddleware);
 
 export default router

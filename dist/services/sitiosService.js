@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getClosePlacesService = void 0;
+exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
@@ -42,19 +42,52 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
     }
 });
 exports.getClosePlacesService = getClosePlacesService;
+// const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
+//     const commentToInsert: CommentType = {
+//         _id: new ObjectId(),
+//         usuarioId: comment.usuarioId,
+//         texto: comment.texto,
+//         date: new Date(),
+//     };
+//     const placeConverted = transformToServerFormat(place);
+//     const updateResult = await SitioModel.findOneAndUpdate(
+//         { placeId: place.placeId },
+//         { $push: { comentarios: commentToInsert }, $setOnInsert: placeConverted },
+//         { upsert: true, new: true }
+//     );
+//     if (updateResult) {
+//         return { status: 200, newPlace: updateResult, comment: commentToInsert };
+//     } else {
+//         return { error: "No se pudo guardar el comentario", status: 500 };
+//     }
+// };
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
-    const commentToInsert = {
-        _id: new mongodb_1.ObjectId(),
-        usuarioId: comment.usuarioId,
-        texto: comment.texto,
-        date: new Date(),
-    };
-    const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: place.placeId }, { $push: { comentarios: commentToInsert }, $setOnInsert: place }, { upsert: true, new: true });
-    if (updateResult) {
-        return { status: 200, newPlace: updateResult, comment: commentToInsert };
+    try {
+        // Primero, buscamos el sitio usando el placeId
+        const site = yield sitioModel_1.default.findOne({ placeId: place.placeId });
+        // Creamos un nuevo comentario con los datos proporcionados
+        const newComment = {
+            _id: new mongodb_1.ObjectId(),
+            date: new Date(),
+            texto: comment.texto,
+            usuarioId: comment.usuarioId
+        };
+        // Si no encontramos el sitio, lo creamos
+        if (!site) {
+            const newSite = Object.assign(Object.assign({}, place), { comentarios: [newComment] // Inicializamos el array de comentarios con el comentario proporcionado
+             });
+            const createdSite = new sitioModel_1.default(newSite);
+            yield createdSite.save();
+            return { status: 200, newPlace: createdSite, comment: newComment };
+        }
+        // Si el sitio ya existe, simplemente añadimos el comentario al array de comentarios
+        site.comentarios.push(newComment);
+        yield site.save();
+        return { status: 200, newPlace: site, comment: newComment };
     }
-    else {
-        return { error: "No se pudo guardar el comentario", status: 500 };
+    catch (error) {
+        console.error("Error al publicar comentario:", error); // Puedes registrar el error para futuras revisiones
+        return { status: 500, error: "Error al guardar el comentario: " + error };
     }
 });
 exports.postCommentService = postCommentService;
@@ -193,7 +226,70 @@ const deleteReviewService = (reviewId) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.deleteReviewService = deleteReviewService;
+const postPhotoService = (place, photo) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Comprimimos la calidad de la foto
+        // const compressedPhotoBuffer = await sharp(photo.fotoBuffer)
+        //     .jpeg({ quality: 80 })  // Puedes ajustar la calidad según tus necesidades
+        //     .toBuffer();
+        // // Reemplazamos el buffer original de la foto con el buffer comprimido
+        // photo.fotoBuffer = compressedPhotoBuffer;
+        // Luego, el resto del código permanece igual...
+        // Primero, buscamos el sitio usando el placeId
+        const site = yield sitioModel_1.default.findOne({ placeId: place.placeId });
+        // Si no encontramos el sitio, lo creamos
+        if (!site) {
+            const newSite = Object.assign(Object.assign({}, place), { fotos: [photo] });
+            const createdSite = new sitioModel_1.default(newSite);
+            yield createdSite.save();
+            return { newPlace: createdSite };
+        }
+        // Si el sitio ya existe, simplemente añadimos la foto al array de fotos
+        site.fotos.push(photo);
+        yield site.save();
+        return { newPlace: site };
+    }
+    catch (error) {
+        console.error("Error al enviar la foto:", error);
+        return { error: "No se pudo guardar la foto", status: 500 };
+    }
+});
+exports.postPhotoService = postPhotoService;
 //Aux functions
+// const updateAverages = async (input: Site | string) => {
+//     let placeId: string;
+//     let place: Site | undefined = undefined;
+//     if (typeof input === "string") {
+//         placeId = input;
+//     } else {
+//         placeId = input.placeId;
+//         place = input;
+//     }
+//     // Busca todas las valoraciones del sitio
+//     const reviews = await ValoracionModel.find({ placeId: placeId });
+//     const updateOptions: any = {};
+//     if (!reviews)
+//         return { error: "No se pudo actualizar el promedio", status: 500 };
+//     if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
+//         const averages = calculateAverages(reviews);
+//         updateOptions.$set = { valoraciones: averages };
+//     } else { // Si no hay valoraciones, elimina el campo valoraciones
+//         updateOptions.$unset = { valoraciones: 1 };
+//     }
+//     if (place) {
+//         updateOptions.$setOnInsert = place;
+//     }
+//     const updateResult = await SitioModel.findOneAndUpdate(
+//         { placeId: placeId },
+//         updateOptions,
+//         { new: true, upsert: true }
+//     );
+//     if (updateResult) {
+//         return { newPlace: updateResult.toObject() };
+//     } else {
+//         return { error: "No se pudo actualizar el promedio", status: 500 };
+//     }
+// };
 const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* () {
     let placeId;
     let place = undefined;
@@ -204,28 +300,28 @@ const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* ()
         placeId = input.placeId;
         place = input;
     }
+    const siteFound = yield sitioModel_1.default.findOne({ placeId: placeId });
     // Busca todas las valoraciones del sitio
     const reviews = yield valoracionModel_1.default.find({ placeId: placeId });
-    const updateOptions = {};
     if (!reviews)
         return { error: "No se pudo actualizar el promedio", status: 500 };
-    if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
-        const averages = calculateAverages(reviews);
-        updateOptions.$set = { valoraciones: averages };
+    const averages = reviews.length > 0 ? calculateAverages(reviews) : undefined;
+    if (!siteFound && averages) {
+        if (!place)
+            return { error: "No se proporcionó información sobre el sitio", status: 500 };
+        const newSite = Object.assign(Object.assign({}, place), { valoraciones: averages });
+        const createdSite = new sitioModel_1.default(newSite);
+        yield createdSite.save();
+        return { status: 200, newPlace: createdSite };
     }
-    else { // Si no hay valoraciones, elimina el campo valoraciones
-        updateOptions.$unset = { valoraciones: 1 };
-    }
-    if (place) {
-        updateOptions.$setOnInsert = place;
-    }
-    const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, updateOptions, { new: true });
-    if (updateResult) {
-        return { newPlace: updateResult.toObject() };
+    if (averages) {
+        siteFound.valoraciones = averages;
     }
     else {
-        return { error: "No se pudo actualizar el promedio", status: 500 };
+        delete siteFound.valoraciones;
     }
+    yield siteFound.save();
+    return { status: 200, newPlace: siteFound.toObject() };
 });
 const calculateAverages = (reviews) => {
     let fisicaSum = {};

@@ -1,3 +1,4 @@
+import { Site } from "../interfaces/Site";
 
 
 export function transformArrayToClientFormat(sites: any[]): any[] {
@@ -5,7 +6,7 @@ export function transformArrayToClientFormat(sites: any[]): any[] {
 }
 
 export function transformToClientFormat(site: any): any {
-    const actualSite = site._doc;  // Accessing the _doc field
+    const actualSite = site._doc ? site._doc : site;
 
     // Extracting location details
     const { location } = actualSite;
@@ -17,4 +18,23 @@ export function transformToClientFormat(site: any): any {
     }
 
     return actualSite;
+}
+
+export function transformToServerFormat(site: any): any {
+    const actualSite = site;  // Accessing the _doc field
+
+    // Extracting location details
+    const { location } = actualSite;
+    if (location && location.latitude && location.longitude) {
+        actualSite.location = {
+            type: "Point",
+            coordinates: [location.longitude, location.latitude]
+        };
+    }
+
+    return actualSite;
+}
+
+export function transformToServerFormatArray(sites: any[]): any[] {
+    return sites.map(transformToServerFormat);
 }

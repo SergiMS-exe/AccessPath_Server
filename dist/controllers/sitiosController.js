@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
+exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
 const auxiliar_handle_1 = require("../utils/auxiliar.handle");
@@ -173,7 +173,9 @@ const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
             res.status(postReviewResponse.status).send({ msg: postReviewResponse.error });
         }
         else {
-            res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
+            res.locals.newPlace = postReviewResponse.newPlace;
+            res.locals.mensaje = "Valoracion enviada correctamente";
+            //res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
         }
     }
     catch (e) {
@@ -226,3 +228,33 @@ const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, voi
     }
 });
 exports.deleteReviewController = deleteReviewController;
+const postPhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!req.body.place || !req.body.usuarioId || !req.file || !req.body.alternativeText)
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
+        const place = typeof req.body.place === "string" ? JSON.parse(req.body.place) : req.body.place;
+        const photoBuffer = req.file.buffer;
+        const usuarioId = req.body.usuarioId;
+        const alternativeText = req.body.alternativeText;
+        const photo = {
+            usuarioId: usuarioId,
+            fotoBuffer: photoBuffer,
+            alternativeText: alternativeText
+        };
+        const postPhotoResponse = yield (0, sitiosService_1.postPhotoService)(place, photo);
+        if (postPhotoResponse.error) {
+            res.status(postPhotoResponse.status).send({ msg: postPhotoResponse.error });
+        }
+        else {
+            res.locals.newPlace = postPhotoResponse.newPlace;
+            res.locals.mensaje = "Foto enviada correctamente";
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en el envio de foto: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.postPhotoController = postPhotoController;
