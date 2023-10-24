@@ -228,14 +228,6 @@ const deleteReviewService = (reviewId) => __awaiter(void 0, void 0, void 0, func
 exports.deleteReviewService = deleteReviewService;
 const postPhotoService = (place, photo) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Comprimimos la calidad de la foto
-        // const compressedPhotoBuffer = await sharp(photo.fotoBuffer)
-        //     .jpeg({ quality: 80 })  // Puedes ajustar la calidad según tus necesidades
-        //     .toBuffer();
-        // // Reemplazamos el buffer original de la foto con el buffer comprimido
-        // photo.fotoBuffer = compressedPhotoBuffer;
-        // Luego, el resto del código permanece igual...
-        // Primero, buscamos el sitio usando el placeId
         const site = yield sitioModel_1.default.findOne({ placeId: place.placeId });
         // Si no encontramos el sitio, lo creamos
         if (!site) {
@@ -370,12 +362,13 @@ const calculateAverages = (reviews) => {
         for (const key in sum) {
             const averageForKey = count[key] > 0 ? sum[key] / count[key] : 0;
             if (averageForKey > 0) {
-                valoracion[key] = averageForKey;
+                valoracion[key] = parseFloat(averageForKey.toFixed(1));
                 total += valoracion[key];
                 fieldsWithValue++;
             }
         }
-        const average = fieldsWithValue > 0 ? total / fieldsWithValue : undefined;
+        const average = fieldsWithValue > 0 ? parseFloat((total / fieldsWithValue).toFixed(1)) : undefined;
+        console.log("Average:", average);
         return { valoracion, average };
     };
     const fisicaResult = computeAverageForCategory(fisicaSum, fisicaCount);
