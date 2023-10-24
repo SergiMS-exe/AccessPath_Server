@@ -231,18 +231,12 @@ const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, voi
 exports.deleteReviewController = deleteReviewController;
 const postPhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.body.place || !req.body.usuarioId || !req.file || !req.body.alternativeText)
+        const { photo, site } = req.body;
+        if (!photo || !site || !photo.base64 || !photo.usuarioId || !photo.alternativeText) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
-        const place = typeof req.body.place === "string" ? JSON.parse(req.body.place) : req.body.place;
-        const photoBuffer = req.file.buffer;
-        const usuarioId = req.body.usuarioId;
-        const alternativeText = req.body.alternativeText;
-        const photo = {
-            usuarioId: usuarioId,
-            fotoBuffer: photoBuffer,
-            alternativeText: alternativeText
-        };
-        const postPhotoResponse = yield (0, sitiosService_1.postPhotoService)(place, photo);
+        }
+        const parsedSite = typeof site === "string" ? JSON.parse(site) : site;
+        const postPhotoResponse = yield (0, sitiosService_1.postPhotoService)(parsedSite, photo);
         if (postPhotoResponse.error) {
             res.status(postPhotoResponse.status).send({ msg: postPhotoResponse.error });
         }

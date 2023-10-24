@@ -8,7 +8,7 @@ export type SiteLocation = {
 
 export type Photo = {
     usuarioId: string;
-    fotoBuffer: Buffer;
+    base64: string;
     alternativeText?: string;
 }
 

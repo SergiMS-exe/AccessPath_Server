@@ -12,7 +12,6 @@ import {
     postPhotoController,
 } from "../controllers/sitiosController";
 import { convertToClientMiddleware } from "../middleware/locationConvert";
-import upload from "../config/multer";
 
 const router = Router();
 
@@ -25,6 +24,6 @@ router.delete("/comment/:placeId/:commentId", deleteCommentController);
 router.post("/review", postReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.put("/review/:reviewId", editReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
-router.post("/photo", upload.single("photo"), postPhotoController, convertToClientMiddleware);
+router.post("/photo", postPhotoController, convertToClientMiddleware);
 
 export default router

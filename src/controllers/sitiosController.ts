@@ -217,21 +217,15 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
 
 const postPhotoController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.body.place || !req.body.usuarioId || !req.file || !req.body.alternativeText)
-            return handleHttp(res, "Faltan datos en el body", 400)
+        const { photo, site }: { photo: Photo, site: Site | string } = req.body;
 
-        const place: Site = typeof req.body.place === "string" ? JSON.parse(req.body.place) : req.body.place;
-        const photoBuffer: Buffer = req.file!.buffer;
-        const usuarioId: string = req.body.usuarioId;
-        const alternativeText: string = req.body.alternativeText;
-
-        const photo: Photo = {
-            usuarioId: usuarioId,
-            fotoBuffer: photoBuffer,
-            alternativeText: alternativeText
+        if (!photo || !site || !photo.base64 || !photo.usuarioId || !photo.alternativeText) {
+            return handleHttp(res, "Faltan datos en el body", 400);
         }
 
-        const postPhotoResponse = await postPhotoService(place, photo);
+        const parsedSite: Site = typeof site === "string" ? JSON.parse(site) : site;
+
+        const postPhotoResponse = await postPhotoService(parsedSite, photo);
         if (postPhotoResponse.error) {
             res.status(postPhotoResponse.status).send({ msg: postPhotoResponse.error })
         } else {
