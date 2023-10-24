@@ -21,10 +21,10 @@ router.get("/close", getClosePlacesController, convertToClientMiddleware) //Mete
 router.get("/comments", getCommentsController)
 router.post("/comment", postCommentController);
 router.put("/comment/:placeId", editCommentController);
-router.delete("/comment/:placeId/:commentId", deleteCommentController); //Meterle middleware de transformacion de sitio
+router.delete("/comment/:placeId/:commentId", deleteCommentController);
 router.post("/review", postReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
-router.put("/review/:reviewId", editReviewController); //Meterle middleware de transformacion de sitio
-router.delete("/review/:reviewId", deleteReviewController); //Meterle middleware de transformacion de sitio
+router.put("/review/:reviewId", editReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
+router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.post("/photo", upload.single("photo"), postPhotoController, convertToClientMiddleware);
 
 export default router

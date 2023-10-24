@@ -191,7 +191,9 @@ const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, 
             res.status(responseGetComments.status).send({ msg: responseGetComments.error });
         }
         else {
-            res.status(200).send({ msg: "Comentarios obtenidos correctamente", sites: responseGetComments.sites });
+            res.locals.sitios = responseGetComments.sites;
+            res.locals.mensaje = "Comentarios obtenidos correctamente";
+            //res.status(200).send({ msg: "Comentarios obtenidos correctamente", sites: responseGetComments.sites })
         }
     }
     catch (e) {

@@ -3,7 +3,6 @@ import { handleHttp } from "../utils/error.handle";
 import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
-import { transformArrayToClientFormat } from "../utils/auxiliar.handle";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -52,10 +51,8 @@ const getClosePlacesController = async (req: Request, res: Response, next: NextF
         if (closePlacesResponse.error) {
             res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
         } else {
-            const transformedPlaces = transformArrayToClientFormat(closePlacesResponse.sitios as any[]);
             res.locals.sitios = closePlacesResponse.sitios;
             res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
-            //res.status(200).send({ msg: "Sitios cercanos obtenidos correctamente", sitios: transformedPlaces });
         }
     } catch (e) {
         handleHttp(res, "Error en la obtencion de sitios cercanos: " + e)
@@ -188,7 +185,9 @@ const editReviewController = async (req: Request, res: Response, next: NextFunct
         if (editReviewResponse.error) {
             res.status(editReviewResponse.status).send({ msg: editReviewResponse.error })
         } else {
-            res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace })
+            res.locals.newPlace = editReviewResponse.newPlace;
+            res.locals.mensaje = "Valoracion editada correctamente";
+            //res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace })
         }
     } catch (e) {
         handleHttp(res, "Error en la edicion de valoracion: " + e)
@@ -205,7 +204,9 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
         if (deleteReviewResponse.error) {
             res.status(deleteReviewResponse.status).send({ msg: deleteReviewResponse.error })
         } else {
-            res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace })
+            res.locals.newPlace = deleteReviewResponse.newPlace;
+            res.locals.mensaje = "Valoracion eliminada correctamente";
+            //res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace })
         }
     } catch (e) {
         handleHttp(res, "Error en la eliminacion de valoracion: " + e)

@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
-const auxiliar_handle_1 = require("../utils/auxiliar.handle");
 const sitesIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
@@ -57,10 +56,8 @@ const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, v
             res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
         }
         else {
-            const transformedPlaces = (0, auxiliar_handle_1.transformArrayToClientFormat)(closePlacesResponse.sitios);
             res.locals.sitios = closePlacesResponse.sitios;
             res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
-            //res.status(200).send({ msg: "Sitios cercanos obtenidos correctamente", sitios: transformedPlaces });
         }
     }
     catch (e) {
@@ -198,7 +195,9 @@ const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
             res.status(editReviewResponse.status).send({ msg: editReviewResponse.error });
         }
         else {
-            res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace });
+            res.locals.newPlace = editReviewResponse.newPlace;
+            res.locals.mensaje = "Valoracion editada correctamente";
+            //res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace })
         }
     }
     catch (e) {
@@ -217,7 +216,9 @@ const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, voi
             res.status(deleteReviewResponse.status).send({ msg: deleteReviewResponse.error });
         }
         else {
-            res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace });
+            res.locals.newPlace = deleteReviewResponse.newPlace;
+            res.locals.mensaje = "Valoracion eliminada correctamente";
+            //res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace })
         }
     }
     catch (e) {

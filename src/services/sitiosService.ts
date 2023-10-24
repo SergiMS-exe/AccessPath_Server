@@ -277,48 +277,6 @@ const postPhotoService = async (place: Site, photo: Photo) => {
 
 
 //Aux functions
-// const updateAverages = async (input: Site | string) => {
-//     let placeId: string;
-//     let place: Site | undefined = undefined;
-
-//     if (typeof input === "string") {
-//         placeId = input;
-//     } else {
-//         placeId = input.placeId;
-//         place = input;
-//     }
-
-//     // Busca todas las valoraciones del sitio
-//     const reviews = await ValoracionModel.find({ placeId: placeId });
-
-//     const updateOptions: any = {};
-
-//     if (!reviews)
-//         return { error: "No se pudo actualizar el promedio", status: 500 };
-
-//     if (reviews.length > 0) { // Si hay valoraciones, calcula los promedios y actualiza el campo valoraciones
-//         const averages = calculateAverages(reviews);
-//         updateOptions.$set = { valoraciones: averages };
-//     } else { // Si no hay valoraciones, elimina el campo valoraciones
-//         updateOptions.$unset = { valoraciones: 1 };
-//     }
-
-//     if (place) {
-//         updateOptions.$setOnInsert = place;
-//     }
-
-//     const updateResult = await SitioModel.findOneAndUpdate(
-//         { placeId: placeId },
-//         updateOptions,
-//         { new: true, upsert: true }
-//     );
-
-//     if (updateResult) {
-//         return { newPlace: updateResult.toObject() };
-//     } else {
-//         return { error: "No se pudo actualizar el promedio", status: 500 };
-//     }
-// };
 
 const updateAverages = async (input: Site | string) => {
     let placeId: string;

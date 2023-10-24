@@ -174,7 +174,9 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
         if (responseGetComments.error) {
             res.status(responseGetComments.status).send({ msg: responseGetComments.error })
         } else {
-            res.status(200).send({ msg: "Comentarios obtenidos correctamente", sites: responseGetComments.sites })
+            res.locals.sitios = responseGetComments.sites;
+            res.locals.mensaje = "Comentarios obtenidos correctamente";
+            //res.status(200).send({ msg: "Comentarios obtenidos correctamente", sites: responseGetComments.sites })
         }
     } catch (e: any) {
         handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)

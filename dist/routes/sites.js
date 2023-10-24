@@ -13,9 +13,9 @@ router.get("/close", sitiosController_1.getClosePlacesController, locationConver
 router.get("/comments", sitiosController_1.getCommentsController);
 router.post("/comment", sitiosController_1.postCommentController);
 router.put("/comment/:placeId", sitiosController_1.editCommentController);
-router.delete("/comment/:placeId/:commentId", sitiosController_1.deleteCommentController); //Meterle middleware de transformacion de sitio
+router.delete("/comment/:placeId/:commentId", sitiosController_1.deleteCommentController);
 router.post("/review", sitiosController_1.postReviewController, locationConvert_1.convertToClientMiddleware); //Meterle middleware de transformacion de sitio
-router.put("/review/:reviewId", sitiosController_1.editReviewController); //Meterle middleware de transformacion de sitio
-router.delete("/review/:reviewId", sitiosController_1.deleteReviewController); //Meterle middleware de transformacion de sitio
+router.put("/review/:reviewId", sitiosController_1.editReviewController, locationConvert_1.convertToClientMiddleware); //Meterle middleware de transformacion de sitio
+router.delete("/review/:reviewId", sitiosController_1.deleteReviewController, locationConvert_1.convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.post("/photo", multer_1.default.single("photo"), sitiosController_1.postPhotoController, locationConvert_1.convertToClientMiddleware);
 exports.default = router;
