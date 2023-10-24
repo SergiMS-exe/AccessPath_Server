@@ -11,20 +11,19 @@ import {
     editUserController,
     editPasswordController
 } from "../controllers/usersController";
-import { logMiddleware } from "../middleware/logger";
-import { convertToClientMiddleware } from "../middleware/locationConvert";
+import { convertToClientMiddleware, convertToServerMiddleware } from "../middleware/locationConvert";
 
 const router = Router();
 
 router.get("/", usersIndexController);
-router.post("/login", logMiddleware, logInUserController);
+router.post("/login", logInUserController);
 router.post("/register", registerUserController);
-router.put("/:userId", editUserController);
 router.put("/password/:userId", editPasswordController);
-router.delete("/:userId", deleteUserController);
-router.put("/saveSite", saveSiteController);
+router.put("/saveSite", convertToServerMiddleware, saveSiteController);
 router.put("/unsaveSite", unsaveSiteController);
 router.get("/savedSites/:userId", getSavedSitesController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
-router.get("/comments/:userId", getUserCommentsController); //Meterle middleware de transformacion de array de sitios
+router.get("/comments/:userId", getUserCommentsController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
+router.delete("/:userId", deleteUserController);
+router.put("/:userId", editUserController);
 
 export default router;

@@ -125,8 +125,6 @@ const saveSiteController = async (req: Request, res: Response, next: NextFunctio
         }
     } catch (e: any) {
         handleHttp(res, "Error en guardado de sitio: " + e.message)
-    } finally {
-        next()
     }
 }
 
@@ -142,8 +140,6 @@ const unsaveSiteController = async (req: Request, res: Response, next: NextFunct
         }
     } catch (e: any) {
         handleHttp(res, "Error en guardado de sitio: " + e.message)
-    } finally {
-        next()
     }
 }
 
@@ -180,6 +176,8 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
         }
     } catch (e: any) {
         handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
+    } finally {
+        next()
     }
 }
 

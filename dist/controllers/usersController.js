@@ -136,9 +136,6 @@ const saveSiteController = (req, res, next) => __awaiter(void 0, void 0, void 0,
     catch (e) {
         (0, error_handle_1.handleHttp)(res, "Error en guardado de sitio: " + e.message);
     }
-    finally {
-        next();
-    }
 });
 exports.saveSiteController = saveSiteController;
 const unsaveSiteController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -155,9 +152,6 @@ const unsaveSiteController = (req, res, next) => __awaiter(void 0, void 0, void 
     }
     catch (e) {
         (0, error_handle_1.handleHttp)(res, "Error en guardado de sitio: " + e.message);
-    }
-    finally {
-        next();
     }
 });
 exports.unsaveSiteController = unsaveSiteController;
@@ -198,6 +192,9 @@ const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, 
     }
     catch (e) {
         (0, error_handle_1.handleHttp)(res, "Error en obtencion de comentarios del usuario: " + e.message);
+    }
+    finally {
+        next();
     }
 });
 exports.getUserCommentsController = getUserCommentsController;

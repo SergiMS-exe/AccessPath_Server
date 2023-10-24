@@ -16,8 +16,8 @@ export const convertToClientMiddleware = (req: Request, res: Response, next: Nex
 export const convertToServerMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (req.body.sitios) {
         req.body.sitios = transformToServerFormatArray(req.body.sitios);
-    } else if (req.body.sitio) {
-        req.body.sitio = transformToServerFormat(req.body.sitio);
+    } else if (req.body.site) {
+        req.body.site = transformToServerFormat(req.body.site);
     }
     next();
 }

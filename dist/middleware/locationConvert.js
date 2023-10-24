@@ -18,8 +18,8 @@ const convertToServerMiddleware = (req, res, next) => {
     if (req.body.sitios) {
         req.body.sitios = (0, auxiliar_handle_1.transformToServerFormatArray)(req.body.sitios);
     }
-    else if (req.body.sitio) {
-        req.body.sitio = (0, auxiliar_handle_1.transformToServerFormat)(req.body.sitio);
+    else if (req.body.site) {
+        req.body.site = (0, auxiliar_handle_1.transformToServerFormat)(req.body.site);
     }
     next();
 };
