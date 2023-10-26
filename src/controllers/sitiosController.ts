@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
+import { ObjectId } from "mongodb";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -217,15 +218,17 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
 
 const postPhotoController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { photo, site }: { photo: Photo, site: Site | string } = req.body;
+        const { photo, site }: { photo: any, site: Site | string } = req.body;
 
         if (!photo || !site || !photo.base64 || !photo.usuarioId || !photo.alternativeText) {
             return handleHttp(res, "Faltan datos en el body", 400);
         }
 
+        const photoWithId: Photo = { ...photo, _id: new ObjectId() };
+
         const parsedSite: Site = typeof site === "string" ? JSON.parse(site) : site;
 
-        const postPhotoResponse = await postPhotoService(parsedSite, photo);
+        const postPhotoResponse = await postPhotoService(parsedSite, photoWithId);
         if (postPhotoResponse.error) {
             res.status(postPhotoResponse.status).send({ msg: postPhotoResponse.error })
         } else {
@@ -234,6 +237,24 @@ const postPhotoController = async (req: Request, res: Response, next: NextFuncti
         }
     } catch (e) {
         handleHttp(res, "Error en el envio de foto: " + e)
+    } finally {
+        next()
+    }
+}
+
+const deletePhotoController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const photoId: string = req.params.photoId;
+
+        const deletePhotoResponse = await deletePhotoService(photoId);
+        if (deletePhotoResponse.error) {
+            res.status(deletePhotoResponse.status).send({ msg: deletePhotoResponse.error })
+        } else {
+            res.locals.newPlace = deletePhotoResponse.newPlace;
+            res.locals.mensaje = "Foto eliminada correctamente";
+        }
+    } catch (e) {
+        handleHttp(res, "Error en la eliminacion de foto: " + e)
     } finally {
         next()
     }
@@ -249,5 +270,6 @@ export {
     postReviewController,
     editReviewController,
     deleteReviewController,
-    postPhotoController
+    postPhotoController,
+    deletePhotoController
 }

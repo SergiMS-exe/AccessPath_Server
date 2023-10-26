@@ -1,12 +1,9 @@
 import { ObjectId } from "mongodb";
-import CommentType from "../interfaces/CommentType";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
 import { FisicaEnum, FisicaKey, PsiquicaEnum, PsiquicaKey, SensorialEnum, SensorialKey, Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
-import { transformToServerFormat } from "../utils/auxiliar.handle";
-import sharp from "sharp";
 
 
 const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
@@ -33,32 +30,7 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
     }
 }
 
-
-// const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
-
-//     const commentToInsert: CommentType = {
-//         _id: new ObjectId(),
-//         usuarioId: comment.usuarioId,
-//         texto: comment.texto,
-//         date: new Date(),
-//     };
-
-//     const placeConverted = transformToServerFormat(place);
-
-//     const updateResult = await SitioModel.findOneAndUpdate(
-//         { placeId: place.placeId },
-//         { $push: { comentarios: commentToInsert }, $setOnInsert: placeConverted },
-//         { upsert: true, new: true }
-//     );
-
-//     if (updateResult) {
-//         return { status: 200, newPlace: updateResult, comment: commentToInsert };
-//     } else {
-//         return { error: "No se pudo guardar el comentario", status: 500 };
-//     }
-
-// };
-
+//Fotos-------------------------------------------------------------------------------------------
 const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
     try {
         // Primero, buscamos el sitio usando el placeId
@@ -94,8 +66,6 @@ const postCommentService = async (comment: { texto: string; usuarioId: string },
     }
 };
 
-
-
 const editCommentService = async (placeId: string, commentId: string, newText: string) => {
     const updateResult = await SitioModel.findOneAndUpdate(
         { placeId: placeId, "comentarios._id": commentId },
@@ -119,7 +89,6 @@ const editCommentService = async (placeId: string, commentId: string, newText: s
         return { error: "No se pudo editar el comentario", status: 500 };
     }
 };
-
 
 const deleteCommentService = async (commentId: string, placeId: string) => {
     const session = await SitioModel.startSession();
@@ -158,7 +127,6 @@ const deleteCommentService = async (commentId: string, placeId: string) => {
     }
 };
 
-
 const getCommentsService = async (placeId: string) => {
     const siteFound = await SitioModel.findOne({ placeId: placeId });
 
@@ -193,6 +161,7 @@ const getCommentsService = async (placeId: string) => {
     }
 }
 
+//Valoraciones----------------------------------------------------------------------------------------
 const postReviewService = async (userId: string, place: Site, valoracion: Valoracion) => {
     //Insert new review in valoracionModel
     const newValoracion = { placeId: place.placeId, userId: userId, fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica }
@@ -249,6 +218,7 @@ const deleteReviewService = async (reviewId: string) => {
     }
 }
 
+//Fotos-------------------------------------------------------------------------------------------
 const postPhotoService = async (place: Site, photo: Photo) => {
     try {
         const site = await SitioModel.findOne({ placeId: place.placeId });
@@ -275,6 +245,24 @@ const postPhotoService = async (place: Site, photo: Photo) => {
     }
 };
 
+const deletePhotoService = async (photoId: string) => {
+    try {
+        const response = await SitioModel.findOneAndUpdate(
+            { "fotos._id": photoId },
+            { $pull: { fotos: { _id: photoId } } },
+            { new: true, rawResult: true }
+        );
+
+        if (response.ok) {
+            return { newPlace: response.value };
+        } else {
+            return { error: "No se pudo eliminar la foto", status: 500 };
+        }
+    } catch (error) {
+        console.error("Error al eliminar la foto:", error);
+        return { error: "No se pudo eliminar la foto", status: 500 };
+    }
+}
 
 //Aux functions
 
@@ -413,5 +401,6 @@ export {
     postReviewService,
     editReviewService,
     deleteReviewService,
-    postPhotoService
+    postPhotoService,
+    deletePhotoService
 }

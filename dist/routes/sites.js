@@ -14,4 +14,5 @@ router.post("/review", sitiosController_1.postReviewController, locationConvert_
 router.put("/review/:reviewId", sitiosController_1.editReviewController, locationConvert_1.convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.delete("/review/:reviewId", sitiosController_1.deleteReviewController, locationConvert_1.convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.post("/photo", sitiosController_1.postPhotoController, locationConvert_1.convertToClientMiddleware);
+router.delete("/photo/:photoId", sitiosController_1.deletePhotoController, locationConvert_1.convertToClientMiddleware);
 exports.default = router;

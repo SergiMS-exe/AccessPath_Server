@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getClosePlacesService = void 0;
+exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
@@ -42,25 +42,7 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
     }
 });
 exports.getClosePlacesService = getClosePlacesService;
-// const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
-//     const commentToInsert: CommentType = {
-//         _id: new ObjectId(),
-//         usuarioId: comment.usuarioId,
-//         texto: comment.texto,
-//         date: new Date(),
-//     };
-//     const placeConverted = transformToServerFormat(place);
-//     const updateResult = await SitioModel.findOneAndUpdate(
-//         { placeId: place.placeId },
-//         { $push: { comentarios: commentToInsert }, $setOnInsert: placeConverted },
-//         { upsert: true, new: true }
-//     );
-//     if (updateResult) {
-//         return { status: 200, newPlace: updateResult, comment: commentToInsert };
-//     } else {
-//         return { error: "No se pudo guardar el comentario", status: 500 };
-//     }
-// };
+//Fotos-------------------------------------------------------------------------------------------
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Primero, buscamos el sitio usando el placeId
@@ -175,6 +157,7 @@ const getCommentsService = (placeId) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getCommentsService = getCommentsService;
+//Valoraciones----------------------------------------------------------------------------------------
 const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
     //Insert new review in valoracionModel
     const newValoracion = { placeId: place.placeId, userId: userId, fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica };
@@ -226,6 +209,7 @@ const deleteReviewService = (reviewId) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.deleteReviewService = deleteReviewService;
+//Fotos-------------------------------------------------------------------------------------------
 const postPhotoService = (place, photo) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const site = yield sitioModel_1.default.findOne({ placeId: place.placeId });
@@ -247,6 +231,22 @@ const postPhotoService = (place, photo) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.postPhotoService = postPhotoService;
+const deletePhotoService = (photoId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const response = yield sitioModel_1.default.findOneAndUpdate({ "fotos._id": photoId }, { $pull: { fotos: { _id: photoId } } }, { new: true, rawResult: true });
+        if (response.ok) {
+            return { newPlace: response.value };
+        }
+        else {
+            return { error: "No se pudo eliminar la foto", status: 500 };
+        }
+    }
+    catch (error) {
+        console.error("Error al eliminar la foto:", error);
+        return { error: "No se pudo eliminar la foto", status: 500 };
+    }
+});
+exports.deletePhotoService = deletePhotoService;
 //Aux functions
 const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* () {
     let placeId;

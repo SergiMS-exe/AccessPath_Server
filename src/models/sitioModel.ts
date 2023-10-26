@@ -66,7 +66,7 @@ const PhotoSchema = new Schema({
     usuarioId: { type: String, required: true },
     base64: { type: String, required: true },
     alternativeText: { type: String, required: false },
-}, { _id: false });
+});
 
 const SitioSchema = new Schema<Site>(
     {

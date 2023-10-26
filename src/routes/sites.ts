@@ -10,6 +10,7 @@ import {
     deleteReviewController,
     getClosePlacesController,
     postPhotoController,
+    deletePhotoController,
 } from "../controllers/sitiosController";
 import { convertToClientMiddleware } from "../middleware/locationConvert";
 
@@ -25,5 +26,6 @@ router.post("/review", postReviewController, convertToClientMiddleware); //Meter
 router.put("/review/:reviewId", editReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.post("/photo", postPhotoController, convertToClientMiddleware);
+router.delete("/photo/:photoId", deletePhotoController, convertToClientMiddleware);
 
 export default router

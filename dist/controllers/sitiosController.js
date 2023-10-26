@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
+exports.deletePhotoController = exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
+const mongodb_1 = require("mongodb");
 const sitesIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
@@ -235,8 +236,9 @@ const postPhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0
         if (!photo || !site || !photo.base64 || !photo.usuarioId || !photo.alternativeText) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         }
+        const photoWithId = Object.assign(Object.assign({}, photo), { _id: new mongodb_1.ObjectId() });
         const parsedSite = typeof site === "string" ? JSON.parse(site) : site;
-        const postPhotoResponse = yield (0, sitiosService_1.postPhotoService)(parsedSite, photo);
+        const postPhotoResponse = yield (0, sitiosService_1.postPhotoService)(parsedSite, photoWithId);
         if (postPhotoResponse.error) {
             res.status(postPhotoResponse.status).send({ msg: postPhotoResponse.error });
         }
@@ -253,3 +255,23 @@ const postPhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.postPhotoController = postPhotoController;
+const deletePhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const photoId = req.params.photoId;
+        const deletePhotoResponse = yield (0, sitiosService_1.deletePhotoService)(photoId);
+        if (deletePhotoResponse.error) {
+            res.status(deletePhotoResponse.status).send({ msg: deletePhotoResponse.error });
+        }
+        else {
+            res.locals.newPlace = deletePhotoResponse.newPlace;
+            res.locals.mensaje = "Foto eliminada correctamente";
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de foto: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.deletePhotoController = deletePhotoController;

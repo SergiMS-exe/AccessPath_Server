@@ -57,7 +57,7 @@ const PhotoSchema = new mongoose_1.Schema({
     usuarioId: { type: String, required: true },
     base64: { type: String, required: true },
     alternativeText: { type: String, required: false },
-}, { _id: false });
+});
 const SitioSchema = new mongoose_1.Schema({
     placeId: { type: String, required: true },
     nombre: { type: String, required: true },
