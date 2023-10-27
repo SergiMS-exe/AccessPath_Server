@@ -9,9 +9,10 @@ import {
     usersIndexController,
     getUserCommentsController,
     editUserController,
-    editPasswordController
+    editPasswordController,
+    getUserRatingsController
 } from "../controllers/usersController";
-import { convertToClientMiddleware, convertToServerMiddleware } from "../middleware/locationConvert";
+import { convertToClientMiddleware, convertToServerMiddleware, convertValoracionSiteMiddleware } from "../middleware/locationConvert";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ router.put("/saveSite", convertToServerMiddleware, saveSiteController);
 router.put("/unsaveSite", unsaveSiteController);
 router.get("/savedSites/:userId", getSavedSitesController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
 router.get("/comments/:userId", getUserCommentsController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
+router.get("/ratings/:userId", getUserRatingsController, convertValoracionSiteMiddleware);
 router.delete("/:userId", deleteUserController);
 router.put("/:userId", editUserController);
 

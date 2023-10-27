@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editPasswordService = exports.editUserService = exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
+exports.editPasswordService = exports.editUserService = exports.getUserRatingsService = exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const bcrypt_handle_1 = require("../utils/bcrypt.handle");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const mongodb_1 = require("mongodb");
+const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
 const registerUsuarioService = (usuario) => __awaiter(void 0, void 0, void 0, function* () {
     if (yield usuarioModel_1.default.findOne({ email: usuario.email }))
         return { error: "Ya hay un usuario con ese email", status: 409 };
@@ -120,6 +121,21 @@ const getUserCommentsService = (usuarioId) => __awaiter(void 0, void 0, void 0, 
     return { sites };
 });
 exports.getUserCommentsService = getUserCommentsService;
+const getUserRatingsService = (usuarioId) => __awaiter(void 0, void 0, void 0, function* () {
+    const userFound = yield getUserInDB(usuarioId);
+    if (!userFound)
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    const valoraciones = yield valoracionModel_1.default.find({ userId: usuarioId });
+    //For each valoracion, get the site and group each valoracion with its site
+    const sitesWithValoracion = yield Promise.all(valoraciones.map((valoracion) => __awaiter(void 0, void 0, void 0, function* () {
+        const site = yield sitioModel_1.default.findOne({ placeId: valoracion.placeId });
+        return { valoracion, site };
+    })));
+    if (!sitesWithValoracion)
+        return { error: "No hay valoraciones", status: 404 };
+    return { sitesWithValoracion };
+});
+exports.getUserRatingsService = getUserRatingsService;
 const editUserService = (usuario) => __awaiter(void 0, void 0, void 0, function* () {
     const userFound = yield getUserInDB(usuario._id.toString());
     if (!userFound)

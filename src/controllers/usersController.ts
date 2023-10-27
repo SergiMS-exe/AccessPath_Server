@@ -9,10 +9,10 @@ import {
     saveSiteService,
     unsaveSiteService,
     editUserService,
-    editPasswordService
+    editPasswordService,
+    getUserRatingsService
 } from "../services/usuariosService"
 import Person from "../interfaces/Person";
-import { transformArrayToClientFormat } from "../utils/auxiliar.handle";
 
 const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -151,8 +151,6 @@ const getSavedSitesController = async (req: Request, res: Response, next: NextFu
         if (responseGetSaved.error) {
             res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })
         } else {
-            // const transformedSites = transformArrayToClientFormat(responseGetSaved.savedSites as any[]);
-            // console.log(transformedSites[0])
             res.locals.sitios = responseGetSaved.savedSites;
             res.locals.mensaje = "Sitios guardados obtenidos correctamente";
         }
@@ -172,7 +170,23 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
         } else {
             res.locals.sitios = responseGetComments.sites;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
-            //res.status(200).send({ msg: "Comentarios obtenidos correctamente", sites: responseGetComments.sites })
+        }
+    } catch (e: any) {
+        handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
+    } finally {
+        next()
+    }
+}
+
+const getUserRatingsController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const responseGetComments = await getUserRatingsService(req.params.userId);
+
+        if (responseGetComments.error) {
+            res.status(responseGetComments.status).send({ msg: responseGetComments.error })
+        } else {
+            res.locals.sitiosConValoracion = responseGetComments.sitesWithValoracion;
+            res.locals.mensaje = "Comentarios obtenidos correctamente";
         }
     } catch (e: any) {
         handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
@@ -235,6 +249,7 @@ export {
     unsaveSiteController,
     getSavedSitesController,
     getUserCommentsController,
+    getUserRatingsController,
     editUserController,
     editPasswordController,
     dummyController

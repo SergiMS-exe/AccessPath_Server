@@ -5,6 +5,7 @@ import { encrypt, verified } from "../utils/bcrypt.handle";
 import SitioModel from "../models/sitioModel";
 import { Site } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
+import ValoracionModel from "../models/valoracionModel";
 
 const registerUsuarioService = async (usuario: Person) => {
     if (await UsuarioModel.findOne({ email: usuario.email })) return { error: "Ya hay un usuario con ese email", status: 409 };
@@ -115,6 +116,22 @@ const getUserCommentsService = async (usuarioId: string) => {
     return { sites };
 }
 
+const getUserRatingsService = async (usuarioId: string) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+
+    const valoraciones = await ValoracionModel.find({ userId: usuarioId });
+    //For each valoracion, get the site and group each valoracion with its site
+    const sitesWithValoracion = await Promise.all(valoraciones.map(async (valoracion) => {
+        const site = await SitioModel.findOne({ placeId: valoracion.placeId });
+        return { valoracion, site };
+    }));
+
+    if (!sitesWithValoracion) return { error: "No hay valoraciones", status: 404 };
+
+    return { sitesWithValoracion };
+}
+
 const editUserService = async (usuario: Person) => {
     const userFound = await getUserInDB(usuario._id!.toString());
     if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
@@ -156,6 +173,7 @@ export {
     unsaveSiteService,
     getSavedSitesService,
     getUserCommentsService,
+    getUserRatingsService,
     editUserService,
     editPasswordService
 }

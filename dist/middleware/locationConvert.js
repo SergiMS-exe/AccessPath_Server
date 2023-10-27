@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertToServerMiddleware = exports.convertToClientMiddleware = void 0;
+exports.convertToServerMiddleware = exports.convertValoracionSiteMiddleware = exports.convertToClientMiddleware = void 0;
 const auxiliar_handle_1 = require("../utils/auxiliar.handle");
 const convertToClientMiddleware = (req, res, next) => {
     if (res.locals.sitios && res.locals.mensaje) {
@@ -14,6 +14,18 @@ const convertToClientMiddleware = (req, res, next) => {
     next();
 };
 exports.convertToClientMiddleware = convertToClientMiddleware;
+const convertValoracionSiteMiddleware = (req, res, next) => {
+    if (res.locals.sitiosConValoracion && res.locals.mensaje) {
+        // De tipo { Valoracion, Site }[]
+        res.locals.sitiosConValoracion = (0, auxiliar_handle_1.transformValoracionSiteArray)(res.locals.sitiosConValoracion);
+        // Envía la respuesta con los sitios transformados
+        res.status(200).send({ msg: res.locals.mensaje, sitesWRating: res.locals.sitiosConValoracion });
+    }
+    else {
+        next();
+    }
+};
+exports.convertValoracionSiteMiddleware = convertValoracionSiteMiddleware;
 const convertToServerMiddleware = (req, res, next) => {
     if (req.body.sitios) {
         req.body.sitios = (0, auxiliar_handle_1.transformToServerFormatArray)(req.body.sitios);

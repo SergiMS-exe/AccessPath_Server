@@ -1,9 +1,23 @@
 import { Site } from "../interfaces/Site";
-
+import { Valoracion } from "../interfaces/Valoracion";
 
 export function transformArrayToClientFormat(sites: any[]): any[] {
     return sites.map(transformToClientFormat);
 }
+
+export function transformValoracionSiteArray(array: { valoracion: Valoracion, site: Site }[]): any[] {
+    return array.map(item => {
+        // Transforma solo la parte Site del objeto
+        const transformedSite = transformToClientFormat(item.site);
+
+        // Devuelve un objeto con la Valoracion y el Site asociado transformado
+        return {
+            valoracion: item.valoracion,
+            site: transformedSite
+        };
+    });
+}
+
 
 export function transformToClientFormat(site: any): any {
     const actualSite = site._doc ? site._doc : site;

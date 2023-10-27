@@ -1,10 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.transformToServerFormatArray = exports.transformToServerFormat = exports.transformToClientFormat = exports.transformArrayToClientFormat = void 0;
+exports.transformToServerFormatArray = exports.transformToServerFormat = exports.transformToClientFormat = exports.transformValoracionSiteArray = exports.transformArrayToClientFormat = void 0;
 function transformArrayToClientFormat(sites) {
     return sites.map(transformToClientFormat);
 }
 exports.transformArrayToClientFormat = transformArrayToClientFormat;
+function transformValoracionSiteArray(array) {
+    return array.map(item => {
+        // Transforma solo la parte Site del objeto
+        const transformedSite = transformToClientFormat(item.site);
+        // Devuelve un objeto con la Valoracion y el Site asociado transformado
+        return {
+            valoracion: item.valoracion,
+            site: transformedSite
+        };
+    });
+}
+exports.transformValoracionSiteArray = transformValoracionSiteArray;
 function transformToClientFormat(site) {
     const actualSite = site._doc ? site._doc : site;
     // Extracting location details
