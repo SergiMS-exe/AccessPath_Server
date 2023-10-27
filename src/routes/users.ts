@@ -10,7 +10,8 @@ import {
     getUserCommentsController,
     editUserController,
     editPasswordController,
-    getUserRatingsController
+    getUserRatingsController,
+    getUserPhotosController
 } from "../controllers/usersController";
 import { convertToClientMiddleware, convertToServerMiddleware, convertValoracionSiteMiddleware } from "../middleware/locationConvert";
 
@@ -25,6 +26,7 @@ router.put("/unsaveSite", unsaveSiteController);
 router.get("/savedSites/:userId", getSavedSitesController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
 router.get("/comments/:userId", getUserCommentsController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
 router.get("/ratings/:userId", getUserRatingsController, convertValoracionSiteMiddleware);
+router.get("/photos/:userId", getUserPhotosController, convertToClientMiddleware);
 router.delete("/:userId", deleteUserController);
 router.put("/:userId", editUserController);
 

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dummyController = exports.editPasswordController = exports.editUserController = exports.getUserRatingsController = exports.getUserCommentsController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = exports.usersIndexController = void 0;
+exports.dummyController = exports.editPasswordController = exports.editUserController = exports.getUserRatingsController = exports.getUserPhotosController = exports.getUserCommentsController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = exports.usersIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const usuariosService_1 = require("../services/usuariosService");
 const usersIndexController = (req, res, next) => {
@@ -197,12 +197,12 @@ const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, 
 exports.getUserCommentsController = getUserCommentsController;
 const getUserRatingsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const responseGetComments = yield (0, usuariosService_1.getUserRatingsService)(req.params.userId);
-        if (responseGetComments.error) {
-            res.status(responseGetComments.status).send({ msg: responseGetComments.error });
+        const responseGetRatings = yield (0, usuariosService_1.getUserRatingsService)(req.params.userId);
+        if (responseGetRatings.error) {
+            res.status(responseGetRatings.status).send({ msg: responseGetRatings.error });
         }
         else {
-            res.locals.sitiosConValoracion = responseGetComments.sitesWithValoracion;
+            res.locals.sitiosConValoracion = responseGetRatings.sitesWithValoracion;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
         }
     }
@@ -214,6 +214,25 @@ const getUserRatingsController = (req, res, next) => __awaiter(void 0, void 0, v
     }
 });
 exports.getUserRatingsController = getUserRatingsController;
+const getUserPhotosController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const responseGetPhotos = yield (0, usuariosService_1.getUserPhotosService)(req.params.userId);
+        if (responseGetPhotos.error) {
+            res.status(responseGetPhotos.status).send({ msg: responseGetPhotos.error });
+        }
+        else {
+            res.locals.sitios = responseGetPhotos.sites;
+            res.locals.mensaje = "Fotos obtenidas correctamente";
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en obtencion de fotos del usuario: " + e.message);
+    }
+    finally {
+        next();
+    }
+});
+exports.getUserPhotosController = getUserPhotosController;
 const editUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { _id, nombre, apellidos, email, tipoDiscapacidad } = req.body.person;

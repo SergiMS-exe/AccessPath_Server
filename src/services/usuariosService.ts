@@ -111,7 +111,7 @@ const getUserCommentsService = async (usuarioId: string) => {
     ]);
 
 
-    if (!sites) return { error: "No hay comentarios", status: 404 };
+    if (!sites) return { error: "No hay comentarios", status: 404 }; //TODO esto no tiene porque ser un error
 
     return { sites };
 }
@@ -130,6 +130,34 @@ const getUserRatingsService = async (usuarioId: string) => {
     if (!sitesWithValoracion) return { error: "No hay valoraciones", status: 404 };
 
     return { sitesWithValoracion };
+}
+
+const getUserPhotosService = async (usuarioId: string) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+
+    //Obtain photos from all sites where userId in photo is the same as the one in the params
+    const sites = await SitioModel.aggregate([
+        { $unwind: "$fotos" },
+        { $match: { "fotos.usuarioId": usuarioId } },
+        {
+            $group: {
+                _id: "$_id",
+                fotos: { $push: "$fotos" },
+                sitio: { $first: "$$ROOT" }
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: {
+                    $mergeObjects: ["$sitio", { fotos: "$fotos" }]
+                }
+            }
+        },
+        { $project: { _id: 0 } }
+    ]);
+
+    return { sites };
 }
 
 const editUserService = async (usuario: Person) => {
@@ -174,6 +202,7 @@ export {
     getSavedSitesService,
     getUserCommentsService,
     getUserRatingsService,
+    getUserPhotosService,
     editUserService,
     editPasswordService
 }

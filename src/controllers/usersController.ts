@@ -10,7 +10,8 @@ import {
     unsaveSiteService,
     editUserService,
     editPasswordService,
-    getUserRatingsService
+    getUserRatingsService,
+    getUserPhotosService
 } from "../services/usuariosService"
 import Person from "../interfaces/Person";
 
@@ -180,16 +181,33 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
 
 const getUserRatingsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const responseGetComments = await getUserRatingsService(req.params.userId);
+        const responseGetRatings = await getUserRatingsService(req.params.userId);
 
-        if (responseGetComments.error) {
-            res.status(responseGetComments.status).send({ msg: responseGetComments.error })
+        if (responseGetRatings.error) {
+            res.status(responseGetRatings.status).send({ msg: responseGetRatings.error })
         } else {
-            res.locals.sitiosConValoracion = responseGetComments.sitesWithValoracion;
+            res.locals.sitiosConValoracion = responseGetRatings.sitesWithValoracion;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
         }
     } catch (e: any) {
         handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
+    } finally {
+        next()
+    }
+}
+
+const getUserPhotosController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const responseGetPhotos = await getUserPhotosService(req.params.userId);
+
+        if (responseGetPhotos.error) {
+            res.status(responseGetPhotos.status).send({ msg: responseGetPhotos.error })
+        } else {
+            res.locals.sitios = responseGetPhotos.sites;
+            res.locals.mensaje = "Fotos obtenidas correctamente";
+        }
+    } catch (e: any) {
+        handleHttp(res, "Error en obtencion de fotos del usuario: " + e.message)
     } finally {
         next()
     }
@@ -249,6 +267,7 @@ export {
     unsaveSiteController,
     getSavedSitesController,
     getUserCommentsController,
+    getUserPhotosController,
     getUserRatingsController,
     editUserController,
     editPasswordController,

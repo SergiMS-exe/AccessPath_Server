@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.editPasswordService = exports.editUserService = exports.getUserRatingsService = exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
+exports.editPasswordService = exports.editUserService = exports.getUserPhotosService = exports.getUserRatingsService = exports.getUserCommentsService = exports.getSavedSitesService = exports.unsaveSiteService = exports.saveSiteService = exports.deleteUsuarioService = exports.logInUserService = exports.registerUsuarioService = void 0;
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const bcrypt_handle_1 = require("../utils/bcrypt.handle");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
@@ -117,7 +117,7 @@ const getUserCommentsService = (usuarioId) => __awaiter(void 0, void 0, void 0, 
         { $project: { _id: 0 } }
     ]);
     if (!sites)
-        return { error: "No hay comentarios", status: 404 };
+        return { error: "No hay comentarios", status: 404 }; //TODO esto no tiene porque ser un error
     return { sites };
 });
 exports.getUserCommentsService = getUserCommentsService;
@@ -136,6 +136,33 @@ const getUserRatingsService = (usuarioId) => __awaiter(void 0, void 0, void 0, f
     return { sitesWithValoracion };
 });
 exports.getUserRatingsService = getUserRatingsService;
+const getUserPhotosService = (usuarioId) => __awaiter(void 0, void 0, void 0, function* () {
+    const userFound = yield getUserInDB(usuarioId);
+    if (!userFound)
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    //Obtain photos from all sites where userId in photo is the same as the one in the params
+    const sites = yield sitioModel_1.default.aggregate([
+        { $unwind: "$fotos" },
+        { $match: { "fotos.usuarioId": usuarioId } },
+        {
+            $group: {
+                _id: "$_id",
+                fotos: { $push: "$fotos" },
+                sitio: { $first: "$$ROOT" }
+            }
+        },
+        {
+            $replaceRoot: {
+                newRoot: {
+                    $mergeObjects: ["$sitio", { fotos: "$fotos" }]
+                }
+            }
+        },
+        { $project: { _id: 0 } }
+    ]);
+    return { sites };
+});
+exports.getUserPhotosService = getUserPhotosService;
 const editUserService = (usuario) => __awaiter(void 0, void 0, void 0, function* () {
     const userFound = yield getUserInDB(usuario._id.toString());
     if (!userFound)
