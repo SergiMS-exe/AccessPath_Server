@@ -12,7 +12,7 @@ import {
     postPhotoController,
     deletePhotoController,
 } from "../controllers/sitiosController";
-import { convertToClientMiddleware } from "../middleware/locationConvert";
+import { convertToClientMiddleware, convertToServerMiddleware } from "../middleware/locationConvert";
 
 const router = Router();
 
@@ -25,7 +25,7 @@ router.delete("/comment/:placeId/:commentId", deleteCommentController);
 router.post("/review", postReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.put("/review/:reviewId", editReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
 router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
-router.post("/photo", postPhotoController, convertToClientMiddleware);
+router.post("/photo", convertToServerMiddleware, postPhotoController, convertToClientMiddleware);
 router.delete("/photo/:photoId", deletePhotoController, convertToClientMiddleware);
 
 export default router

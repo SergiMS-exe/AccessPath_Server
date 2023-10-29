@@ -22,7 +22,8 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
     const closePlaces = yield sitioModel_1.default.find({
         $or: [
             { "valoraciones": { $exists: true, $ne: {} } },
-            { "comentarios": { $exists: true, $ne: [] } }
+            { "comentarios": { $exists: true, $ne: [] } },
+            { "fotos": { $exists: true, $ne: [] } }
         ],
         location: {
             $near: {

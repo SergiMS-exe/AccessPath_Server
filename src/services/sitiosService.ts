@@ -10,7 +10,8 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
     const closePlaces = await SitioModel.find({
         $or: [
             { "valoraciones": { $exists: true, $ne: {} } },
-            { "comentarios": { $exists: true, $ne: [] } }
+            { "comentarios": { $exists: true, $ne: [] } },
+            { "fotos": { $exists: true, $ne: [] } }
         ],
         location: {
             $near: {
