@@ -23,8 +23,8 @@ router.post("/register", registerUserController);
 router.put("/password/:userId", editPasswordController);
 router.put("/saveSite", convertToServerMiddleware, saveSiteController);
 router.put("/unsaveSite", unsaveSiteController);
-router.get("/savedSites/:userId", getSavedSitesController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
-router.get("/comments/:userId", getUserCommentsController, convertToClientMiddleware); //Meterle middleware de transformacion de array de sitios
+router.get("/savedSites/:userId", getSavedSitesController, convertToClientMiddleware);
+router.get("/comments/:userId", getUserCommentsController, convertToClientMiddleware);
 router.get("/ratings/:userId", getUserRatingsController, convertValoracionSiteMiddleware);
 router.get("/photos/:userId", getUserPhotosController, convertToClientMiddleware);
 router.delete("/:userId", deleteUserController);

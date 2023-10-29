@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getClosePlacesService = void 0;
+exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const Valoracion_1 = require("../interfaces/Valoracion");
 const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
+const google_handle_1 = require("../utils/google.handle");
 const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, void 0, void 0, function* () {
     const closePlaces = yield sitioModel_1.default.find({
         $or: [
@@ -43,6 +44,32 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
     }
 });
 exports.getClosePlacesService = getClosePlacesService;
+const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, function* () {
+    let sitesFromGooglePlaces;
+    let sitesFromDB;
+    try {
+        sitesFromGooglePlaces = yield (0, google_handle_1.handleFindSitesByTextGoogle)(text);
+    }
+    catch (error) {
+        return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
+    }
+    try {
+        sitesFromDB = yield sitioModel_1.default.find({ placeId: { $in: sitesFromGooglePlaces.map(site => site.placeId) } });
+    }
+    catch (error) {
+        return { error: "Error al buscar sitios en la base de datos: " + error.message, status: 500 };
+    }
+    if (sitesFromDB.length > 0) {
+        sitesFromGooglePlaces.forEach((siteFromGooglePlaces, index) => {
+            const siteFromDB = sitesFromDB.find(site => site.placeId === siteFromGooglePlaces.placeId);
+            if (siteFromDB) {
+                sitesFromGooglePlaces[index] = siteFromDB;
+            }
+        });
+    }
+    return { sitios: sitesFromGooglePlaces };
+});
+exports.getPlacesByTextService = getPlacesByTextService;
 //Fotos-------------------------------------------------------------------------------------------
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
     try {

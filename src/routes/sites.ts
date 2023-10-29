@@ -11,20 +11,22 @@ import {
     getClosePlacesController,
     postPhotoController,
     deletePhotoController,
+    getPlacesByTextController,
 } from "../controllers/sitiosController";
 import { convertToClientMiddleware, convertToServerMiddleware } from "../middleware/locationConvert";
 
 const router = Router();
 
 router.get("/", sitesIndexController);
-router.get("/close", getClosePlacesController, convertToClientMiddleware) //Meterle middleware de transformacion de array de sitios
-router.get("/comments", getCommentsController)
+router.get("/close", getClosePlacesController, convertToClientMiddleware);
+router.get("/search", getPlacesByTextController, convertToClientMiddleware);
+router.get("/comments", getCommentsController);
 router.post("/comment", postCommentController);
 router.put("/comment/:placeId", editCommentController);
 router.delete("/comment/:placeId/:commentId", deleteCommentController);
-router.post("/review", postReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
-router.put("/review/:reviewId", editReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
-router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware); //Meterle middleware de transformacion de sitio
+router.post("/review", postReviewController, convertToClientMiddleware);
+router.put("/review/:reviewId", editReviewController, convertToClientMiddleware);
+router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware);
 router.post("/photo", convertToServerMiddleware, postPhotoController, convertToClientMiddleware);
 router.delete("/photo/:photoId", deletePhotoController, convertToClientMiddleware);
 

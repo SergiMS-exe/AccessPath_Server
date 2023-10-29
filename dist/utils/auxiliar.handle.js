@@ -21,7 +21,7 @@ function transformToClientFormat(site) {
     const actualSite = site._doc ? site._doc : site;
     // Extracting location details
     const { location } = actualSite;
-    if (location && location.type === "Point" && Array.isArray(location.coordinates)) {
+    if (checkLocationFormat(location)) {
         const [longitude, latitude] = location.coordinates;
         actualSite.location = { latitude, longitude }; // Updating the location format
         delete actualSite.location.type; // Removing the type field
@@ -30,6 +30,12 @@ function transformToClientFormat(site) {
     return actualSite;
 }
 exports.transformToClientFormat = transformToClientFormat;
+function checkLocationFormat(location) {
+    if (location && location.type && location.coordinates && location.type === "Point" && Array.isArray(location.coordinates)) {
+        return true;
+    }
+    return false;
+}
 function transformToServerFormat(site) {
     const actualSite = site; // Accessing the _doc field
     // Extracting location details

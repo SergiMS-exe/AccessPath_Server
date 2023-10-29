@@ -4,6 +4,7 @@ import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
 import { FisicaEnum, FisicaKey, PsiquicaEnum, PsiquicaKey, SensorialEnum, SensorialKey, Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
+import { handleFindSitesByTextGoogle } from "../utils/google.handle";
 
 
 const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
@@ -29,6 +30,34 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
     } else {
         return { error: "No se pudo encontrar ningun lugar cercano", status: 404 };
     }
+}
+
+const getPlacesByTextService = async (text: string) => {
+    let sitesFromGooglePlaces: Site[];
+    let sitesFromDB: Site[];
+
+    try {
+        sitesFromGooglePlaces = await handleFindSitesByTextGoogle(text);
+    } catch (error: any) {
+        return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
+    }
+
+    try {
+        sitesFromDB = await SitioModel.find({ placeId: { $in: sitesFromGooglePlaces.map(site => site.placeId) } });
+    } catch (error: any) {
+        return { error: "Error al buscar sitios en la base de datos: " + error.message, status: 500 };
+    }
+
+    if (sitesFromDB.length > 0) {
+        sitesFromGooglePlaces.forEach((siteFromGooglePlaces, index) => {
+            const siteFromDB = sitesFromDB.find(site => site.placeId === siteFromGooglePlaces.placeId);
+            if (siteFromDB) {
+                sitesFromGooglePlaces[index] = siteFromDB;
+            }
+        });
+    }
+
+    return { sitios: sitesFromGooglePlaces };
 }
 
 //Fotos-------------------------------------------------------------------------------------------
@@ -395,6 +424,7 @@ const calculateAverages = (reviews: Valoracion[]) => {
 
 export {
     getClosePlacesService,
+    getPlacesByTextService,
     postCommentService,
     editCommentService,
     deleteCommentService,

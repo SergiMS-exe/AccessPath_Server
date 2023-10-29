@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhotoController = exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
+exports.deletePhotoController = exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getPlacesByTextController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
 const mongodb_1 = require("mongodb");
@@ -69,6 +69,32 @@ const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, v
     }
 });
 exports.getClosePlacesController = getClosePlacesController;
+const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        var text = req.query.text;
+        if (!text) {
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
+        }
+        else if (typeof text !== "string") {
+            return (0, error_handle_1.handleHttp)(res, "El formato del texto es incorrecto", 400);
+        }
+        const getPlacesByTextResponse = yield (0, sitiosService_1.getPlacesByTextService)(text);
+        if (getPlacesByTextResponse.error) {
+            res.status(getPlacesByTextResponse.status).send({ msg: getPlacesByTextResponse.error });
+        }
+        else {
+            res.locals.sitios = getPlacesByTextResponse.sitios;
+            res.locals.mensaje = "Sitios obtenidos correctamente";
+        }
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios por texto: " + e);
+    }
+    finally {
+        next();
+    }
+});
+exports.getPlacesByTextController = getPlacesByTextController;
 const postCommentController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.body.comment || !req.body.site || !req.body.comment.usuarioId || !req.body.comment.texto || req.body.comment.texto.trim().length < 1) {

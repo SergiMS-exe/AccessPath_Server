@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, getPlacesByTextService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
@@ -57,6 +57,31 @@ const getClosePlacesController = async (req: Request, res: Response, next: NextF
         }
     } catch (e) {
         handleHttp(res, "Error en la obtencion de sitios cercanos: " + e)
+    } finally {
+        next()
+    }
+}
+
+const getPlacesByTextController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        var text = req.query.text;
+        if (!text) {
+            return handleHttp(res, "Faltan datos en los parametros", 400)
+        } else if (typeof text !== "string") {
+            return handleHttp(res, "El formato del texto es incorrecto", 400)
+        }
+
+        const getPlacesByTextResponse = await getPlacesByTextService(text);
+
+        if (getPlacesByTextResponse.error) {
+            res.status(getPlacesByTextResponse.status).send({ msg: getPlacesByTextResponse.error });
+        } else {
+            res.locals.sitios = getPlacesByTextResponse.sitios;
+            res.locals.mensaje = "Sitios obtenidos correctamente";
+        }
+
+    } catch (e) {
+        handleHttp(res, "Error en la obtencion de sitios por texto: " + e)
     } finally {
         next()
     }
@@ -263,6 +288,7 @@ const deletePhotoController = async (req: Request, res: Response, next: NextFunc
 export {
     sitesIndexController,
     getClosePlacesController,
+    getPlacesByTextController,
     postCommentController,
     editCommentController,
     deleteCommentController,
