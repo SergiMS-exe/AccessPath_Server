@@ -25,8 +25,8 @@ router.post("/comment", postCommentController);
 router.put("/comment/:placeId", editCommentController);
 router.delete("/comment/:placeId/:commentId", deleteCommentController);
 router.post("/review", postReviewController, convertToClientMiddleware);
-router.put("/review/:reviewId", editReviewController, convertToClientMiddleware);
-router.delete("/review/:reviewId", deleteReviewController, convertToClientMiddleware);
+router.put("/review/:placeId/:userId", editReviewController, convertToClientMiddleware);
+router.delete("/review/:placeId/:userId", deleteReviewController, convertToClientMiddleware);
 router.post("/photo", convertToServerMiddleware, postPhotoController, convertToClientMiddleware);
 router.delete("/photo/:photoId", deletePhotoController, convertToClientMiddleware);
 

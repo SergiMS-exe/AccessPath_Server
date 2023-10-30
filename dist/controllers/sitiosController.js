@@ -216,8 +216,9 @@ const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         }
         const review = req.body.review;
-        const reviewId = req.params.reviewId;
-        const editReviewResponse = yield (0, sitiosService_1.editReviewService)(reviewId, review);
+        const placeId = req.params.placeId;
+        const userId = req.params.userId;
+        const editReviewResponse = yield (0, sitiosService_1.editReviewService)(placeId, userId, review);
         if (editReviewResponse.error) {
             res.status(editReviewResponse.status).send({ msg: editReviewResponse.error });
         }
@@ -237,8 +238,9 @@ const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
 exports.editReviewController = editReviewController;
 const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const reviewId = req.params.reviewId;
-        const deleteReviewResponse = yield (0, sitiosService_1.deleteReviewService)(reviewId);
+        const placeId = req.params.placeId;
+        const userId = req.params.userId;
+        const deleteReviewResponse = yield (0, sitiosService_1.deleteReviewService)(placeId, userId);
         if (deleteReviewResponse.error) {
             res.status(deleteReviewResponse.status).send({ msg: deleteReviewResponse.error });
         }

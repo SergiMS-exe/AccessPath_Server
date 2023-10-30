@@ -205,9 +205,10 @@ const editReviewController = async (req: Request, res: Response, next: NextFunct
         }
 
         const review: Valoracion = req.body.review;
-        const reviewId: string = req.params.reviewId;
+        const placeId: string = req.params.placeId;
+        const userId: string = req.params.userId;
 
-        const editReviewResponse = await editReviewService(reviewId, review);
+        const editReviewResponse = await editReviewService(placeId, userId, review);
         if (editReviewResponse.error) {
             res.status(editReviewResponse.status).send({ msg: editReviewResponse.error })
         } else {
@@ -224,9 +225,10 @@ const editReviewController = async (req: Request, res: Response, next: NextFunct
 
 const deleteReviewController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const reviewId: string = req.params.reviewId;
+        const placeId: string = req.params.placeId;
+        const userId: string = req.params.userId;
 
-        const deleteReviewResponse = await deleteReviewService(reviewId);
+        const deleteReviewResponse = await deleteReviewService(placeId, userId);
         if (deleteReviewResponse.error) {
             res.status(deleteReviewResponse.status).send({ msg: deleteReviewResponse.error })
         } else {

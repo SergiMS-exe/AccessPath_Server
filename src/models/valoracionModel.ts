@@ -15,7 +15,7 @@ export const PsiquicaSchema = generateSchemaFromEnum(PsiquicaEnum);
 
 const ValoracionIndividualSchema = new Schema({
     placeId: { type: String, required: true },
-    userId: { type: Schema.Types.ObjectId, required: true },
+    userId: { type: String, required: true },
     fisica: { type: FisicaSchema, required: false },
     sensorial: { type: SensorialSchema, required: false },
     psiquica: { type: PsiquicaSchema, required: false }

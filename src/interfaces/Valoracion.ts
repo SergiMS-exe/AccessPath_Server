@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 export interface Valoracion {
     placeId?: string;
-    userId?: Types.ObjectId;
+    userId?: string;
     fisica?: Record<FisicaKey, number>;
     sensorial?: Record<SensorialKey, number>;
     psiquica?: Record<PsiquicaKey, number>;

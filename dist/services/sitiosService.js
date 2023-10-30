@@ -204,9 +204,9 @@ const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 
     }
 });
 exports.postReviewService = postReviewService;
-const editReviewService = (reviewId, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
+const editReviewService = (placeId, userId, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
-    const editResult = yield valoracionModel_1.default.findOneAndUpdate({ _id: reviewId }, { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } }, { new: true, rawResult: true });
+    const editResult = yield valoracionModel_1.default.findOneAndUpdate({ placeId: placeId, userId: userId }, { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } }, { new: true, rawResult: true });
     if (editResult.ok && editResult.value) {
         const newAveragesResult = yield updateAverages((_c = editResult.value) === null || _c === void 0 ? void 0 : _c.placeId);
         if (newAveragesResult && !newAveragesResult.error) {
@@ -221,8 +221,9 @@ const editReviewService = (reviewId, valoracion) => __awaiter(void 0, void 0, vo
     }
 });
 exports.editReviewService = editReviewService;
-const deleteReviewService = (reviewId) => __awaiter(void 0, void 0, void 0, function* () {
-    const deleteResult = yield valoracionModel_1.default.findByIdAndDelete(reviewId);
+const deleteReviewService = (placeId, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    //delete from userId and placeId
+    const deleteResult = yield valoracionModel_1.default.findOneAndDelete({ placeId: placeId, userId: userId });
     if (deleteResult) {
         const newAveragesResult = yield updateAverages(deleteResult.placeId);
         if (newAveragesResult && !newAveragesResult.error) {
@@ -304,7 +305,8 @@ const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* ()
         siteFound.valoraciones = averages;
     }
     else {
-        delete siteFound.valoraciones;
+        siteFound.valoraciones = undefined;
+        siteFound.markModified('valoraciones');
     }
     yield siteFound.save();
     return { status: 200, newPlace: siteFound.toObject() };
@@ -362,7 +364,6 @@ const calculateAverages = (reviews) => {
             }
         }
         const average = fieldsWithValue > 0 ? parseFloat((total / fieldsWithValue).toFixed(1)) : undefined;
-        console.log("Average:", average);
         return { valoracion, average };
     };
     const fisicaResult = computeAverageForCategory(fisicaSum, fisicaCount);

@@ -15,7 +15,7 @@ exports.SensorialSchema = generateSchemaFromEnum(Valoracion_1.SensorialEnum);
 exports.PsiquicaSchema = generateSchemaFromEnum(Valoracion_1.PsiquicaEnum);
 const ValoracionIndividualSchema = new mongoose_1.Schema({
     placeId: { type: String, required: true },
-    userId: { type: mongoose_1.Schema.Types.ObjectId, required: true },
+    userId: { type: String, required: true },
     fisica: { type: exports.FisicaSchema, required: false },
     sensorial: { type: exports.SensorialSchema, required: false },
     psiquica: { type: exports.PsiquicaSchema, required: false }

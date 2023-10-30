@@ -210,9 +210,9 @@ const postReviewService = async (userId: string, place: Site, valoracion: Valora
     }
 }
 
-const editReviewService = async (reviewId: string, valoracion: Valoracion) => {
+const editReviewService = async (placeId: string, userId: string, valoracion: Valoracion) => {
     const editResult = await ValoracionModel.findOneAndUpdate(
-        { _id: reviewId },
+        { placeId: placeId, userId: userId },
         { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } },
         { new: true, rawResult: true }
     );
@@ -231,8 +231,9 @@ const editReviewService = async (reviewId: string, valoracion: Valoracion) => {
     }
 }
 
-const deleteReviewService = async (reviewId: string) => {
-    const deleteResult = await ValoracionModel.findByIdAndDelete(reviewId);
+const deleteReviewService = async (placeId: string, userId: string) => {
+    //delete from userId and placeId
+    const deleteResult = await ValoracionModel.findOneAndDelete({ placeId: placeId, userId: userId });
 
     if (deleteResult) {
         const newAveragesResult = await updateAverages(deleteResult.placeId);
@@ -334,7 +335,9 @@ const updateAverages = async (input: Site | string) => {
     if (averages) {
         siteFound!.valoraciones = averages as Valoracion;
     } else {
-        delete siteFound!.valoraciones;
+        siteFound!.valoraciones = undefined;
+        siteFound!.markModified('valoraciones');
+
     }
 
     await siteFound!.save();
@@ -406,7 +409,6 @@ const calculateAverages = (reviews: Valoracion[]) => {
         }
 
         const average = fieldsWithValue > 0 ? parseFloat((total / fieldsWithValue).toFixed(1)) : undefined;
-        console.log("Average:", average);
         return { valoracion, average };
     };
 
