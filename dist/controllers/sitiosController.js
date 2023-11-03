@@ -63,7 +63,7 @@ const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, v
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios cercanos: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios cercanos: " + e.message);
     }
     finally {
         next();
@@ -74,7 +74,7 @@ const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, 
     try {
         var text = req.query.text;
         if (!text) {
-            return (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en la query", 400);
         }
         else if (typeof text !== "string") {
             return (0, error_handle_1.handleHttp)(res, "El formato del texto es incorrecto", 400);
@@ -90,7 +90,7 @@ const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, 
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios por texto: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios por texto: " + e.message);
     }
     finally {
         next();
@@ -111,7 +111,7 @@ const postCommentController = (req, res, next) => __awaiter(void 0, void 0, void
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en el envio de comentario: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en el envio de comentario: " + e.message);
     }
     finally {
         next();
@@ -120,9 +120,6 @@ const postCommentController = (req, res, next) => __awaiter(void 0, void 0, void
 exports.postCommentController = postCommentController;
 const editCommentController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.params.placeId) {
-            return (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
-        }
         const { commentId, newText } = req.body;
         if (!commentId || !newText || newText.trim().length < 1) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
@@ -132,11 +129,11 @@ const editCommentController = (req, res, next) => __awaiter(void 0, void 0, void
             res.status(editCommentResponse.status).send({ msg: editCommentResponse.error });
         }
         else {
-            res.send({ msg: "Comentario editado correctamente", newComment: editCommentResponse.editedComment });
+            res.status(200).send({ msg: "Comentario editado correctamente", newComment: editCommentResponse.editedComment });
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la edicion de comentario: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la edicion de comentario: " + e.message);
     }
     finally {
         next();
@@ -158,7 +155,7 @@ const deleteCommentController = (req, res, next) => __awaiter(void 0, void 0, vo
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de comentario: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de comentario: " + e.message);
     }
     finally {
         next();
@@ -172,14 +169,10 @@ const getCommentsController = (req, res, next) => __awaiter(void 0, void 0, void
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
         }
         const getCommentsResponse = yield (0, sitiosService_1.getCommentsService)(placeId);
-        // if (getCommentsResponse.error) {
-        //     res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })
-        // } else {
         res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios });
-        // }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de comentarios: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de comentarios: " + e.message);
     }
     finally {
         next();
@@ -205,7 +198,7 @@ const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en el envio de valoracion: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en el envio de valoracion: " + e.message);
     }
     finally {
         next();
@@ -231,7 +224,7 @@ const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la edicion de valoracion: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la edicion de valoracion: " + e.message);
     }
     finally {
         next();
@@ -253,7 +246,7 @@ const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, voi
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de valoracion: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de valoracion: " + e.message);
     }
     finally {
         next();
@@ -279,7 +272,7 @@ const postPhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en el envio de foto: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en el envio de foto: " + e.message);
     }
     finally {
         next();
@@ -300,7 +293,7 @@ const deletePhotoController = (req, res, next) => __awaiter(void 0, void 0, void
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de foto: " + e);
+        (0, error_handle_1.handleHttp)(res, "Error en la eliminacion de foto: " + e.message);
     }
     finally {
         next();

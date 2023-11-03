@@ -10,7 +10,6 @@ const mockedUserService = userService as jest.Mocked<typeof userService>;
 import * as userController from '../../../src/controllers/usersController';
 import { Photo, Site } from "../../../src/interfaces/Site";
 import CommentType from "../../../src/interfaces/CommentType";
-import { Valoracion } from "../../../src/interfaces/Valoracion";
 
 describe('userController', () => {
 
@@ -38,24 +37,34 @@ describe('userController', () => {
         calificacionGoogle: 5
     };
 
+    let req: Request;
+    let res: Response;
+    let next: any;
+
+    beforeEach(() => {
+        res = {
+            status: jest.fn().mockReturnThis(),
+            send: jest.fn(),
+            locals: {}
+        } as unknown as Response;
+
+        next = jest.fn();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+
     describe('logInUserController', () => {
-        afterEach(() => {
-            // Limpia todos los mocks después de cada test
-            jest.clearAllMocks();
-        });
 
         it('should log in successfully with correct body and service response', async () => {
-            const req = {
+            req = {
                 body: {
                     email: 'test@example.com',
                     password: '123456'
                 }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockUser: Person = {
                 _id: new Types.ObjectId(),
@@ -82,14 +91,9 @@ describe('userController', () => {
         });
 
         it('should return 400 if email or password is not provided in body', async () => {
-            const req = {
+            req = {
                 body: {}
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Llama a la función del controlador
             await userController.logInUserController(req, res, next);
@@ -100,18 +104,12 @@ describe('userController', () => {
         });
 
         it('should return 404 if no user is registered with given email', async () => {
-            const req = {
+            req = {
                 body: {
                     email: 'unexistent@email.com',
                     password: '123456'
                 }
             } as Request;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: 'No hay un usuario registrado con ese email', status: 404 };
 
@@ -127,18 +125,12 @@ describe('userController', () => {
         });
 
         it('should return 401 if password is incorrect', async () => {
-            const req = {
+            req = {
                 body: {
                     email: 'existent@email.com',
                     password: 'wrongPassword'
                 }
             } as Request;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: 'Contraseña incorrecta', status: 401 };
 
@@ -155,10 +147,6 @@ describe('userController', () => {
     });
 
     describe('registerUserController', () => {
-        afterEach(() => {
-            // Limpia todos los mocks después de cada test
-            jest.clearAllMocks();
-        });
 
         const mockedUser: Person = {
             email: 'validuser@example.com',
@@ -171,14 +159,9 @@ describe('userController', () => {
         const confirmSamePassword = 'Valid123';
 
         it('should register successfully with valid data and service response', async () => {
-            const req = {
+            req = {
                 body: { ...mockedUser, confirmPassword: confirmSamePassword }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Configura el mock del servicio para que devuelva una respuesta exitosa
             mockedUserService.registerUsuarioService.mockResolvedValue({ usuario: mockedUser } as any);
@@ -192,14 +175,9 @@ describe('userController', () => {
         });
 
         it('should return 400 if email, password, nombre, apellidos or tipoDiscapacidad is not provided in body', async () => {
-            const req = {
+            req = {
                 body: {}
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Llama a la función del controlador
             await userController.registerUserController(req, res, next);
@@ -218,14 +196,9 @@ describe('userController', () => {
                 apellidos: 'User',
                 tipoDiscapacidad: 'Ninguna'
             };
-            const req = {
+            req = {
                 body: { ...mockedExistingUser, confirmPassword: confirmSamePassword }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: 'Ya existe un usuario con ese email', status: 409 };
 
@@ -241,17 +214,12 @@ describe('userController', () => {
         });
 
         it('should return 400 if passwords do not match', async () => {
-            const req = {
+            req = {
                 body: {
                     ...mockedUser,
                     confirmPassword: 'Different123'
                 }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Llama a la función del controlador
             await userController.registerUserController(req, res, next);
@@ -262,17 +230,12 @@ describe('userController', () => {
         });
 
         it('should return 400 if email does not meet restrictions', async () => {
-            const req = {
+            req = {
                 body: {
                     ...mockedUser,
                     email: 'invalidemail'
                 }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Llama a la función del controlador
             await userController.registerUserController(req, res, next);
@@ -283,17 +246,12 @@ describe('userController', () => {
         });
 
         it('should return 400 if password does not meet restrictions', async () => {
-            const req = {
+            req = {
                 body: {
                     ...mockedUser,
                     password: 'short'
                 }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Llama a la función del controlador
             await userController.registerUserController(req, res, next);
@@ -305,17 +263,9 @@ describe('userController', () => {
     });
 
     describe('deleteUserController', () => {
-        afterEach(() => {
-            jest.clearAllMocks();
-        });
 
         it('should delete user successfully with valid userId and service response', async () => {
-            const req = { params: { userId: 'validUserId' } };
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
+            req = { params: { userId: 'validUserId' } } as unknown as Request;
 
             // Configura el mock del servicio para que devuelva una respuesta exitosa
             mockedUserService.deleteUsuarioService.mockResolvedValue({ status: 200 });
@@ -329,12 +279,7 @@ describe('userController', () => {
         });
 
         it('should return 404 if service responds no user with that id', async () => {
-            const req = { params: { userId: 'nonExistentUserId' } };
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
+            req = { params: { userId: 'nonExistentUserId' } } as unknown as Request;
 
             const mockResponse = { error: 'No existe un usuario con ese id', status: 404 };
 
@@ -351,24 +296,14 @@ describe('userController', () => {
     });
 
     describe('saveSiteController', () => {
-
-        afterEach(() => {
-            jest.clearAllMocks();
-        });
-
         it('should save site successfully with correct body and service responds successfully', async () => {
-            const req = {
+            req = {
                 body: {
                     userId: 'validUserId',
                     site: 'validSite'
                 }
             } as Request;
 
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Configura el mock del servicio para que devuelva una respuesta exitosa
             mockedUserService.saveSiteService.mockResolvedValue({ status: 200 });
@@ -379,15 +314,10 @@ describe('userController', () => {
         });
 
         it('should return 400 if userId or site is not provided in body', async () => {
-            const req = {
+            req = {
                 body: {}
             } as Request;
 
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             await userController.saveSiteController(req, res, next);
             expect(res.status).toHaveBeenCalledWith(400);
@@ -395,18 +325,13 @@ describe('userController', () => {
         });
 
         it('should return 409 if service responds site is already saved', async () => {
-            const req = {
+            req = {
                 body: {
                     userId: 'validUserId',
                     site: 'alreadySavedSite'
                 }
             } as Request;
 
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: 'El sitio ya está guardado', status: 409 };
             mockedUserService.saveSiteService.mockResolvedValue(mockResponse);
@@ -419,23 +344,14 @@ describe('userController', () => {
     });
 
     describe('unsaveSiteController', () => {
-        afterEach(() => {
-            jest.clearAllMocks();
-        });
 
         it('should unsave site successfully with correct body and service responds successfully', async () => {
-            const req = {
+            req = {
                 body: {
                     userId: 'validUserId',
                     placeId: 'validPlaceId'
                 }
             } as Request;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             mockedUserService.unsaveSiteService.mockResolvedValue({ status: 200 });
             await userController.unsaveSiteController(req, res, next);
@@ -445,15 +361,9 @@ describe('userController', () => {
         });
 
         it('should return 400 if userId or placeId is not provided in body', async () => {
-            const req = {
+            req = {
                 body: {}
             } as Request;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             await userController.unsaveSiteController(req, res, next);
 
@@ -462,18 +372,12 @@ describe('userController', () => {
         });
 
         it('should return 409 if service responds site has been removed or is not in the list', async () => {
-            const req = {
+            req = {
                 body: {
                     userId: 'validUserId',
                     placeId: 'nonExistentPlaceId'
                 }
             } as Request;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: 'El sitio ya ha sido eliminado o no está en la lista', status: 409 };
             mockedUserService.unsaveSiteService.mockResolvedValue(mockResponse);
@@ -485,23 +389,13 @@ describe('userController', () => {
     });
 
     describe('getSavedSitesController', () => {
-        afterEach(() => {
-            jest.clearAllMocks();
-        });
 
         it('should get saved sites successfully with valid userId and service response', async () => {
-            const req = {
+            req = {
                 params: {
                     userId: 'validUserId'
                 }
             } as any;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-                locals: {}
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { savedSites: [site1, site2] as any };
 
@@ -515,16 +409,11 @@ describe('userController', () => {
         });
 
         it('should return 404 if service responds no user found', async () => {
-            const req = {
+            req = {
                 params: {
                     userId: 'invalidUserId'
                 }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: "No hay un usuario registrado con ese id", status: 404 };
 
@@ -538,22 +427,12 @@ describe('userController', () => {
     });
 
     describe('getUserCommentsController', () => {
-        afterEach(() => {
-            jest.clearAllMocks();
-        });
-
         it('should get user comments successfully with valid userId and service response', async () => {
-            const req = {
+            req = {
                 params: {
                     userId: 'validUserId'
                 }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-                locals: {}
-            } as unknown as Response;
-            const next = jest.fn();
 
             const comment1: CommentType = {
                 _id: new Types.ObjectId(),
@@ -588,17 +467,11 @@ describe('userController', () => {
         });
 
         it('should return error if service responds with an error', async () => {
-            const req = {
+            req = {
                 params: {
                     userId: 'validUserId'
                 }
             } as any;
-
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockResponse = { error: 'Error message', status: 500 };
 
@@ -612,21 +485,10 @@ describe('userController', () => {
     });
 
     describe('getUserPhotosController', () => {
-        afterEach(() => {
-            // Limpia todos los mocks después de cada test
-            jest.clearAllMocks();
-        });
-
         it('should return a 200 status and a list of photos on successful retrieval', async () => {
-            const req = {
+            req = {
                 params: { userId: 'validUserId' }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-                locals: {}
-            } as unknown as Response;
-            const next = jest.fn();
 
             const photo1: Photo = {
                 usuarioId: 'validUserId',
@@ -658,14 +520,9 @@ describe('userController', () => {
         });
 
         it('should return an error status and message if the service throws an error', async () => {
-            const req = {
+            req = {
                 params: { userId: 'invalidUserId' }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockError = { message: 'Error message', status: 500 };
             mockedUserService.getUserPhotosService.mockRejectedValue(mockError);
@@ -678,21 +535,12 @@ describe('userController', () => {
     });
 
     describe('getUserRatingsController', () => {
-        afterEach(() => {
-            // Limpia todos los mocks después de cada test
-            jest.clearAllMocks();
-        });
+
 
         it('should return a 200 status and a list of ratings with their respective sites on successful retrieval', async () => {
-            const req = {
+            req = {
                 params: { userId: 'validUserId' }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-                locals: {}
-            } as unknown as Response;
-            const next = jest.fn();
 
             const rating1 = {
                 placeId: 'validPlaceId1',
@@ -762,14 +610,9 @@ describe('userController', () => {
         });
 
         it('should return an error status and message if the service throws an error', async () => {
-            const req = {
+            req = {
                 params: { userId: 'invalidUserId' }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn(),
-            } as unknown as Response;
-            const next = jest.fn();
 
             const mockError = { message: 'Error message', status: 500 };
             mockedUserService.getUserRatingsService.mockRejectedValue(mockError);
@@ -782,14 +625,9 @@ describe('userController', () => {
     });
 
     describe('editUserController', () => {
-        afterEach(() => {
-            // Limpia todos los mocks después de cada test
-            jest.clearAllMocks();
-        });
-
         // Caso positivo: Editar usuario con body correcto y servicio responde exitosamente.
         it('should edit user successfully with correct body and service response', async () => {
-            const req = {
+            req = {
                 body: {
                     person: {
                         _id: 'userId',
@@ -800,11 +638,6 @@ describe('userController', () => {
                     }
                 }
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             // Mock del servicio para simular una respuesta exitosa
             mockedUserService.editUserService.mockResolvedValue({ status: 200 });
@@ -817,7 +650,7 @@ describe('userController', () => {
 
         // Caso negativo: No proporcionar información completa de usuario en el body.
         it('should return 400 if not all user information is provided in body', async () => {
-            const req = {
+            req = {
                 body: {
                     person: {
                         _id: 'userId',
@@ -826,11 +659,6 @@ describe('userController', () => {
                     }
                 },
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             await userController.editUserController(req, res, next);
 
@@ -840,7 +668,7 @@ describe('userController', () => {
 
         // Caso negativo: Servicio responde que no pudo actualizar el usuario.
         it('should return 500 if service cannot update the user', async () => {
-            const req = {
+            req = {
                 body: {
                     person: {
                         _id: 'userId',
@@ -851,11 +679,6 @@ describe('userController', () => {
                     }
                 },
             } as Request;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             const errorMessage = 'Servicio no disponible'
             // Mock del servicio para simular un fallo al actualizar
@@ -869,14 +692,9 @@ describe('userController', () => {
     });
 
     describe('editPasswordController', () => {
-        afterEach(() => {
-            // Limpia todos los mocks después de cada test
-            jest.clearAllMocks();
-        });
-
         // Caso positivo: Cambiar contraseña con body correcto y servicio responde exitosamente.
         it('should change password successfully with correct body and service response', async () => {
-            const req = {
+            req = {
                 params: { userId: 'userId' },
                 body: {
                     oldPassword: 'oldPassword1',
@@ -884,11 +702,6 @@ describe('userController', () => {
                     confirmNewPassword: 'newPassword2'
                 }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             mockedUserService.editPasswordService.mockResolvedValue({ status: 200 });
 
@@ -900,15 +713,10 @@ describe('userController', () => {
 
         // Caso negativo: No proporcionar oldPassword o newPassword en el body.
         it('should return 400 if oldPassword or newPassword is not provided', async () => {
-            const req = {
+            req = {
                 body: {},
                 params: { userId: 'userId' }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             await userController.editPasswordController(req, res, next);
 
@@ -918,7 +726,7 @@ describe('userController', () => {
 
         // Caso negativo: Servicio responde que la contraseña actual es incorrecta.
         it('should return 401 if current password is incorrect', async () => {
-            const req = {
+            req = {
                 params: { userId: 'userId' },
                 body: {
                     oldPassword: 'wrongOldPassword1',
@@ -926,11 +734,6 @@ describe('userController', () => {
                     confirmNewPassword: 'newPassword2'
                 }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             mockedUserService.editPasswordService.mockResolvedValue({ error: 'Contraseña actual incorrecta', status: 401 });
 
@@ -942,7 +745,7 @@ describe('userController', () => {
 
         // Caso negativo: Las contraseñas no coinciden.
         it('should return 400 if passwords do not match', async () => {
-            const req = {
+            req = {
                 params: { userId: 'userId' },
                 body: {
                     oldPassword: 'oldPassword1',
@@ -950,11 +753,6 @@ describe('userController', () => {
                     confirmNewPassword: 'newDifferentPassword2'
                 }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             await userController.editPasswordController(req, res, next);
 
@@ -964,7 +762,7 @@ describe('userController', () => {
 
         // Caso negativo: La nueva contraseña no cumple con las condiciones.
         it('should return 400 if new password does not meet requirements', async () => {
-            const req = {
+            req = {
                 params: { userId: 'userId' },
                 body: {
                     oldPassword: 'oldPassword1',
@@ -972,11 +770,6 @@ describe('userController', () => {
                     confirmNewPassword: 'newpassword'
                 }
             } as any;
-            const res = {
-                status: jest.fn().mockReturnThis(),
-                send: jest.fn()
-            } as unknown as Response;
-            const next = jest.fn();
 
             await userController.editPasswordController(req, res, next);
 

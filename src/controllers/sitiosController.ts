@@ -56,8 +56,8 @@ const getClosePlacesController = async (req: Request, res: Response, next: NextF
             res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
             res.status(200);
         }
-    } catch (e) {
-        handleHttp(res, "Error en la obtencion de sitios cercanos: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la obtencion de sitios cercanos: " + e.message)
     } finally {
         next()
     }
@@ -67,7 +67,7 @@ const getPlacesByTextController = async (req: Request, res: Response, next: Next
     try {
         var text = req.query.text;
         if (!text) {
-            return handleHttp(res, "Faltan datos en los parametros", 400)
+            return handleHttp(res, "Faltan datos en la query", 400)
         } else if (typeof text !== "string") {
             return handleHttp(res, "El formato del texto es incorrecto", 400)
         }
@@ -82,8 +82,8 @@ const getPlacesByTextController = async (req: Request, res: Response, next: Next
             res.status(200);
         }
 
-    } catch (e) {
-        handleHttp(res, "Error en la obtencion de sitios por texto: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la obtencion de sitios por texto: " + e.message)
     } finally {
         next()
     }
@@ -103,8 +103,8 @@ const postCommentController = async (req: Request, res: Response, next: NextFunc
             res.status(200).send({ msg: "Comentario enviado correctamente", comment: postCommentResponse.comment });
         }
 
-    } catch (e) {
-        handleHttp(res, "Error en el envio de comentario: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en el envio de comentario: " + e.message)
     } finally {
         next()
     }
@@ -112,9 +112,6 @@ const postCommentController = async (req: Request, res: Response, next: NextFunc
 
 const editCommentController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.params.placeId) {
-            return handleHttp(res, "Faltan datos en los parametros", 400)
-        }
         const { commentId, newText } = req.body
         if (!commentId || !newText || newText.trim().length < 1) {
             return handleHttp(res, "Faltan datos en el body", 400)
@@ -125,10 +122,10 @@ const editCommentController = async (req: Request, res: Response, next: NextFunc
             res.status(editCommentResponse.status).send({ msg: editCommentResponse.error })
         } else {
 
-            res.send({ msg: "Comentario editado correctamente", newComment: editCommentResponse.editedComment })
+            res.status(200).send({ msg: "Comentario editado correctamente", newComment: editCommentResponse.editedComment })
         }
-    } catch (e) {
-        handleHttp(res, "Error en la edicion de comentario: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la edicion de comentario: " + e.message)
     } finally {
         next()
     }
@@ -147,8 +144,8 @@ const deleteCommentController = async (req: Request, res: Response, next: NextFu
         } else {
             res.status(200).send({ msg: "Comentario eliminado correctamente" })
         }
-    } catch (e) {
-        handleHttp(res, "Error en la eliminacion de comentario: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la eliminacion de comentario: " + e.message)
     } finally {
         next()
     }
@@ -162,13 +159,11 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
         }
         const getCommentsResponse = await getCommentsService(placeId as string);
 
-        // if (getCommentsResponse.error) {
-        //     res.status(getCommentsResponse.status).send({ msg: getCommentsResponse.error })
-        // } else {
+
         res.status(200).send({ msg: "Comentarios obtenidos correctamente", comentarios: getCommentsResponse.comentarios })
-        // }
-    } catch (e) {
-        handleHttp(res, "Error en la obtencion de comentarios: " + e)
+
+    } catch (e: any) {
+        handleHttp(res, "Error en la obtencion de comentarios: " + e.message)
     } finally {
         next()
     }
@@ -193,8 +188,8 @@ const postReviewController = async (req: Request, res: Response, next: NextFunct
             res.locals.mensaje = "Valoracion enviada correctamente";
             res.status(200);
         }
-    } catch (e) {
-        handleHttp(res, "Error en el envio de valoracion: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en el envio de valoracion: " + e.message)
     } finally {
         next()
     }
@@ -218,8 +213,8 @@ const editReviewController = async (req: Request, res: Response, next: NextFunct
             res.locals.mensaje = "Valoracion editada correctamente";
             res.status(200);
         }
-    } catch (e) {
-        handleHttp(res, "Error en la edicion de valoracion: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la edicion de valoracion: " + e.message)
     } finally {
         next()
     }
@@ -238,8 +233,8 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
             res.locals.mensaje = "Valoracion eliminada correctamente";
             res.status(200);
         }
-    } catch (e) {
-        handleHttp(res, "Error en la eliminacion de valoracion: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la eliminacion de valoracion: " + e.message)
     } finally {
         next()
     }
@@ -265,8 +260,8 @@ const postPhotoController = async (req: Request, res: Response, next: NextFuncti
             res.locals.mensaje = "Foto enviada correctamente";
             res.status(200);
         }
-    } catch (e) {
-        handleHttp(res, "Error en el envio de foto: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en el envio de foto: " + e.message)
     } finally {
         next()
     }
@@ -284,8 +279,8 @@ const deletePhotoController = async (req: Request, res: Response, next: NextFunc
             res.locals.mensaje = "Foto eliminada correctamente";
             res.status(200);
         }
-    } catch (e) {
-        handleHttp(res, "Error en la eliminacion de foto: " + e)
+    } catch (e: any) {
+        handleHttp(res, "Error en la eliminacion de foto: " + e.message)
     } finally {
         next()
     }
