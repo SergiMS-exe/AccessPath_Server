@@ -14,6 +14,7 @@ import {
     getUserPhotosService
 } from "../services/usuariosService"
 import Person from "../interfaces/Person";
+import { checkEmail, checkPassword, checkPasswordsConfirm } from '../utils/validator.handle';
 
 const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -73,12 +74,22 @@ const logInUserController = async (req: Request, res: Response, next: NextFuncti
 
 const registerUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { email, password, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
+        const { email, password, confirmPassword, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
+
         if (!email || !password || !nombre || !apellidos || !tipoDiscapacidad) return handleHttp(res, "Faltan datos en el body", 400)
+
+        const checkedEmail = checkEmail(email);
+        const checkedPassword = checkPassword(password);
+        const checkedPasswordsConfirm = checkPasswordsConfirm(password, confirmPassword);
+
+        if (checkedEmail.error) return handleHttp(res, checkedEmail.error, checkedEmail.status);
+        if (checkedPassword.error) return handleHttp(res, checkedPassword.error, checkedPassword.status);
+        if (checkedPasswordsConfirm.error) return handleHttp(res, checkedPasswordsConfirm.error, checkedPasswordsConfirm.status);
+
         const responseReg = await registerUsuarioService({
             email: email,
             password: password,
-            saved: saved, //TODO quitar
+            saved: saved ? saved : [], //TODO quitar
             nombre: nombre,
             apellidos: apellidos,
             tipoDiscapacidad: tipoDiscapacidad,
@@ -154,6 +165,7 @@ const getSavedSitesController = async (req: Request, res: Response, next: NextFu
         } else {
             res.locals.sitios = responseGetSaved.savedSites;
             res.locals.mensaje = "Sitios guardados obtenidos correctamente";
+            res.status(200);
         }
     } catch (e: any) {
         handleHttp(res, "Error en guardado de sitio: " + e.message)
@@ -171,6 +183,7 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
         } else {
             res.locals.sitios = responseGetComments.sites;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
+            res.status(200);
         }
     } catch (e: any) {
         handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
@@ -187,10 +200,11 @@ const getUserRatingsController = async (req: Request, res: Response, next: NextF
             res.status(responseGetRatings.status).send({ msg: responseGetRatings.error })
         } else {
             res.locals.sitiosConValoracion = responseGetRatings.sitesWithValoracion;
-            res.locals.mensaje = "Comentarios obtenidos correctamente";
+            res.locals.mensaje = "Valoraciones obtenidas correctamente";
+            res.status(200);
         }
     } catch (e: any) {
-        handleHttp(res, "Error en obtencion de comentarios del usuario: " + e.message)
+        handleHttp(res, "Error en obtencion de valoraciones del usuario: " + e.message)
     } finally {
         next()
     }
@@ -205,6 +219,7 @@ const getUserPhotosController = async (req: Request, res: Response, next: NextFu
         } else {
             res.locals.sitios = responseGetPhotos.sites;
             res.locals.mensaje = "Fotos obtenidas correctamente";
+            res.status(200);
         }
     } catch (e: any) {
         handleHttp(res, "Error en obtencion de fotos del usuario: " + e.message)
@@ -216,6 +231,9 @@ const getUserPhotosController = async (req: Request, res: Response, next: NextFu
 const editUserController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { _id, nombre, apellidos, email, tipoDiscapacidad } = req.body.person;
+
+        if (!req.body.person || !_id || !nombre || !apellidos || !email || !tipoDiscapacidad)
+            return handleHttp(res, "Faltan datos en el body", 400)
         //Person interface
         const user: Person = {
             _id: _id,
@@ -231,13 +249,22 @@ const editUserController = async (req: Request, res: Response, next: NextFunctio
             res.status(200).send({ msg: "Usuario editado correctamente" })
         }
     } catch (e: any) {
-        handleHttp(res, "Error en edicion de usuario: " + e.message)
+        handleHttp(res, "Error en edición del usuario: " + e.message)
     }
 }
 
 const editPasswordController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { oldPassword, newPassword } = req.body;
+        const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+        if (!oldPassword || !newPassword || !confirmNewPassword) return handleHttp(res, "Faltan datos en el body", 400)
+
+        const checkedPassword = checkPassword(newPassword);
+        const checkedPasswordsConfirm = checkPasswordsConfirm(newPassword, confirmNewPassword);
+
+        if (checkedPassword.error) return handleHttp(res, checkedPassword.error, checkedPassword.status);
+        if (checkedPasswordsConfirm.error) return handleHttp(res, checkedPasswordsConfirm.error, checkedPasswordsConfirm.status);
+
         const response = await editPasswordService(req.params.userId, oldPassword, newPassword);
         if (response.error) {
             res.status(response.status).send({ msg: response.error })

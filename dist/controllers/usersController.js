@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.dummyController = exports.editPasswordController = exports.editUserController = exports.getUserRatingsController = exports.getUserPhotosController = exports.getUserCommentsController = exports.getSavedSitesController = exports.unsaveSiteController = exports.saveSiteController = exports.deleteUserController = exports.registerUserController = exports.logInUserController = exports.usersIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const usuariosService_1 = require("../services/usuariosService");
+const validator_handle_1 = require("../utils/validator.handle");
 const usersIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
@@ -74,13 +75,22 @@ const logInUserController = (req, res, next) => __awaiter(void 0, void 0, void 0
 exports.logInUserController = logInUserController;
 const registerUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
+        const { email, password, confirmPassword, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
         if (!email || !password || !nombre || !apellidos || !tipoDiscapacidad)
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
+        const checkedEmail = (0, validator_handle_1.checkEmail)(email);
+        const checkedPassword = (0, validator_handle_1.checkPassword)(password);
+        const checkedPasswordsConfirm = (0, validator_handle_1.checkPasswordsConfirm)(password, confirmPassword);
+        if (checkedEmail.error)
+            return (0, error_handle_1.handleHttp)(res, checkedEmail.error, checkedEmail.status);
+        if (checkedPassword.error)
+            return (0, error_handle_1.handleHttp)(res, checkedPassword.error, checkedPassword.status);
+        if (checkedPasswordsConfirm.error)
+            return (0, error_handle_1.handleHttp)(res, checkedPasswordsConfirm.error, checkedPasswordsConfirm.status);
         const responseReg = yield (0, usuariosService_1.registerUsuarioService)({
             email: email,
             password: password,
-            saved: saved,
+            saved: saved ? saved : [],
             nombre: nombre,
             apellidos: apellidos,
             tipoDiscapacidad: tipoDiscapacidad,
@@ -166,6 +176,7 @@ const getSavedSitesController = (req, res, next) => __awaiter(void 0, void 0, vo
         else {
             res.locals.sitios = responseGetSaved.savedSites;
             res.locals.mensaje = "Sitios guardados obtenidos correctamente";
+            res.status(200);
         }
     }
     catch (e) {
@@ -185,6 +196,7 @@ const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, 
         else {
             res.locals.sitios = responseGetComments.sites;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
+            res.status(200);
         }
     }
     catch (e) {
@@ -203,11 +215,12 @@ const getUserRatingsController = (req, res, next) => __awaiter(void 0, void 0, v
         }
         else {
             res.locals.sitiosConValoracion = responseGetRatings.sitesWithValoracion;
-            res.locals.mensaje = "Comentarios obtenidos correctamente";
+            res.locals.mensaje = "Valoraciones obtenidas correctamente";
+            res.status(200);
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en obtencion de comentarios del usuario: " + e.message);
+        (0, error_handle_1.handleHttp)(res, "Error en obtencion de valoraciones del usuario: " + e.message);
     }
     finally {
         next();
@@ -223,6 +236,7 @@ const getUserPhotosController = (req, res, next) => __awaiter(void 0, void 0, vo
         else {
             res.locals.sitios = responseGetPhotos.sites;
             res.locals.mensaje = "Fotos obtenidas correctamente";
+            res.status(200);
         }
     }
     catch (e) {
@@ -236,6 +250,8 @@ exports.getUserPhotosController = getUserPhotosController;
 const editUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { _id, nombre, apellidos, email, tipoDiscapacidad } = req.body.person;
+        if (!req.body.person || !_id || !nombre || !apellidos || !email || !tipoDiscapacidad)
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         //Person interface
         const user = {
             _id: _id,
@@ -253,13 +269,21 @@ const editUserController = (req, res, next) => __awaiter(void 0, void 0, void 0,
         }
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en edicion de usuario: " + e.message);
+        (0, error_handle_1.handleHttp)(res, "Error en edición del usuario: " + e.message);
     }
 });
 exports.editUserController = editUserController;
 const editPasswordController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { oldPassword, newPassword } = req.body;
+        const { oldPassword, newPassword, confirmNewPassword } = req.body;
+        if (!oldPassword || !newPassword || !confirmNewPassword)
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
+        const checkedPassword = (0, validator_handle_1.checkPassword)(newPassword);
+        const checkedPasswordsConfirm = (0, validator_handle_1.checkPasswordsConfirm)(newPassword, confirmNewPassword);
+        if (checkedPassword.error)
+            return (0, error_handle_1.handleHttp)(res, checkedPassword.error, checkedPassword.status);
+        if (checkedPasswordsConfirm.error)
+            return (0, error_handle_1.handleHttp)(res, checkedPasswordsConfirm.error, checkedPasswordsConfirm.status);
         const response = yield (0, usuariosService_1.editPasswordService)(req.params.userId, oldPassword, newPassword);
         if (response.error) {
             res.status(response.status).send({ msg: response.error });

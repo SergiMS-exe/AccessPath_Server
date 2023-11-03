@@ -43,7 +43,7 @@ exports.sitesIndexController = sitesIndexController;
 const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.query.location)
-            (0, error_handle_1.handleHttp)(res, "Faltan datos en los parametros", 400);
+            (0, error_handle_1.handleHttp)(res, "Faltan datos en la query", 400);
         else if (typeof req.query.location !== "string" || !req.query.location.includes('%'))
             (0, error_handle_1.handleHttp)(res, "El formato de la ubicacion es incorrecto", 400);
         const location = {
@@ -59,6 +59,7 @@ const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, v
         else {
             res.locals.sitios = closePlacesResponse.sitios;
             res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
+            res.status(200);
         }
     }
     catch (e) {
@@ -85,6 +86,7 @@ const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, 
         else {
             res.locals.sitios = getPlacesByTextResponse.sitios;
             res.locals.mensaje = "Sitios obtenidos correctamente";
+            res.status(200);
         }
     }
     catch (e) {
@@ -199,7 +201,7 @@ const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
         else {
             res.locals.newPlace = postReviewResponse.newPlace;
             res.locals.mensaje = "Valoracion enviada correctamente";
-            //res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
+            res.status(200);
         }
     }
     catch (e) {
@@ -225,7 +227,7 @@ const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
         else {
             res.locals.newPlace = editReviewResponse.newPlace;
             res.locals.mensaje = "Valoracion editada correctamente";
-            //res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace })
+            res.status(200);
         }
     }
     catch (e) {
@@ -247,7 +249,7 @@ const deleteReviewController = (req, res, next) => __awaiter(void 0, void 0, voi
         else {
             res.locals.newPlace = deleteReviewResponse.newPlace;
             res.locals.mensaje = "Valoracion eliminada correctamente";
-            //res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace })
+            res.status(200);
         }
     }
     catch (e) {
@@ -273,6 +275,7 @@ const postPhotoController = (req, res, next) => __awaiter(void 0, void 0, void 0
         else {
             res.locals.newPlace = postPhotoResponse.newPlace;
             res.locals.mensaje = "Foto enviada correctamente";
+            res.status(200);
         }
     }
     catch (e) {
@@ -293,6 +296,7 @@ const deletePhotoController = (req, res, next) => __awaiter(void 0, void 0, void
         else {
             res.locals.newPlace = deletePhotoResponse.newPlace;
             res.locals.mensaje = "Foto eliminada correctamente";
+            res.status(200);
         }
     }
     catch (e) {

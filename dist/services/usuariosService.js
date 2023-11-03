@@ -86,8 +86,7 @@ const getSavedSitesService = (usuarioId) => __awaiter(void 0, void 0, void 0, fu
     if (!userFound)
         return { error: "No hay un usuario registrado con ese id", status: 404 };
     const savedPlaces = userFound.saved;
-    if (!savedPlaces)
-        return { error: "No hay sitios guardados", status: 404 };
+    // if (!savedPlaces) return [];
     const savedSites = yield sitioModel_1.default.find({ placeId: { $in: savedPlaces } });
     return { savedSites };
 });
@@ -181,7 +180,7 @@ const editPasswordService = (usuarioId, oldPassword, newPassword) => __awaiter(v
     const passwdHash = userFound.password;
     const isPasswdCorrect = yield (0, bcrypt_handle_1.verified)(oldPassword, passwdHash);
     if (!isPasswdCorrect)
-        return { error: "Contraseña incorrecta", status: 401 };
+        return { error: "Contraseña actual incorrecta", status: 401 };
     const newPasswdHash = yield (0, bcrypt_handle_1.encrypt)(newPassword);
     const userUpdated = yield usuarioModel_1.default.updateOne({ _id: usuarioId }, { password: newPasswdHash });
     if (userUpdated.modifiedCount === 1)

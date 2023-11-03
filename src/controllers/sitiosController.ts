@@ -35,7 +35,7 @@ const sitesIndexController = (req: Request, res: Response, next: NextFunction) =
 const getClosePlacesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.query.location)
-            handleHttp(res, "Faltan datos en los parametros", 400);
+            handleHttp(res, "Faltan datos en la query", 400);
         else if (typeof req.query.location !== "string" || !req.query.location.includes('%'))
             handleHttp(res, "El formato de la ubicacion es incorrecto", 400);
 
@@ -54,6 +54,7 @@ const getClosePlacesController = async (req: Request, res: Response, next: NextF
         } else {
             res.locals.sitios = closePlacesResponse.sitios;
             res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
+            res.status(200);
         }
     } catch (e) {
         handleHttp(res, "Error en la obtencion de sitios cercanos: " + e)
@@ -78,6 +79,7 @@ const getPlacesByTextController = async (req: Request, res: Response, next: Next
         } else {
             res.locals.sitios = getPlacesByTextResponse.sitios;
             res.locals.mensaje = "Sitios obtenidos correctamente";
+            res.status(200);
         }
 
     } catch (e) {
@@ -189,7 +191,7 @@ const postReviewController = async (req: Request, res: Response, next: NextFunct
         } else {
             res.locals.newPlace = postReviewResponse.newPlace;
             res.locals.mensaje = "Valoracion enviada correctamente";
-            //res.status(200).send({ msg: "Valoracion enviada correctamente", newPlace: postReviewResponse.newPlace });
+            res.status(200);
         }
     } catch (e) {
         handleHttp(res, "Error en el envio de valoracion: " + e)
@@ -214,7 +216,7 @@ const editReviewController = async (req: Request, res: Response, next: NextFunct
         } else {
             res.locals.newPlace = editReviewResponse.newPlace;
             res.locals.mensaje = "Valoracion editada correctamente";
-            //res.status(200).send({ msg: "Valoracion editada correctamente", newPlace: editReviewResponse.newPlace })
+            res.status(200);
         }
     } catch (e) {
         handleHttp(res, "Error en la edicion de valoracion: " + e)
@@ -234,7 +236,7 @@ const deleteReviewController = async (req: Request, res: Response, next: NextFun
         } else {
             res.locals.newPlace = deleteReviewResponse.newPlace;
             res.locals.mensaje = "Valoracion eliminada correctamente";
-            //res.status(200).send({ msg: "Valoracion eliminada correctamente", newPlace: deleteReviewResponse.newPlace })
+            res.status(200);
         }
     } catch (e) {
         handleHttp(res, "Error en la eliminacion de valoracion: " + e)
@@ -261,6 +263,7 @@ const postPhotoController = async (req: Request, res: Response, next: NextFuncti
         } else {
             res.locals.newPlace = postPhotoResponse.newPlace;
             res.locals.mensaje = "Foto enviada correctamente";
+            res.status(200);
         }
     } catch (e) {
         handleHttp(res, "Error en el envio de foto: " + e)
@@ -279,6 +282,7 @@ const deletePhotoController = async (req: Request, res: Response, next: NextFunc
         } else {
             res.locals.newPlace = deletePhotoResponse.newPlace;
             res.locals.mensaje = "Foto eliminada correctamente";
+            res.status(200);
         }
     } catch (e) {
         handleHttp(res, "Error en la eliminacion de foto: " + e)

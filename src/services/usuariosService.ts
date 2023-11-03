@@ -79,7 +79,7 @@ const getSavedSitesService = async (usuarioId: string) => {
     if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
 
     const savedPlaces = userFound.saved;
-    if (!savedPlaces) return { error: "No hay sitios guardados", status: 404 };
+    // if (!savedPlaces) return [];
 
     const savedSites = await SitioModel.find({ placeId: { $in: savedPlaces } });
     return { savedSites };
@@ -177,7 +177,7 @@ const editPasswordService = async (usuarioId: string, oldPassword: string, newPa
 
     const passwdHash = userFound.password!;
     const isPasswdCorrect = await verified(oldPassword, passwdHash);
-    if (!isPasswdCorrect) return { error: "Contraseña incorrecta", status: 401 };
+    if (!isPasswdCorrect) return { error: "Contraseña actual incorrecta", status: 401 };
 
     const newPasswdHash = await encrypt(newPassword);
     const userUpdated = await UsuarioModel.updateOne({ _id: usuarioId }, { password: newPasswdHash });
