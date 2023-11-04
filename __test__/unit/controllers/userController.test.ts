@@ -58,7 +58,7 @@ describe('userController', () => {
 
     describe('logInUserController', () => {
 
-        it('should log in successfully with correct body and service response', async () => {
+        it('USCon1 -> Caso positivo: Iniciar sesión con body correcto y servicio responde exitosamente', async () => {
             req = {
                 body: {
                     email: 'test@example.com',
@@ -90,7 +90,7 @@ describe('userController', () => {
             expect(next).toHaveBeenCalled();
         });
 
-        it('should return 400 if email or password is not provided in body', async () => {
+        it('USCon2 -> Caso negativo: No proporcionar email o contraseña en el body', async () => {
             req = {
                 body: {}
             } as Request;
@@ -103,7 +103,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: "Faltan datos en el body" });
         });
 
-        it('should return 404 if no user is registered with given email', async () => {
+        it('USCon3 -> Caso negativo: Servicio responde que no hay un usuario registrado con ese email', async () => {
             req = {
                 body: {
                     email: 'unexistent@email.com',
@@ -124,7 +124,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: mockResponse.error });
         });
 
-        it('should return 401 if password is incorrect', async () => {
+        it('USCon4 -> Caso negativo: Servicio responde que la contraseña es incorrecta', async () => {
             req = {
                 body: {
                     email: 'existent@email.com',
@@ -158,7 +158,7 @@ describe('userController', () => {
 
         const confirmSamePassword = 'Valid123';
 
-        it('should register successfully with valid data and service response', async () => {
+        it('USCon5 -> Caso positivo: Registro con datos válidos y servicio responde exitosamente', async () => {
             req = {
                 body: { ...mockedUser, confirmPassword: confirmSamePassword }
             } as Request;
@@ -174,7 +174,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Usuario creado correctamente', user: mockedUser });
         });
 
-        it('should return 400 if email, password, nombre, apellidos or tipoDiscapacidad is not provided in body', async () => {
+        it('USCon6 -> Caso negativo: No proporcionar información completa de usuario en el body', async () => {
             req = {
                 body: {}
             } as Request;
@@ -187,7 +187,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: "Faltan datos en el body" });
         });
 
-        it('should return 409 if there is already a user with that email', async () => {
+        it('USCon7 -> Caso negativo: Servicio responde que ya existe un usuario con ese email', async () => {
 
             const mockedExistingUser: Person = {
                 email: 'existinguser@example.com',
@@ -213,7 +213,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: mockResponse.error });
         });
 
-        it('should return 400 if passwords do not match', async () => {
+        it('USCon8 -> Caso negativo: Las contraseñas no coinciden', async () => {
             req = {
                 body: {
                     ...mockedUser,
@@ -229,7 +229,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Las contraseñas no coinciden' });
         });
 
-        it('should return 400 if email does not meet restrictions', async () => {
+        it('USCon9 -> Caso negativo: El email no cumple las restricciones', async () => {
             req = {
                 body: {
                     ...mockedUser,
@@ -245,7 +245,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: "Introduzca un email válido" });
         });
 
-        it('should return 400 if password does not meet restrictions', async () => {
+        it('USCon10 -> Caso negativo: La contraseña no cumple las restricciones', async () => {
             req = {
                 body: {
                     ...mockedUser,
@@ -264,7 +264,7 @@ describe('userController', () => {
 
     describe('deleteUserController', () => {
 
-        it('should delete user successfully with valid userId and service response', async () => {
+        it('USCon11 -> Caso positivo: Borrar usuario con id válido y servicio responde exitosamente', async () => {
             req = { params: { userId: 'validUserId' } } as unknown as Request;
 
             // Configura el mock del servicio para que devuelva una respuesta exitosa
@@ -278,7 +278,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Usuario borrado correctamente' });
         });
 
-        it('should return 404 if service responds no user with that id', async () => {
+        it('USCon12 -> Caso negativo: Servicio response que no hay un usuario con ese id', async () => {
             req = { params: { userId: 'nonExistentUserId' } } as unknown as Request;
 
             const mockResponse = { error: 'No existe un usuario con ese id', status: 404 };
@@ -296,7 +296,7 @@ describe('userController', () => {
     });
 
     describe('saveSiteController', () => {
-        it('should save site successfully with correct body and service responds successfully', async () => {
+        it('USCon13 -> Caso positivo: Guardar sitio con body correcto y servicio responde exitosamente', async () => {
             req = {
                 body: {
                     userId: 'validUserId',
@@ -313,7 +313,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Sitio guardado correctamente' });
         });
 
-        it('should return 400 if userId or site is not provided in body', async () => {
+        it('USCon14 -> Caso negativo: No proporcionar userId o site en el body', async () => {
             req = {
                 body: {}
             } as Request;
@@ -324,7 +324,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Faltan datos en el body' });
         });
 
-        it('should return 409 if service responds site is already saved', async () => {
+        it('USCon15 -> Caso negativo: Servicio responde que el sitio ya está guardado', async () => {
             req = {
                 body: {
                     userId: 'validUserId',
@@ -345,7 +345,7 @@ describe('userController', () => {
 
     describe('unsaveSiteController', () => {
 
-        it('should unsave site successfully with correct body and service responds successfully', async () => {
+        it('USCon16 -> Caso positivo: Eliminar sitio con body correcto y servicio responde exitosamente', async () => {
             req = {
                 body: {
                     userId: 'validUserId',
@@ -360,7 +360,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Sitio eliminado correctamente de la lista de guardados' });
         });
 
-        it('should return 400 if userId or placeId is not provided in body', async () => {
+        it('USCon17 -> Caso negativo: No proporcionar userId o placeId en el body', async () => {
             req = {
                 body: {}
             } as Request;
@@ -371,7 +371,7 @@ describe('userController', () => {
             expect(res.send).toHaveBeenCalledWith({ msg: 'Faltan datos en el body' });
         });
 
-        it('should return 409 if service responds site has been removed or is not in the list', async () => {
+        it('USCon18 -> Caso negativo: Servicio responde que el sitio no está guardado o no esta en la lista', async () => {
             req = {
                 body: {
                     userId: 'validUserId',
@@ -390,7 +390,7 @@ describe('userController', () => {
 
     describe('getSavedSitesController', () => {
 
-        it('should get saved sites successfully with valid userId and service response', async () => {
+        it('USCon19 -> Caso positivo: Obtener sitios guardados con userId válido y servicio responde exitosamente', async () => {
             req = {
                 params: {
                     userId: 'validUserId'
@@ -408,7 +408,7 @@ describe('userController', () => {
             expect(res.locals.mensaje).toEqual('Sitios guardados obtenidos correctamente');
         });
 
-        it('should return 404 if service responds no user found', async () => {
+        it('USCon20 -> Caso negativo: Servicio responde que no hay un usuario registrado con ese id', async () => {
             req = {
                 params: {
                     userId: 'invalidUserId'
@@ -427,7 +427,7 @@ describe('userController', () => {
     });
 
     describe('getUserCommentsController', () => {
-        it('should get user comments successfully with valid userId and service response', async () => {
+        it('USCon21 -> Caso positivo: Obtener comentarios con userId válido y servicio responde exitosamente', async () => {
             req = {
                 params: {
                     userId: 'validUserId'
@@ -466,26 +466,26 @@ describe('userController', () => {
             expect(res.locals.mensaje).toEqual("Comentarios obtenidos correctamente");
         });
 
-        it('should return error if service responds with an error', async () => {
+        it('USCon22 -> Caso negativo: Servicio responde con un error', async () => {
             req = {
                 params: {
                     userId: 'validUserId'
                 }
             } as any;
 
-            const mockResponse = { error: 'Error message', status: 500 };
+            const mockResponse = new Error('Error en el servicio');
 
-            mockedUserService.getUserCommentsService.mockResolvedValue(mockResponse);
+            mockedUserService.getUserCommentsService.mockRejectedValue(mockResponse);
 
             await userController.getUserCommentsController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(mockResponse.status);
-            expect(res.send).toHaveBeenCalledWith({ msg: mockResponse.error });
+            expect(res.status).toHaveBeenCalledWith(500);
+            expect(res.send).toHaveBeenCalledWith({ msg: "Error en obtencion de comentarios del usuario: " + mockResponse.message });
         });
     });
 
     describe('getUserPhotosController', () => {
-        it('should return a 200 status and a list of photos on successful retrieval', async () => {
+        it('USCon23 -> Caso positivo: Obtener fotos con userId válido y servicio responde exitosamente', async () => {
             req = {
                 params: { userId: 'validUserId' }
             } as any;
@@ -519,17 +519,17 @@ describe('userController', () => {
             expect(res.locals.mensaje).toEqual("Fotos obtenidas correctamente");
         });
 
-        it('should return an error status and message if the service throws an error', async () => {
+        it('USCon24 -> Caso negativo: Servicio responde con un error', async () => {
             req = {
                 params: { userId: 'invalidUserId' }
             } as any;
 
-            const mockError = { message: 'Error message', status: 500 };
+            const mockError = new Error('Error en el servicio');
             mockedUserService.getUserPhotosService.mockRejectedValue(mockError);
 
             await userController.getUserPhotosController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(mockError.status);
+            expect(res.status).toHaveBeenCalledWith(500);
             expect(res.send).toHaveBeenCalledWith({ msg: "Error en obtencion de fotos del usuario: " + mockError.message });
         });
     });
@@ -537,7 +537,7 @@ describe('userController', () => {
     describe('getUserRatingsController', () => {
 
 
-        it('should return a 200 status and a list of ratings with their respective sites on successful retrieval', async () => {
+        it('USCon25 -> Caso positivo: Obtener valoraciones con userId válido y servicio responde exitosamente', async () => {
             req = {
                 params: { userId: 'validUserId' }
             } as any;
@@ -609,24 +609,24 @@ describe('userController', () => {
             expect(res.locals.mensaje).toEqual("Valoraciones obtenidas correctamente");
         });
 
-        it('should return an error status and message if the service throws an error', async () => {
+        it('USCon26 -> Caso negativo: Servicio responde con un error', async () => {
             req = {
                 params: { userId: 'invalidUserId' }
             } as any;
 
-            const mockError = { message: 'Error message', status: 500 };
+            const mockError = new Error('Error en el servicio');
             mockedUserService.getUserRatingsService.mockRejectedValue(mockError);
 
             await userController.getUserRatingsController(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(mockError.status);
+            expect(res.status).toHaveBeenCalledWith(500);
             expect(res.send).toHaveBeenCalledWith({ msg: "Error en obtencion de valoraciones del usuario: " + mockError.message });
         });
     });
 
     describe('editUserController', () => {
         // Caso positivo: Editar usuario con body correcto y servicio responde exitosamente.
-        it('should edit user successfully with correct body and service response', async () => {
+        it('USCon27 -> Caso positivo: Editar usuario con body correcto y servicio responde exitosamente', async () => {
             req = {
                 body: {
                     person: {
@@ -649,7 +649,7 @@ describe('userController', () => {
         });
 
         // Caso negativo: No proporcionar información completa de usuario en el body.
-        it('should return 400 if not all user information is provided in body', async () => {
+        it('USCon28 -> Caso negativo: No proporcionar información completa de usuario en el body', async () => {
             req = {
                 body: {
                     person: {
@@ -667,7 +667,7 @@ describe('userController', () => {
         });
 
         // Caso negativo: Servicio responde que no pudo actualizar el usuario.
-        it('should return 500 if service cannot update the user', async () => {
+        it('USCon29 -> Caso negativo: Servicio responde que no pudo actualizar el usuario', async () => {
             req = {
                 body: {
                     person: {
@@ -693,7 +693,7 @@ describe('userController', () => {
 
     describe('editPasswordController', () => {
         // Caso positivo: Cambiar contraseña con body correcto y servicio responde exitosamente.
-        it('should change password successfully with correct body and service response', async () => {
+        it('USCon30 -> Caso positivo: Cambiar contraseña con body correcto y servicio responde exitosamente', async () => {
             req = {
                 params: { userId: 'userId' },
                 body: {
@@ -712,7 +712,7 @@ describe('userController', () => {
         });
 
         // Caso negativo: No proporcionar oldPassword o newPassword en el body.
-        it('should return 400 if oldPassword or newPassword is not provided', async () => {
+        it('USCon31 -> Caso negativo: No proporcionar oldPassword o newPassword en el body', async () => {
             req = {
                 body: {},
                 params: { userId: 'userId' }
@@ -725,7 +725,7 @@ describe('userController', () => {
         });
 
         // Caso negativo: Servicio responde que la contraseña actual es incorrecta.
-        it('should return 401 if current password is incorrect', async () => {
+        it('USCon32 -> Caso negativo: Servicio responde que la contraseña actual es incorrecta', async () => {
             req = {
                 params: { userId: 'userId' },
                 body: {
@@ -744,7 +744,7 @@ describe('userController', () => {
         });
 
         // Caso negativo: Las contraseñas no coinciden.
-        it('should return 400 if passwords do not match', async () => {
+        it('USCon33 -> Caso negativo: Las contraseñas no coinciden', async () => {
             req = {
                 params: { userId: 'userId' },
                 body: {
@@ -761,7 +761,7 @@ describe('userController', () => {
         });
 
         // Caso negativo: La nueva contraseña no cumple con las condiciones.
-        it('should return 400 if new password does not meet requirements', async () => {
+        it('USCon34 -> Caso negativo: La nueva contraseña no cumple con las condiciones', async () => {
             req = {
                 params: { userId: 'userId' },
                 body: {
