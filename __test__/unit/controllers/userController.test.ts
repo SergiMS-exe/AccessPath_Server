@@ -233,7 +233,8 @@ describe('userController', () => {
             req = {
                 body: {
                     ...mockedUser,
-                    email: 'invalidemail'
+                    email: 'invalidemail',
+                    confirmPassword: mockedUser.password
                 }
             } as Request;
 
@@ -249,7 +250,8 @@ describe('userController', () => {
             req = {
                 body: {
                     ...mockedUser,
-                    password: 'short'
+                    password: 'short',
+                    confirmPassword: 'short'
                 }
             } as Request;
 

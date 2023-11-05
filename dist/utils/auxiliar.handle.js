@@ -19,13 +19,12 @@ function transformValoracionSiteArray(array) {
 exports.transformValoracionSiteArray = transformValoracionSiteArray;
 function transformToClientFormat(site) {
     const actualSite = site._doc ? site._doc : site;
-    // Extracting location details
     const { location } = actualSite;
     if (checkLocationFormat(location)) {
         const [longitude, latitude] = location.coordinates;
-        actualSite.location = { latitude, longitude }; // Updating the location format
-        delete actualSite.location.type; // Removing the type field
-        delete actualSite.location.coordinates; // Removing the coordinates field
+        actualSite.location = { latitude, longitude };
+        delete actualSite.location.type;
+        delete actualSite.location.coordinates;
     }
     return actualSite;
 }

@@ -35,7 +35,6 @@ const logInUserService = ({ email, password }) => __awaiter(void 0, void 0, void
     const isPasswdCorrect = yield (0, bcrypt_handle_1.verified)(password, passwdHash);
     if (!isPasswdCorrect)
         return { error: "Contraseña incorrecta", status: 401 };
-    //TODO ver si hacer jwt
     return { usuario: userFound };
 });
 exports.logInUserService = logInUserService;

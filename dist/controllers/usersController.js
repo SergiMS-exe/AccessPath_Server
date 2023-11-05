@@ -76,7 +76,7 @@ exports.logInUserController = logInUserController;
 const registerUserController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password, confirmPassword, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
-        if (!email || !password || !nombre || !apellidos || !tipoDiscapacidad)
+        if (!email || !password || !confirmPassword || !nombre || !apellidos || !tipoDiscapacidad)
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         const checkedEmail = (0, validator_handle_1.checkEmail)(email);
         const checkedPassword = (0, validator_handle_1.checkPassword)(password);

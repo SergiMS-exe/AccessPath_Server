@@ -76,7 +76,7 @@ const registerUserController = async (req: Request, res: Response, next: NextFun
     try {
         const { email, password, confirmPassword, nombre, apellidos, tipoDiscapacidad, saved } = req.body;
 
-        if (!email || !password || !nombre || !apellidos || !tipoDiscapacidad) return handleHttp(res, "Faltan datos en el body", 400)
+        if (!email || !password || !confirmPassword || !nombre || !apellidos || !tipoDiscapacidad) return handleHttp(res, "Faltan datos en el body", 400)
 
         const checkedEmail = checkEmail(email);
         const checkedPassword = checkPassword(password);

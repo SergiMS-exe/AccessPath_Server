@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export interface Valoracion {
     placeId?: string;
     userId?: string;
@@ -33,6 +31,15 @@ export enum PsiquicaEnum {
     espacios_tranquilos = 'espacios_tranquilos',
     interaccion_personal = 'interaccion_personal'
 }
+
+export enum TypesOfDisabilities {
+    fisica = 'Física',
+    sensorial = 'Sensorial',
+    psiquica = 'Psíquica',
+    ninguna = 'Ninguna'
+}
+
+export type TypesOfDisabilitiesKey = keyof typeof TypesOfDisabilities;
 
 export type FisicaKey = keyof typeof FisicaEnum;
 export type SensorialKey = keyof typeof SensorialEnum;

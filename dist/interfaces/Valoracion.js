@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PsiquicaEnum = exports.SensorialEnum = exports.FisicaEnum = void 0;
+exports.TypesOfDisabilities = exports.PsiquicaEnum = exports.SensorialEnum = exports.FisicaEnum = void 0;
 var FisicaEnum;
 (function (FisicaEnum) {
     FisicaEnum["entrada"] = "entrada";
@@ -26,3 +26,10 @@ var PsiquicaEnum;
     PsiquicaEnum["espacios_tranquilos"] = "espacios_tranquilos";
     PsiquicaEnum["interaccion_personal"] = "interaccion_personal";
 })(PsiquicaEnum || (exports.PsiquicaEnum = PsiquicaEnum = {}));
+var TypesOfDisabilities;
+(function (TypesOfDisabilities) {
+    TypesOfDisabilities["fisica"] = "F\u00EDsica";
+    TypesOfDisabilities["sensorial"] = "Sensorial";
+    TypesOfDisabilities["psiquica"] = "Ps\u00EDquica";
+    TypesOfDisabilities["ninguna"] = "Ninguna";
+})(TypesOfDisabilities || (exports.TypesOfDisabilities = TypesOfDisabilities = {}));

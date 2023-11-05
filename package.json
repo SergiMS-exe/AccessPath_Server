@@ -2,12 +2,18 @@
   "name": "access_path_server",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "npm": ">=9.0.0 <=9.5.1",
+    "node": ">=16.0.0 <=18.16.0"
+  },
   "scripts": {
-    "dev": "nodemon ./src/app.ts",
-    "start": "node ./dist/app.js",
-    "test": "jest",
+    "dev": "nodemon ./src/config/server.ts",
+    "test": "jest --forceExit --detectOpenHandles",
+    "test:unit": "jest ./__tests__/unit/**/*.test.ts",
+    "test:integration": "cross-env NODE_ENV=test jest ./__tests__/integration/**/*.test.ts",
     "build": "rimraf dist && tsc",
-    "add-build": "git add dist"
+    "add-build": "git add dist",
+    "start": "node ./dist/config/server.js"
   },
   "pre-commit": [
     "build",
@@ -36,8 +42,10 @@
     "@types/mongoose": "^5.11.97",
     "@types/multer": "^1.4.7",
     "@types/supertest": "^2.0.12",
+    "cross-env": "^7.0.3",
     "jest": "^29.6.1",
     "jest-express": "^1.12.0",
+    "mongodb-memory-server": "^9.0.1",
     "nodemon": "^3.0.1",
     "pre-commit": "^1.2.2",
     "rimraf": "^5.0.1",

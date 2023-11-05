@@ -1,5 +1,5 @@
 import { Site } from "../interfaces/Site";
-import { Valoracion } from "../interfaces/Valoracion";
+import { TypesOfDisabilities, TypesOfDisabilitiesKey, Valoracion } from "../interfaces/Valoracion";
 
 export function transformArrayToClientFormat(sites: any[]): any[] {
     return sites.map(transformToClientFormat);
@@ -22,13 +22,12 @@ export function transformValoracionSiteArray(array: { valoracion: Valoracion, si
 export function transformToClientFormat(site: any): any {
     const actualSite = site._doc ? site._doc : site;
 
-    // Extracting location details
     const { location } = actualSite;
     if (checkLocationFormat(location)) {
         const [longitude, latitude] = location.coordinates;
-        actualSite.location = { latitude, longitude };  // Updating the location format
-        delete actualSite.location.type;  // Removing the type field
-        delete actualSite.location.coordinates;  // Removing the coordinates field
+        actualSite.location = { latitude, longitude };
+        delete actualSite.location.type;
+        delete actualSite.location.coordinates;
     }
 
     return actualSite;
