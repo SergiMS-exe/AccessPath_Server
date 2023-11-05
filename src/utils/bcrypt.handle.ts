@@ -1,4 +1,5 @@
-import {hash, compare} from "bcryptjs"
+import { hash, compare } from "bcryptjs"
+import Person from "../interfaces/Person";
 
 const encrypt = async (pass: string) => {
     const passwordHash = await hash(pass, 8)
@@ -10,4 +11,16 @@ const verified = async (pass: string, passHash: string) => {
     return isCorrect;
 }
 
-export { encrypt, verified }
+async function hashUserPasswords(users: Person[]) {
+    const usersWithHashedPasswords = await Promise.all(
+        users.map(async (user) => {
+            const clonedUser = { ...user };
+            clonedUser.password = await encrypt(user.password!);
+            return clonedUser;
+        })
+    );
+
+    return usersWithHashedPasswords;
+}
+
+export { encrypt, verified, hashUserPasswords }

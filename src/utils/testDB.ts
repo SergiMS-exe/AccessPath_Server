@@ -2,8 +2,9 @@ import mongoose from 'mongoose';
 import UsuarioModel from '../models/usuarioModel';
 import SitioModel from '../models/sitioModel';
 import ValoracionModel from '../models/valoracionModel';
-import { encrypt } from './bcrypt.handle';
+import { encrypt, hashUserPasswords } from './bcrypt.handle';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import Person from '../interfaces/Person';
 
 export const initializeTestDb = async () => {
     // Conectar a la base de datos de pruebas
@@ -151,9 +152,12 @@ export const valoraciones = [
 
 export const seedUsuarios = async () => {
     await UsuarioModel.deleteMany({}); // Limpiar la colección de usuarios
-    usuarios.map(async usuario => usuario.password = await encrypt(usuario.password))
-    await UsuarioModel.insertMany(usuarios); // Insertar datos iniciales
+    let newUsuarios: Person[] = structuredClone(usuarios);
+    newUsuarios = await hashUserPasswords(newUsuarios);
+    await UsuarioModel.insertMany(newUsuarios); // Insertar datos iniciales
 };
+
+
 
 export const seedValoraciones = async () => {
     await ValoracionModel.deleteMany({});

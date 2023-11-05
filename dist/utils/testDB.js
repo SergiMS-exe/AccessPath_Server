@@ -159,8 +159,9 @@ exports.valoraciones = [
 ];
 const seedUsuarios = () => __awaiter(void 0, void 0, void 0, function* () {
     yield usuarioModel_1.default.deleteMany({}); // Limpiar la colección de usuarios
-    exports.usuarios.map((usuario) => __awaiter(void 0, void 0, void 0, function* () { return usuario.password = yield (0, bcrypt_handle_1.encrypt)(usuario.password); }));
-    yield usuarioModel_1.default.insertMany(exports.usuarios); // Insertar datos iniciales
+    let newUsuarios = structuredClone(exports.usuarios);
+    newUsuarios = yield (0, bcrypt_handle_1.hashUserPasswords)(newUsuarios);
+    yield usuarioModel_1.default.insertMany(newUsuarios); // Insertar datos iniciales
 });
 exports.seedUsuarios = seedUsuarios;
 const seedValoraciones = () => __awaiter(void 0, void 0, void 0, function* () {

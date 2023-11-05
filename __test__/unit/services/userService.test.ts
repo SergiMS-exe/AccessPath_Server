@@ -1,122 +1,86 @@
-// jest.mock('../../../src/models/usuarioModel');
-// import UsuarioModel from '../../../src/models/usuarioModel';
-// const mockedUserModel = UsuarioModel as jest.Mocked<typeof UsuarioModel>;
+jest.mock('bcryptjs');
+import bcrypt from 'bcryptjs';
+const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
-// jest.mock('mongoose', () => {
-//     const actualMongoose = jest.requireActual('mongoose');
-//     return {
-//         ...actualMongoose,
-//         Types: {
-//             ObjectId: {
-//                 isValid: jest.fn()
-//             }
-//         }
-//     };
-// });
-// import mongoose from 'mongoose';
-// const mockedMongoose = mongoose as jest.Mocked<typeof mongoose>;
+jest.mock('../../../src/models/usuarioModel');
+import UsuarioModel from '../../../src/models/usuarioModel';
+const mockedUserModel = UsuarioModel as jest.Mocked<typeof UsuarioModel>;
 
-// jest.mock('bcrypt');
-// import bcrypt from 'bcrypt';
-// const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+import * as userService from '../../../src/services/usuariosService';
+import Person from '../../../src/interfaces/Person';
 
-// import * as userService from '../../../src/services/usuariosService';
+describe('userService', () => {
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
-// describe('userService', () => {
-//     afterEach(() => {
-//         jest.clearAllMocks();
-//     });
+    const user: Person = {
+        nombre: 'Jane',
+        apellidos: 'Doe',
+        email: 'jane@example.com',
+        password: 'securePassword123',
+        tipoDiscapacidad: 'Ninguna'
+    };
 
-//     describe('registerUsuarioService', () => {
-//         afterEach(() => {
-//             mockedBcrypt.compareSync.mockReset();
-//         });
+    describe('registerUsuarioService', () => {
+        afterEach(() => {
+            mockedBcrypt.compareSync.mockReset();
+        });
 
-//         it('USSer1 -> Caso positivo: Registro de un nuevo usuario con datos válidos', async () => {
-//             // Arrange
-//             mockedUserModel.findOne.mockResolvedValue(null);
-//             mockedUserModel.create.mockResolvedValue();
+        it('USSer1 -> Caso positivo: Registro de un nuevo usuario con datos válidos', async () => {
+            mockedUserModel.findOne.mockResolvedValue(null);
+            mockedUserModel.create = jest.fn().mockResolvedValue(user);
 
-//             // Act
-//             const result = await userService.registerUsuarioService({
-//                 nombre: 'John',
-//                 apellidos: 'Doe',
-//                 email: 'john@example.com',
-//                 password: 'securePassword123', // assuming encrypt function is mocked too
-//                 tipoDiscapacidad: 'Ninguna'
-//             });
+            const result = await userService.registerUsuarioService(user);
 
-//             // Assert
-//             expect(result).toEqual({ /* expected success result */ });
-//         });
+            expect(result).toEqual({ usuario: user });
+        });
 
-//         it('USSer2 -> Caso negativo: Intento de registrar un usuario con un correo electrónico ya existente', async () => {
-//             // Arrange
-//             mockedUserModel.findOne.mockResolvedValue({ /* existing user data */ });
+        it('USSer2 -> Caso negativo: Intento de registrar un usuario con un correo electrónico ya existente', async () => {
+            mockedUserModel.findOne.mockResolvedValue(user);
 
-//             // Act & Assert
-//             await expect(userService.registerUsuarioService({
-//                 nombre: 'Jane',
-//                 apellidos: 'Doe',
-//                 email: 'jane@example.com',
-//                 password: 'securePassword123',
-//                 tipoDiscapacidad: 'Ninguna'
-//             }))
-//                 .rejects.toThrow('Email already in use');
-//         });
+            const response = await userService.registerUsuarioService(user);
 
-//         it('USSer3 -> Caso negativo: Registro con datos inválidos o incompletos', async () => {
-//             // Arrange, Act & Assert
-//             await expect(userService.registerUsuarioService({
-//                 nombre: '', // Invalid name
-//                 apellidos: '', // Invalid surname
-//                 email: 'invalidEmail', // Invalid email
-//                 // Missing password
-//                 tipoDiscapacidad: '' // Invalid disability type
-//             }))
-//                 .rejects.toThrow('Invalid or incomplete data');
-//         });
-//     });
+            expect(response).toEqual({ error: "Ya hay un usuario con ese email", status: 409 });
+        });
 
-//     describe('logInUserService', () => {
-//         it('USSer4 -> Caso positivo: Inicio de sesión con credenciales válidas', async () => {
-//             // Arrange
-//             mockedUserModel.findOne.mockResolvedValue({ /* user details based on Person interface */ });
-//             mockedBcrypt..mockResolvedValue(true);
+    });
 
-//             // Act
-//             const result = await userService.logInUserService({
-//                 email: 'john@example.com',
-//                 password: 'securePassword123'
-//             });
+    describe('logInUserService', () => {
+        it('USSer4 -> Caso positivo: Inicio de sesión con credenciales válidas', async () => {
 
-//             // Assert
-//             expect(result).toEqual({ /* expected success result */ });
-//         });
+            mockedUserModel.findOne.mockResolvedValue(user);
+            mockedBcrypt.compare = jest.fn().mockResolvedValue(true); //Mockeamos la función compare de bcrypt para que devuelva true
 
-//         it('USSer5 -> Caso negativo: Inicio de sesión con un correo electrónico inexistente', async () => {
-//             // Arrange
-//             mockedUserModel.findOne.mockResolvedValue(null);
+            const result = await userService.logInUserService({
+                email: user.email,
+                password: user.password!
+            });
 
-//             // Act & Assert
-//             await expect(userService.logInUserService({
-//                 email: 'nonexistent@example.com',
-//                 password: 'anyPassword'
-//             }))
-//                 .rejects.toThrow('User does not exist');
-//         });
+            expect(result).toEqual({ usuario: user });
+        });
 
-//         it('USSer6 -> Caso negativo: Inicio de sesión con una contraseña incorrecta', async () => {
-//             // Arrange
-//             mockedUserModel.findOne.mockResolvedValue({ /* user details based on Person interface */ });
-//             bcrypt.verified.mockResolvedValue(false);
+        it('USSer5 -> Caso negativo: Inicio de sesión con un correo electrónico inexistente', async () => {
+            mockedUserModel.findOne.mockResolvedValue(null);
 
-//             // Act & Assert
-//             await expect(userService.logInUserService({
-//                 email: 'john@example.com',
-//                 password: 'wrongPassword'
-//             }))
-//                 .rejects.toThrow('Incorrect password');
-//         });
-//     });
-// });
+            const response = await userService.logInUserService({
+                email: 'nonexistent@example.com',
+                password: 'anyPassword'
+            })
+
+            expect(response).toEqual({ error: "No hay un usuario registrado con ese email", status: 404 });
+        });
+
+        it('USSer6 -> Caso negativo: Inicio de sesión con una contraseña incorrecta', async () => {
+            mockedUserModel.findOne.mockResolvedValue(user);
+            mockedBcrypt.compare = jest.fn().mockResolvedValue(false); //Mockeamos la función compare de bcrypt para que devuelva false
+
+            const response = await userService.logInUserService({
+                email: user.email,
+                password: 'wrongPassword'
+            })
+
+            expect(response).toEqual({ error: "Contraseña incorrecta", status: 401 });
+        });
+    });
+});

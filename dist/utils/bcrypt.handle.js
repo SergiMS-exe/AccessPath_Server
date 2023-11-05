@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verified = exports.encrypt = void 0;
+exports.hashUserPasswords = exports.verified = exports.encrypt = void 0;
 const bcryptjs_1 = require("bcryptjs");
 const encrypt = (pass) => __awaiter(void 0, void 0, void 0, function* () {
     const passwordHash = yield (0, bcryptjs_1.hash)(pass, 8);
@@ -21,3 +21,14 @@ const verified = (pass, passHash) => __awaiter(void 0, void 0, void 0, function*
     return isCorrect;
 });
 exports.verified = verified;
+function hashUserPasswords(users) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const usersWithHashedPasswords = yield Promise.all(users.map((user) => __awaiter(this, void 0, void 0, function* () {
+            const clonedUser = Object.assign({}, user);
+            clonedUser.password = yield encrypt(user.password);
+            return clonedUser;
+        })));
+        return usersWithHashedPasswords;
+    });
+}
+exports.hashUserPasswords = hashUserPasswords;

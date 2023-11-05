@@ -6,7 +6,6 @@ import SitioModel from "../models/sitioModel";
 import { Site } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
 import ValoracionModel from "../models/valoracionModel";
-import { TypesOfDisabilities, TypesOfDisabilitiesKey } from "../interfaces/Valoracion";
 
 const registerUsuarioService = async (usuario: Person) => {
     if (await UsuarioModel.findOne({ email: usuario.email })) return { error: "Ya hay un usuario con ese email", status: 409 };

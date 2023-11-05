@@ -60,7 +60,8 @@ describe('Test de integración de los usuarios', () => {
                 .send(loginDetails);
 
             expect(response.statusCode).toBe(200);
-            expect(response.body.user).toBe(usuarios[0]); // Asegúrate de que se devuelva un token de sesión
+            expect(response.body.user.email).toBe(usuarios[0].email);
+            expect(response.body.user.nombre).toBe(usuarios[0].nombre);
         });
 
         it('InUs4 -> Caso negativo: Intentar iniciar sesión con un email que no existe', async () => {
