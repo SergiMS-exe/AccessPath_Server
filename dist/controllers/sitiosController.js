@@ -50,7 +50,7 @@ const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, v
             latitude: parseFloat(req.query.location.split('%')[0]),
             longitude: parseFloat(req.query.location.split('%')[1])
         };
-        const radius = req.query.radius ? parseInt(req.query.radius) : 50000; // 50km
+        const radius = req.query.radius ? parseInt(req.query.radius) : 100000; // 100km
         const limit = req.query.limit ? parseInt(req.query.limit) : 30;
         const closePlacesResponse = yield (0, sitiosService_1.getClosePlacesService)(location, radius, limit);
         if (closePlacesResponse.error) {

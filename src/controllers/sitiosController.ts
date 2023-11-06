@@ -44,7 +44,7 @@ const getClosePlacesController = async (req: Request, res: Response, next: NextF
             longitude: parseFloat((req.query.location as string).split('%')[1])
         };
 
-        const radius = req.query.radius ? parseInt(req.query.radius as string) : 50000; // 50km
+        const radius = req.query.radius ? parseInt(req.query.radius as string) : 100000; // 100km
         const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
 
         const closePlacesResponse = await getClosePlacesService(location, radius, limit);
