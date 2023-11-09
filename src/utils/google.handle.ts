@@ -27,7 +27,7 @@ export const handleFindSitesByTextGoogle = async (text: string) => {
     return convertToSite(response);
 }
 
-async function makeRequestGooglePlaces(query: string, location: SiteLocation, radius: number = 50000) {
+async function makeRequestGooglePlaces(query: string, location: SiteLocation, radius: number = 100000) { // 100 km
     const baseUrl = 'https://maps.googleapis.com/maps/api/place';
     const uri = baseUrl + '/textsearch/json';
 
@@ -47,6 +47,12 @@ async function makeRequestGooglePlaces(query: string, location: SiteLocation, ra
             throw new Error(`Error al hacer la petición: ${response.status} ${response.statusText}`);
         }
         const data: PlaceResponse = await response.json();
+
+        //filter only the places which are in Asturias
+        data.results = data.results.filter((place) => {
+            return place.formatted_address.toLocaleLowerCase().includes('asturias');
+        });
+
         return data;
     } catch (error: any) {
         throw new Error(`Ocurrió un error en la petición a Google Places: ${error.message}`);

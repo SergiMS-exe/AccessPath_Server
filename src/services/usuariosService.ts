@@ -167,7 +167,7 @@ const editUserService = async (usuario: Person) => {
     if (userUpdated.modifiedCount === 1)
         return { status: 200 };
     else
-        return { error: "No se pudo actualizar el usuario", status: 500 };
+        return { error: "Se debe modificar algún campo para poder editar el perfil", status: 500 };
 }
 
 const editPasswordService = async (usuarioId: string, oldPassword: string, newPassword: string) => {

@@ -169,7 +169,7 @@ const editUserService = (usuario) => __awaiter(void 0, void 0, void 0, function*
     if (userUpdated.modifiedCount === 1)
         return { status: 200 };
     else
-        return { error: "No se pudo actualizar el usuario", status: 500 };
+        return { error: "Se debe modificar algún campo para poder editar el perfil", status: 500 };
 });
 exports.editUserService = editUserService;
 const editPasswordService = (usuarioId, oldPassword, newPassword) => __awaiter(void 0, void 0, void 0, function* () {
