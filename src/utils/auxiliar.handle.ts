@@ -6,6 +6,8 @@ export function transformArrayToClientFormat(sites: any[]): any[] {
 }
 
 export function transformValoracionSiteArray(array: { valoracion: Valoracion, site: Site }[]): any[] {
+    //filter those which dooes not have valoracion or site
+    //array = array.filter(item => item.valoracion && item.site);
     return array.map(item => {
         // Transforma solo la parte Site del objeto
         const transformedSite = transformToClientFormat(item.site);

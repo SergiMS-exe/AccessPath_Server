@@ -123,8 +123,12 @@ const getUserRatingsService = async (usuarioId: string) => {
     //For each valoracion, get the site and group each valoracion with its site
     const sitesWithValoracion = await Promise.all(valoraciones.map(async (valoracion) => {
         const site = await SitioModel.findOne({ placeId: valoracion.placeId });
-        return { valoracion, site };
-    }));
+        //if there is no site, dont return the valoracion
+        if (site)
+            return { valoracion, site };
+        else
+            await ValoracionModel.findOneAndDelete({ _id: valoracion._id });
+    })).then((sites) => sites.filter((value) => value !== undefined));
 
     if (!sitesWithValoracion) return { error: "No hay valoraciones", status: 404 };
 
