@@ -181,11 +181,11 @@ const getCommentsController = (req, res, next) => __awaiter(void 0, void 0, void
 exports.getCommentsController = getCommentsController;
 const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.body.review || !req.body.place || !req.body.usuarioId) {
+        if (!req.body.review || !req.body.site || !req.body.usuarioId) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         }
         const usuarioId = req.body.usuarioId;
-        const place = req.body.place;
+        const place = req.body.site;
         const review = req.body.review;
         const postReviewResponse = yield (0, sitiosService_1.postReviewService)(usuarioId, place, review);
         if (postReviewResponse.error) {
