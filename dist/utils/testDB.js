@@ -145,23 +145,37 @@ exports.valoraciones = [
         userId: "user1",
         fisica: {
             entrada: 4,
-            rampas: 5
+            rampas: 5,
+            taza_bano: 0,
+            ascensores: 0,
+            pasillos: 0,
+            banos_adaptados: 0,
+            senaletica_clara: 0
         },
         sensorial: {
             senaletica_braille: 4,
+            sistemas_amplificacion: 0,
+            iluminacion_adecuada: 0,
+            informacion_accesible: 0,
             pictogramas_claros: 2
         },
         psiquica: {
             espacios_tranquilos: 5,
-            informacion_simple: 3
+            informacion_simple: 3,
+            senaletica_intuitiva: 0,
+            interaccion_personal: 0
         }
     },
 ];
 const seedUsuarios = () => __awaiter(void 0, void 0, void 0, function* () {
     yield usuarioModel_1.default.deleteMany({}); // Limpiar la colección de usuarios
-    let newUsuarios = structuredClone(exports.usuarios);
-    newUsuarios = yield (0, bcrypt_handle_1.hashUserPasswords)(newUsuarios);
-    yield usuarioModel_1.default.insertMany(newUsuarios); // Insertar datos iniciales
+    // Crear nuevos usuarios con _id generado
+    const newUsuarios = exports.usuarios.map(usuario => (Object.assign(Object.assign({}, usuario), { _id: new mongoose_1.default.Types.ObjectId() })));
+    exports.usuarios = newUsuarios;
+    // Encriptar las contraseñas de los usuarios
+    const usuariosConPasswordsEncriptadas = yield (0, bcrypt_handle_1.hashUserPasswords)(newUsuarios);
+    // Insertar los usuarios en la base de datos
+    yield usuarioModel_1.default.insertMany(usuariosConPasswordsEncriptadas);
 });
 exports.seedUsuarios = seedUsuarios;
 const seedValoraciones = () => __awaiter(void 0, void 0, void 0, function* () {

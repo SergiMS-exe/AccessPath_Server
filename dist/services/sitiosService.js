@@ -16,9 +16,9 @@ exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewServ
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
-const Valoracion_1 = require("../interfaces/Valoracion");
 const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
 const google_handle_1 = require("../utils/google.handle");
+const auxiliar_handle_1 = require("../utils/auxiliar.handle");
 const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, void 0, void 0, function* () {
     const closePlaces = yield sitioModel_1.default.find({
         $or: [
@@ -45,8 +45,8 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
 });
 exports.getClosePlacesService = getClosePlacesService;
 const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, function* () {
-    let sitesFromGooglePlaces;
-    let sitesFromDB;
+    let sitesFromGooglePlaces = [];
+    let sitesFromDB = [];
     try {
         sitesFromGooglePlaces = yield (0, google_handle_1.handleFindSitesByTextGoogle)(text);
     }
@@ -88,65 +88,62 @@ const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0,
              });
             const createdSite = new sitioModel_1.default(newSite);
             yield createdSite.save();
-            return { status: 200, newPlace: createdSite, comment: newComment };
+            return { status: 200, newPlace: newSite, comment: newComment };
         }
         // Si el sitio ya existe, simplemente añadimos el comentario al array de comentarios
+        if (!site.comentarios)
+            site.comentarios = []; // Si el campo comentarios no existe, lo inicializamos como un array vacío
         site.comentarios.push(newComment);
         yield site.save();
         return { status: 200, newPlace: site, comment: newComment };
     }
     catch (error) {
-        console.error("Error al publicar comentario:", error); // Puedes registrar el error para futuras revisiones
-        return { status: 500, error: "Error al guardar el comentario: " + error };
+        console.error("Error al publicar comentario:", error.message); // Puedes registrar el error para futuras revisiones
+        return { status: 500, error: "Error al guardar el comentario: " + error.message };
     }
 });
 exports.postCommentService = postCommentService;
 const editCommentService = (placeId, commentId, newText) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
-    const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId, "comentarios._id": commentId }, { $set: { "comentarios.$.texto": newText } }, { new: true, rawResult: true });
-    if (updateResult.ok) {
-        // Encuentra el comentario específico en la lista actualizada de comentarios.
-        const editedComment = (_b = (_a = updateResult.value) === null || _a === void 0 ? void 0 : _a.comentarios) === null || _b === void 0 ? void 0 : _b.find(comment => comment._id.toString() === commentId);
-        // Si el comentario no se encuentra (aunque esto es poco probable porque acaba de ser actualizado), devuelve un error.
-        if (!editedComment) {
-            return { error: "Error al recuperar el comentario editado", status: 500 };
+    try {
+        const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId, "comentarios._id": commentId }, { $set: { "comentarios.$.texto": newText } }, { new: true, rawResult: true });
+        if (updateResult.ok) {
+            // Encuentra el comentario específico en la lista actualizada de comentarios.
+            const editedComment = (_b = (_a = updateResult.value) === null || _a === void 0 ? void 0 : _a.comentarios) === null || _b === void 0 ? void 0 : _b.find(comment => comment._id.toString() === commentId);
+            // Si el comentario no se encuentra (aunque esto es poco probable porque acaba de ser actualizado), devuelve un error.
+            if (!editedComment) {
+                return { error: "Error al recuperar el comentario editado", status: 500 };
+            }
+            return { status: 200, editedComment };
         }
-        return { status: 200, editedComment };
+        else if (updateResult.value === null) {
+            return { error: "No hay un sitio registrado con ese placeId", status: 404 };
+        }
+        else {
+            return { error: "No se pudo editar el comentario", status: 500 };
+        }
     }
-    else if (updateResult.value === null) {
-        return { error: "No hay un sitio registrado con ese placeId", status: 404 };
-    }
-    else {
-        return { error: "No se pudo editar el comentario", status: 500 };
+    catch (error) {
+        console.error("Error al editar el comentario:", error.message);
+        return { error: "Error al editar el comentario: " + error.message, status: 500 };
     }
 });
 exports.editCommentService = editCommentService;
 const deleteCommentService = (commentId, placeId) => __awaiter(void 0, void 0, void 0, function* () {
-    const session = yield sitioModel_1.default.startSession();
-    let response;
     try {
-        yield session.withTransaction(() => __awaiter(void 0, void 0, void 0, function* () {
-            // Primero, elimina el comentario especificado
-            const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, { $pull: { comentarios: { _id: commentId } } }, { new: true, session });
-            if (updateResult) { // Si se hizo bien el primer update
-                const isCommentsEmpty = updateResult.comentarios.length === 0;
-                // Si el campo comentarios no existe o está vacío, elimina el campo comentarios.
-                if (isCommentsEmpty) {
-                    yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, { $unset: { comentarios: 1 } }, { session });
-                }
-                response = { status: 200, newPlace: updateResult };
-            }
-            else {
-                response = { error: "No hay un sitio registrado con ese placeId", status: 404 };
-            }
-        }));
+        const response = yield sitioModel_1.default.findOneAndUpdate({ "placeId": placeId }, { $pull: { comments: { _id: commentId } } }, { new: true, rawResult: true });
+        if (!response)
+            return { error: "No hay un sitio registrado con ese placeId", status: 404 };
+        if (response.ok) {
+            return { newPlace: response.value };
+        }
+        else {
+            return { error: "No se pudo eliminar el comentario", status: 500 };
+        }
     }
     catch (error) {
-        response = { error: "No se pudo eliminar el comentario", status: 500 };
-    }
-    finally {
-        yield session.endSession();
-        return response;
+        console.error("Error al eliminar el comentario:", error);
+        return { error: "No se pudo eliminar el comentario", status: 500 };
     }
 });
 exports.deleteCommentService = deleteCommentService;
@@ -187,11 +184,10 @@ const getCommentsService = (placeId) => __awaiter(void 0, void 0, void 0, functi
 exports.getCommentsService = getCommentsService;
 //Valoraciones----------------------------------------------------------------------------------------
 const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
-    //Insert new review in valoracionModel
     const newValoracion = { placeId: place.placeId, userId: userId, fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica };
     const insertResult = yield valoracionModel_1.default.create(newValoracion);
     if (insertResult) {
-        const newAveragesResult = yield updateAverages(place);
+        const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)(place);
         if (newAveragesResult && !newAveragesResult.error) {
             return { newPlace: newAveragesResult.newPlace };
         }
@@ -206,35 +202,47 @@ const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 
 exports.postReviewService = postReviewService;
 const editReviewService = (placeId, userId, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
-    const editResult = yield valoracionModel_1.default.findOneAndUpdate({ placeId: placeId, userId: userId }, { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } }, { new: true, rawResult: true });
-    if (editResult.ok && editResult.value) {
-        const newAveragesResult = yield updateAverages((_c = editResult.value) === null || _c === void 0 ? void 0 : _c.placeId);
-        if (newAveragesResult && !newAveragesResult.error) {
-            return { newPlace: newAveragesResult.newPlace, status: 200 };
+    try {
+        const editResult = yield valoracionModel_1.default.findOneAndUpdate({ placeId: placeId, userId: userId }, { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } }, { new: true, rawResult: true });
+        if (editResult.ok && editResult.value) {
+            const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)((_c = editResult.value) === null || _c === void 0 ? void 0 : _c.placeId);
+            if (newAveragesResult && !newAveragesResult.error) {
+                return { newPlace: newAveragesResult.newPlace, status: 200 };
+            }
+            else {
+                return { error: "No se pudo actualizar el promedio", status: 500 };
+            }
         }
         else {
-            return { error: "No se pudo actualizar el promedio", status: 500 };
+            return { error: "No se pudo editar la valoracion", status: 500 };
         }
     }
-    else {
-        return { error: "No se pudo editar la valoracion", status: 500 };
+    catch (error) {
+        console.error("Error al editar la valoracion:", error.message);
+        return { error: "Error al editar la valoracion: " + error.message, status: 500 };
     }
 });
 exports.editReviewService = editReviewService;
 const deleteReviewService = (placeId, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    //delete from userId and placeId
-    const deleteResult = yield valoracionModel_1.default.findOneAndDelete({ placeId: placeId, userId: userId });
-    if (deleteResult) {
-        const newAveragesResult = yield updateAverages(deleteResult.placeId);
-        if (newAveragesResult && !newAveragesResult.error) {
-            return { newPlace: newAveragesResult.newPlace, status: 200 };
+    try {
+        //delete from userId and placeId
+        const deleteResult = yield valoracionModel_1.default.findOneAndDelete({ placeId: placeId, userId: userId });
+        if (deleteResult) {
+            const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)(deleteResult.placeId);
+            if (newAveragesResult && !newAveragesResult.error) {
+                return { newPlace: newAveragesResult.newPlace, status: 200 };
+            }
+            else {
+                return { error: "No se pudo actualizar el promedio", status: 500 };
+            }
         }
         else {
-            return { error: "No se pudo actualizar el promedio", status: 500 };
+            return { error: "No se pudo eliminar la valoracion", status: 500 };
         }
     }
-    else {
-        return { error: "No se pudo eliminar la valoracion", status: 500 };
+    catch (error) {
+        console.error("Error al eliminar la valoracion:", error.message);
+        return { error: "Error al eliminar la valoracion: " + error.message, status: 500 };
     }
 });
 exports.deleteReviewService = deleteReviewService;
@@ -276,98 +284,3 @@ const deletePhotoService = (photoId) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.deletePhotoService = deletePhotoService;
-//Aux functions
-const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    let placeId;
-    let place = undefined;
-    if (typeof input === "string") {
-        placeId = input;
-    }
-    else {
-        placeId = input.placeId;
-        place = input;
-    }
-    const siteFound = yield sitioModel_1.default.findOne({ placeId: placeId });
-    // Busca todas las valoraciones del sitio
-    const reviews = yield valoracionModel_1.default.find({ placeId: placeId });
-    if (!reviews)
-        return { error: "No se pudo actualizar el promedio", status: 500 };
-    const averages = reviews.length > 0 ? calculateAverages(reviews) : undefined;
-    if (!siteFound && averages) {
-        if (!place)
-            return { error: "No se proporcionó información sobre el sitio", status: 500 };
-        const newSite = Object.assign(Object.assign({}, place), { valoraciones: averages });
-        const createdSite = new sitioModel_1.default(newSite);
-        yield createdSite.save();
-        return { status: 200, newPlace: createdSite };
-    }
-    if (averages) {
-        siteFound.valoraciones = averages;
-    }
-    else {
-        siteFound.valoraciones = undefined;
-        siteFound.markModified('valoraciones');
-    }
-    yield siteFound.save();
-    return { status: 200, newPlace: siteFound.toObject() };
-});
-const calculateAverages = (reviews) => {
-    let fisicaSum = {};
-    let sensorialSum = {};
-    let psiquicaSum = {};
-    let fisicaCount = {};
-    let sensorialCount = {};
-    let psiquicaCount = {};
-    // Initialize counts and sums to 0
-    Object.values(Valoracion_1.FisicaEnum).forEach(key => {
-        fisicaSum[key] = 0;
-        fisicaCount[key] = 0;
-    });
-    Object.values(Valoracion_1.SensorialEnum).forEach(key => {
-        sensorialSum[key] = 0;
-        sensorialCount[key] = 0;
-    });
-    Object.values(Valoracion_1.PsiquicaEnum).forEach(key => {
-        psiquicaSum[key] = 0;
-        psiquicaCount[key] = 0;
-    });
-    for (const review of reviews) {
-        for (const key of Object.values(Valoracion_1.FisicaEnum)) {
-            if (review.fisica && review.fisica[key]) {
-                fisicaSum[key] += review.fisica[key];
-                fisicaCount[key]++;
-            }
-        }
-        for (const key of Object.values(Valoracion_1.SensorialEnum)) {
-            if (review.sensorial && review.sensorial[key]) {
-                sensorialSum[key] += review.sensorial[key];
-                sensorialCount[key]++;
-            }
-        }
-        for (const key of Object.values(Valoracion_1.PsiquicaEnum)) {
-            if (review.psiquica && review.psiquica[key]) {
-                psiquicaSum[key] += review.psiquica[key];
-                psiquicaCount[key]++;
-            }
-        }
-    }
-    const computeAverageForCategory = (sum, count) => {
-        let total = 0;
-        const valoracion = {};
-        let fieldsWithValue = 0;
-        for (const key in sum) {
-            const averageForKey = count[key] > 0 ? sum[key] / count[key] : 0;
-            if (averageForKey > 0) {
-                valoracion[key] = parseFloat(averageForKey.toFixed(1));
-                total += valoracion[key];
-                fieldsWithValue++;
-            }
-        }
-        const average = fieldsWithValue > 0 ? parseFloat((total / fieldsWithValue).toFixed(1)) : undefined;
-        return { valoracion, average };
-    };
-    const fisicaResult = computeAverageForCategory(fisicaSum, fisicaCount);
-    const sensorialResult = computeAverageForCategory(sensorialSum, sensorialCount);
-    const psiquicaResult = computeAverageForCategory(psiquicaSum, psiquicaCount);
-    return Object.assign(Object.assign(Object.assign({}, (fisicaResult.average !== undefined ? { fisica: fisicaResult } : {})), (sensorialResult.average !== undefined ? { sensorial: sensorialResult } : {})), (psiquicaResult.average !== undefined ? { psiquica: psiquicaResult } : {}));
-};

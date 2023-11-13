@@ -430,7 +430,7 @@ describe('siteControler', () => {
             // Configuración del objeto de solicitud con los datos válidos
             req = {
                 body: {
-                    place: site1,
+                    site: site1,
                     usuarioId: 'usuario1',
                     review: review
                 },
@@ -494,7 +494,7 @@ describe('siteControler', () => {
             req = {
                 body: {
                     usuarioId: 'usuario1',
-                    place: { placeId: 'site1' },
+                    site: { placeId: 'site1' },
                     review: review
                 }
             } as unknown as Request;

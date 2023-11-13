@@ -1,10 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import UsuarioModel from '../models/usuarioModel';
 import SitioModel from '../models/sitioModel';
 import ValoracionModel from '../models/valoracionModel';
-import { encrypt, hashUserPasswords } from './bcrypt.handle';
+import { hashUserPasswords } from './bcrypt.handle';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import Person from '../interfaces/Person';
+import { Valoracion } from '../interfaces/Valoracion';
 
 export const initializeTestDb = async () => {
     // Conectar a la base de datos de pruebas
@@ -38,7 +39,7 @@ export const closeTestDb = async () => {
     await mongoose.connection.close();
 };
 
-export const usuarios = [
+export let usuarios: Person[] = [
     {
         nombre: "Alice",
         apellidos: "Smith",
@@ -130,32 +131,54 @@ export const sitios = [
 ];
 
 // Datos iniciales para Valoraciones
-export const valoraciones = [
+export const valoraciones: Valoracion[] = [
     {
         placeId: "place1",
         userId: "user1",
         fisica: {
             entrada: 4,
-            rampas: 5
+            rampas: 5,
+            taza_bano: 0,
+            ascensores: 0,
+            pasillos: 0,
+            banos_adaptados: 0,
+            senaletica_clara: 0
         },
         sensorial: {
             senaletica_braille: 4,
+            sistemas_amplificacion: 0,
+            iluminacion_adecuada: 0,
+            informacion_accesible: 0,
             pictogramas_claros: 2
         },
         psiquica: {
             espacios_tranquilos: 5,
-            informacion_simple: 3
+            informacion_simple: 3,
+            senaletica_intuitiva: 0,
+            interaccion_personal: 0
         }
     },
 ];
 
 
+
 export const seedUsuarios = async () => {
     await UsuarioModel.deleteMany({}); // Limpiar la colección de usuarios
-    let newUsuarios: Person[] = structuredClone(usuarios);
-    newUsuarios = await hashUserPasswords(newUsuarios);
-    await UsuarioModel.insertMany(newUsuarios); // Insertar datos iniciales
+
+    // Crear nuevos usuarios con _id generado
+    const newUsuarios = usuarios.map(usuario => ({
+        ...usuario,
+        _id: new mongoose.Types.ObjectId(), // Generar un nuevo ObjectId para cada usuario
+    }));
+    usuarios = newUsuarios;
+
+    // Encriptar las contraseñas de los usuarios
+    const usuariosConPasswordsEncriptadas = await hashUserPasswords(newUsuarios);
+
+    // Insertar los usuarios en la base de datos
+    await UsuarioModel.insertMany(usuariosConPasswordsEncriptadas);
 };
+
 
 
 
