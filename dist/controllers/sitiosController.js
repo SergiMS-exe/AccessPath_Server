@@ -17,24 +17,72 @@ const sitesIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
             {
+                path: "/close",
+                method: "GET",
+                description: "Get close places",
+                queryParams: ["location"]
+            },
+            {
+                path: "/search",
+                method: "GET",
+                description: "Search places by text",
+                queryParams: ["query"]
+            },
+            {
                 path: "/comments",
-                method: "GET"
+                method: "GET",
+                description: "Get comments for places",
+                queryParams: ["placeId"]
             },
             {
                 path: "/comment",
                 method: "POST",
-                body: ["content", "author"]
+                description: "Post a comment",
+                body: ["placeId", "content", "authorId"]
             },
             {
                 path: "/comment/:placeId",
                 method: "PUT",
-                params: ["placeId"],
+                description: "Edit a comment",
+                params: ["placeId", "commentId"],
                 body: ["content"]
             },
             {
                 path: "/comment/:placeId/:commentId",
                 method: "DELETE",
+                description: "Delete a comment",
                 params: ["placeId", "commentId"]
+            },
+            {
+                path: "/review",
+                method: "POST",
+                description: "Post a review",
+                body: ["placeId", "rating", "content", "authorId"]
+            },
+            {
+                path: "/review/:placeId",
+                method: "PUT",
+                description: "Edit a review",
+                params: ["placeId", "reviewId"],
+                body: ["rating", "content"]
+            },
+            {
+                path: "/review/:placeId/:reviewId",
+                method: "DELETE",
+                description: "Delete a review",
+                params: ["placeId", "reviewId"]
+            },
+            {
+                path: "/photo",
+                method: "POST",
+                description: "Post a photo",
+                body: ["placeId", "imageUrl", "authorId"]
+            },
+            {
+                path: "/photo/:placeId/:photoId",
+                method: "DELETE",
+                description: "Delete a photo",
+                params: ["placeId", "photoId"]
             }
         ]
     });

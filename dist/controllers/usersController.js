@@ -19,32 +19,70 @@ const usersIndexController = (req, res, next) => {
             {
                 path: "/login",
                 method: "POST",
-                body: ["username", "password"]
+                description: "User login",
+                body: ["email", "password"]
             },
             {
                 path: "/register",
                 method: "POST",
+                description: "Register new user",
                 body: ["username", "password", "email"]
             },
             {
-                path: "/:userId",
-                method: "DELETE",
-                params: ["userId"]
+                path: "/password/:userId",
+                method: "PUT",
+                description: "Edit user password",
+                params: ["userId"],
+                body: ["password"]
             },
             {
                 path: "/saveSite",
                 method: "PUT",
+                description: "Save a site",
                 body: ["siteId"]
             },
             {
                 path: "/unsaveSite",
                 method: "PUT",
+                description: "Unsave a site",
                 body: ["siteId"]
             },
             {
                 path: "/savedSites/:userId",
                 method: "GET",
+                description: "Get saved sites of a user",
                 params: ["userId"]
+            },
+            {
+                path: "/comments/:userId",
+                method: "GET",
+                description: "Get comments of a user",
+                params: ["userId"]
+            },
+            {
+                path: "/ratings/:userId",
+                method: "GET",
+                description: "Get ratings of a user",
+                params: ["userId"]
+            },
+            {
+                path: "/photos/:userId",
+                method: "GET",
+                description: "Get photos uploaded by a user",
+                params: ["userId"]
+            },
+            {
+                path: "/:userId",
+                method: "DELETE",
+                description: "Delete a user",
+                params: ["userId"]
+            },
+            {
+                path: "/:userId",
+                method: "PUT",
+                description: "Edit user details",
+                params: ["userId"],
+                body: ["userData"]
             }
         ]
     });
