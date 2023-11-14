@@ -131,11 +131,9 @@ const editCommentService = (placeId, commentId, newText) => __awaiter(void 0, vo
 exports.editCommentService = editCommentService;
 const deleteCommentService = (commentId, placeId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const response = yield sitioModel_1.default.findOneAndUpdate({ "placeId": placeId }, { $pull: { comments: { _id: commentId } } }, { new: true, rawResult: true });
-        if (!response)
-            return { error: "No hay un sitio registrado con ese placeId", status: 404 };
-        if (response.ok) {
-            return { newPlace: response.value };
+        const response = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId }, { $pull: { comentarios: { _id: commentId } } }, { new: true });
+        if (response) {
+            return { newPlace: response };
         }
         else {
             return { error: "No se pudo eliminar el comentario", status: 500 };

@@ -130,16 +130,13 @@ const editCommentService = async (placeId: string, commentId: string, newText: s
 const deleteCommentService = async (commentId: string, placeId: string) => {
     try {
         const response = await SitioModel.findOneAndUpdate(
-            { "placeId": placeId },
-            { $pull: { comments: { _id: commentId } } },
-            { new: true, rawResult: true }
+            { placeId: placeId },
+            { $pull: { comentarios: { _id: commentId } } },
+            { new: true }
         );
 
-        if (!response)
-            return { error: "No hay un sitio registrado con ese placeId", status: 404 };
-
-        if (response.ok) {
-            return { newPlace: response.value };
+        if (response) {
+            return { newPlace: response };
         } else {
             return { error: "No se pudo eliminar el comentario", status: 500 };
         }
