@@ -70,7 +70,7 @@ const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, funct
     return { sitios: sitesFromGooglePlaces };
 });
 exports.getPlacesByTextService = getPlacesByTextService;
-//Fotos-------------------------------------------------------------------------------------------
+//Comentarios-------------------------------------------------------------------------------------------
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Primero, buscamos el sitio usando el placeId
@@ -107,7 +107,7 @@ const editCommentService = (placeId, commentId, newText) => __awaiter(void 0, vo
     var _a, _b;
     try {
         const updateResult = yield sitioModel_1.default.findOneAndUpdate({ placeId: placeId, "comentarios._id": commentId }, { $set: { "comentarios.$.texto": newText } }, { new: true, rawResult: true });
-        if (updateResult.ok) {
+        if (updateResult.ok && updateResult.value) {
             // Encuentra el comentario específico en la lista actualizada de comentarios.
             const editedComment = (_b = (_a = updateResult.value) === null || _a === void 0 ? void 0 : _a.comentarios) === null || _b === void 0 ? void 0 : _b.find(comment => comment._id.toString() === commentId);
             // Si el comentario no se encuentra (aunque esto es poco probable porque acaba de ser actualizado), devuelve un error.
@@ -136,7 +136,7 @@ const deleteCommentService = (commentId, placeId) => __awaiter(void 0, void 0, v
             return { newPlace: response };
         }
         else {
-            return { error: "No se pudo eliminar el comentario", status: 500 };
+            return { error: "No se ha encontrado un sitio con ese id", status: 404 };
         }
     }
     catch (error) {
@@ -201,7 +201,26 @@ exports.postReviewService = postReviewService;
 const editReviewService = (placeId, userId, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
     var _c;
     try {
-        const editResult = yield valoracionModel_1.default.findOneAndUpdate({ placeId: placeId, userId: userId }, { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } }, { new: true, rawResult: true });
+        const update = {};
+        if (valoracion.fisica !== undefined) {
+            update['fisica'] = valoracion.fisica;
+        }
+        else {
+            update['$unset'] = { fisica: "" };
+        }
+        if (valoracion.sensorial !== undefined) {
+            update['sensorial'] = valoracion.sensorial;
+        }
+        else {
+            update['$unset'] = Object.assign(Object.assign({}, update['$unset']), { sensorial: "" });
+        }
+        if (valoracion.psiquica !== undefined) {
+            update['psiquica'] = valoracion.psiquica;
+        }
+        else {
+            update['$unset'] = Object.assign(Object.assign({}, update['$unset']), { psiquica: "" });
+        }
+        const editResult = yield valoracionModel_1.default.findOneAndUpdate({ placeId: placeId, userId: userId }, update, { new: true, rawResult: true });
         if (editResult.ok && editResult.value) {
             const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)((_c = editResult.value) === null || _c === void 0 ? void 0 : _c.placeId);
             if (newAveragesResult && !newAveragesResult.error) {
@@ -256,6 +275,8 @@ const postPhotoService = (place, photo) => __awaiter(void 0, void 0, void 0, fun
             return { newPlace: createdSite };
         }
         // Si el sitio ya existe, simplemente añadimos la foto al array de fotos
+        if (!site.fotos)
+            site.fotos = []; // Si el campo fotos no existe, lo inicializamos como un array vacío
         site.fotos.push(photo);
         yield site.save();
         return { newPlace: site };
@@ -269,7 +290,7 @@ exports.postPhotoService = postPhotoService;
 const deletePhotoService = (photoId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const response = yield sitioModel_1.default.findOneAndUpdate({ "fotos._id": photoId }, { $pull: { fotos: { _id: photoId } } }, { new: true, rawResult: true });
-        if (response.ok) {
+        if (response.ok && response.value) {
             return { newPlace: response.value };
         }
         else {

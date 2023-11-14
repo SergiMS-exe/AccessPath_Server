@@ -75,13 +75,13 @@ exports.sitios = [
         calificacionGoogle: 4.2,
         location: {
             type: "Point",
-            coordinates: [-99.133208, 19.4326077]
+            coordinates: [-80.133208, 19.4326077]
         },
         types: ["cafe", "bakery"],
         comentarios: [
             {
                 _id: new mongoose_1.default.Types.ObjectId(),
-                usuarioId: "user1",
+                usuarioId: new mongoose_1.default.Types.ObjectId(),
                 texto: "Great place to have a coffee!",
                 date: new Date()
             }
@@ -111,6 +111,7 @@ exports.sitios = [
         },
         fotos: [
             {
+                _id: new mongoose_1.default.Types.ObjectId(),
                 usuarioId: "user1",
                 base64: "base64_encoded_image_string",
                 alternativeText: "A cozy corner in the café"
@@ -124,13 +125,14 @@ exports.sitios = [
         calificacionGoogle: 4.8,
         location: {
             type: "Point",
-            coordinates: [-99.135208, 19.4327087]
+            coordinates: [-80.135208, 19.4327087]
         },
         types: ["library", "store"],
         comentarios: [],
         valoraciones: {},
         fotos: [
             {
+                _id: new mongoose_1.default.Types.ObjectId(),
                 usuarioId: "user2",
                 base64: "base64_encoded_image_string_of_books",
                 alternativeText: "Shelves full of colorful books"
@@ -141,8 +143,7 @@ exports.sitios = [
 // Datos iniciales para Valoraciones
 exports.valoraciones = [
     {
-        placeId: "place1",
-        userId: "user1",
+        placeId: exports.sitios[0].placeId,
         fisica: {
             entrada: 4,
             rampas: 5,
@@ -168,10 +169,12 @@ exports.valoraciones = [
     },
 ];
 const seedUsuarios = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     yield usuarioModel_1.default.deleteMany({}); // Limpiar la colección de usuarios
     // Crear nuevos usuarios con _id generado
     const newUsuarios = exports.usuarios.map(usuario => (Object.assign(Object.assign({}, usuario), { _id: new mongoose_1.default.Types.ObjectId() })));
     exports.usuarios = newUsuarios;
+    exports.valoraciones[0].userId = (_a = exports.usuarios[0]._id) === null || _a === void 0 ? void 0 : _a.toString(); // Asignar el ID del usuario a la valoración
     // Encriptar las contraseñas de los usuarios
     const usuariosConPasswordsEncriptadas = yield (0, bcrypt_handle_1.hashUserPasswords)(newUsuarios);
     // Insertar los usuarios en la base de datos

@@ -171,7 +171,7 @@ const getCommentsController = async (req: Request, res: Response, next: NextFunc
 
 const postReviewController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.body.review || !req.body.site || !req.body.usuarioId) {
+        if (!req.body.review || !req.body.site || !req.body.usuarioId || Object.keys(req.body.review).length === 0) {
             return handleHttp(res, "Faltan datos en el body", 400)
         }
 
@@ -197,7 +197,7 @@ const postReviewController = async (req: Request, res: Response, next: NextFunct
 
 const editReviewController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.body.review) {
+        if (!req.body.review || Object.keys(req.body.review).length === 0) {
             return handleHttp(res, "Faltan datos en el body", 400)
         }
 

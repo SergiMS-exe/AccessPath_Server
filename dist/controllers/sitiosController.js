@@ -181,7 +181,7 @@ const getCommentsController = (req, res, next) => __awaiter(void 0, void 0, void
 exports.getCommentsController = getCommentsController;
 const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.body.review || !req.body.site || !req.body.usuarioId) {
+        if (!req.body.review || !req.body.site || !req.body.usuarioId || Object.keys(req.body.review).length === 0) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         }
         const usuarioId = req.body.usuarioId;
@@ -207,7 +207,7 @@ const postReviewController = (req, res, next) => __awaiter(void 0, void 0, void 
 exports.postReviewController = postReviewController;
 const editReviewController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.body.review) {
+        if (!req.body.review || Object.keys(req.body.review).length === 0) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en el body", 400);
         }
         const review = req.body.review;

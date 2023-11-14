@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
-import { FisicaEnum, FisicaKey, PsiquicaEnum, PsiquicaKey, SensorialEnum, SensorialKey, Valoracion } from '../interfaces/Valoracion';
+import { Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
 import { handleFindSitesByTextGoogle } from "../utils/google.handle";
 import { updateAverages } from "../utils/auxiliar.handle";
@@ -61,7 +61,7 @@ const getPlacesByTextService = async (text: string) => {
     return { sitios: sitesFromGooglePlaces };
 }
 
-//Fotos-------------------------------------------------------------------------------------------
+//Comentarios-------------------------------------------------------------------------------------------
 const postCommentService = async (comment: { texto: string; usuarioId: string }, place: Site) => {
     try {
         // Primero, buscamos el sitio usando el placeId
@@ -106,7 +106,7 @@ const editCommentService = async (placeId: string, commentId: string, newText: s
             { new: true, rawResult: true }
         );
 
-        if (updateResult.ok) {
+        if (updateResult.ok && updateResult.value) {
             // Encuentra el comentario específico en la lista actualizada de comentarios.
             const editedComment = updateResult.value?.comentarios?.find(comment => comment._id.toString() === commentId);
 
@@ -134,11 +134,10 @@ const deleteCommentService = async (commentId: string, placeId: string) => {
             { $pull: { comentarios: { _id: commentId } } },
             { new: true }
         );
-
         if (response) {
             return { newPlace: response };
         } else {
-            return { error: "No se pudo eliminar el comentario", status: 500 };
+            return { error: "No se ha encontrado un sitio con ese id", status: 404 };
         }
     } catch (error) {
         console.error("Error al eliminar el comentario:", error);
@@ -200,11 +199,31 @@ const postReviewService = async (userId: string, place: Site, valoracion: Valora
 
 const editReviewService = async (placeId: string, userId: string, valoracion: Valoracion) => {
     try {
+        const update: any = {};
+        if (valoracion.fisica !== undefined) {
+            update['fisica'] = valoracion.fisica;
+        } else {
+            update['$unset'] = { fisica: "" };
+        }
+
+        if (valoracion.sensorial !== undefined) {
+            update['sensorial'] = valoracion.sensorial;
+        } else {
+            update['$unset'] = { ...update['$unset'], sensorial: "" };
+        }
+
+        if (valoracion.psiquica !== undefined) {
+            update['psiquica'] = valoracion.psiquica;
+        } else {
+            update['$unset'] = { ...update['$unset'], psiquica: "" };
+        }
+
         const editResult = await ValoracionModel.findOneAndUpdate(
             { placeId: placeId, userId: userId },
-            { $set: { fisica: valoracion.fisica, sensorial: valoracion.sensorial, psiquica: valoracion.psiquica } },
+            update,
             { new: true, rawResult: true }
         );
+
 
         if (editResult.ok && editResult.value) {
             const newAveragesResult = await updateAverages(editResult.value?.placeId);
@@ -264,6 +283,7 @@ const postPhotoService = async (place: Site, photo: Photo) => {
         }
 
         // Si el sitio ya existe, simplemente añadimos la foto al array de fotos
+        if (!site.fotos) site.fotos = []; // Si el campo fotos no existe, lo inicializamos como un array vacío
         site.fotos!.push(photo);
         await site.save();
 
@@ -282,7 +302,7 @@ const deletePhotoService = async (photoId: string) => {
             { new: true, rawResult: true }
         );
 
-        if (response.ok) {
+        if (response.ok && response.value) {
             return { newPlace: response.value };
         } else {
             return { error: "No se pudo eliminar la foto", status: 500 };
@@ -292,10 +312,6 @@ const deletePhotoService = async (photoId: string) => {
         return { error: "No se pudo eliminar la foto", status: 500 };
     }
 }
-
-//Aux functions
-
-
 
 export {
     getClosePlacesService,

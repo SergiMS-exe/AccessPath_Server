@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "nodemon ./src/config/server.ts",
-    "test": "jest --forceExit --detectOpenHandles --coverage --verbose",
+    "test": "jest --forceExit --detectOpenHandles --coverage",
     "test:unit": "jest ./__tests__/unit/**/*.test.ts",
     "test:integration": "cross-env NODE_ENV=test jest ./__tests__/integration/**/*.test.ts",
     "build": "rimraf dist && tsc",

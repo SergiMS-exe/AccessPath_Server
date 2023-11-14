@@ -21,12 +21,15 @@ import { handleFindSitesByTextGoogle } from '../../../src/utils/google.handle';
 const mockedHandleFindSitesByTextGoogle = handleFindSitesByTextGoogle as jest.MockedFunction<typeof handleFindSitesByTextGoogle>;
 
 import * as siteService from '../../../src/services/sitiosService';
-import { Site } from '../../../src/interfaces/Site';
+import { Photo, Site } from '../../../src/interfaces/Site';
 import { usuarios, valoraciones } from '../../../src/utils/testDB';
 import { ObjectId } from 'mongodb';
 
 describe('siteService', () => {
 
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
     const site1: Site = {
         placeId: 'site1',
         nombre: 'Site 1',
@@ -87,7 +90,7 @@ describe('siteService', () => {
         types: ['type1', 'type2'],
         calificacionGoogle: 5,
         fotos: [{
-            usuarioId: '12345',
+            usuarioId: '123456',
             base64: 'base64EncodedString',
             alternativeText: 'Site 2'
         },
@@ -99,9 +102,6 @@ describe('siteService', () => {
     };
 
     describe('getClosePlacesService', () => {
-        afterEach(() => {
-            jest.clearAllMocks();
-        });
 
         it('SSer1 -> Caso positivo: Búsqueda de lugares cercanos con datos válidos', async () => {
             mockedSiteModel.find = jest.fn().mockReturnValue({
@@ -290,12 +290,8 @@ describe('siteService', () => {
             const commentId = site1.comentarios![0]._id.toString();
 
             const newPlace = { ...site1, comentarios: site1.comentarios!.filter(c => c._id.toString() !== commentId) };
-            const updateResultMock = {
-                ok: 1,
-                value: newPlace
-            };
 
-            mockedSiteModel.findOneAndUpdate.mockResolvedValueOnce(updateResultMock);
+            mockedSiteModel.findOneAndUpdate.mockResolvedValueOnce(newPlace);
 
             const result = await siteService.deleteCommentService(commentId, placeId);
 
@@ -310,7 +306,7 @@ describe('siteService', () => {
 
             const result = await siteService.deleteCommentService(commentId, placeId);
 
-            expect(result).toEqual({ error: "No hay un sitio registrado con ese placeId", status: 404 });
+            expect(result).toEqual({ error: "No se ha encontrado un sitio con ese id", status: 404 });
         });
 
         it('SSer14 -> Caso negativo: Error al eliminar el comentario en BD', async () => {
@@ -454,6 +450,82 @@ describe('siteService', () => {
             expect(mockedValoracionModel.findOneAndDelete).toHaveBeenCalledWith({ placeId: placeId, userId: userId });
             expect(result).toEqual({ error: "Error al eliminar la valoracion: DB error", status: 500 });
         });
+
+    });
+
+    describe('postPhotoService', () => {
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+        const newPhoto: Photo = {
+            usuarioId: 'existingUserId',
+            base64: 'base64EncodedString',
+            alternativeText: 'Site 2'
+        };
+        it('SSer25 -> Caso positivo: Enviar foto con datos válidos y sitio no existente en BD', async () => {
+
+            // Simular que el sitio no existe en la base de datos
+            mockedSiteModel.findOne.mockResolvedValue(null);
+            mockedSiteModel.prototype.save.mockResolvedValue(site1);
+
+            const result = await siteService.postPhotoService(site1, newPhoto);
+
+            expect(mockedSiteModel.findOne).toHaveBeenCalledWith({ placeId: site1.placeId });
+            expect(mockedSiteModel.prototype.save).toHaveBeenCalled();
+            expect(result).toHaveProperty('newPlace');
+        });
+
+        it('SSer26 -> Caso positivo: Enviar foto con datos válidos y sitio existente en BD', async () => {
+
+            // Simular que el sitio existe en la base de datos
+            mockedSiteModel.findOne.mockResolvedValue(new SitioModel(site1));
+            mockedSiteModel.prototype.save.mockResolvedValue(site1);
+
+            const result = await siteService.postPhotoService(site1, newPhoto);
+
+            expect(mockedSiteModel.findOne).toHaveBeenCalledWith({ placeId: site1.placeId });
+            expect(mockedSiteModel.prototype.save).toHaveBeenCalled();
+            expect(result).toHaveProperty('newPlace');
+        });
+
+        it('SSer29 -> Caso negativo: Error al eliminar la foto en BD', async () => {
+            const photoId = 'photoId123';
+
+            // Simular un error al intentar eliminar la foto
+            mockedSiteModel.findOneAndUpdate.mockRejectedValue(new Error('DB error'));
+
+            const result = await siteService.deletePhotoService(photoId);
+
+            expect(result).toEqual({ error: "No se pudo eliminar la foto", status: 500 });
+        });
+    });
+
+    describe('deletePhotoService', () => {
+        it('SSer28 -> Caso positivo: Eliminar foto existente con sitio existente en BD', async () => {
+            const photoId = 'photoId123';
+
+            // Simular la respuesta de findOneAndUpdate con éxito
+            mockedSiteModel.findOneAndUpdate.mockResolvedValue({
+                ok: 1,
+                value: { ...site1, fotos: site2.fotos!.splice(1) }
+            });
+
+            const result = await siteService.deletePhotoService(photoId);
+
+            expect(result).toHaveProperty('newPlace');
+        });
+
+        it('SSer29 -> Caso negativo: Error al eliminar la foto en BD', async () => {
+            const photoId = 'photoId123';
+
+            // Simular un error al intentar eliminar la foto
+            mockedSiteModel.findOneAndUpdate.mockRejectedValue(new Error('DB error'));
+
+            const result = await siteService.deletePhotoService(photoId);
+
+            expect(result).toEqual({ error: "No se pudo eliminar la foto", status: 500 });
+        });
+
 
     });
 });

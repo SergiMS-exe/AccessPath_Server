@@ -66,13 +66,13 @@ export const sitios = [
         calificacionGoogle: 4.2,
         location: {
             type: "Point",
-            coordinates: [-99.133208, 19.4326077]
+            coordinates: [-80.133208, 19.4326077]
         },
         types: ["cafe", "bakery"],
         comentarios: [
             {
                 _id: new mongoose.Types.ObjectId(),
-                usuarioId: "user1",
+                usuarioId: new mongoose.Types.ObjectId(), // ID de usuario de ejemplo, posiblemente inexistente
                 texto: "Great place to have a coffee!",
                 date: new Date()
             }
@@ -102,6 +102,7 @@ export const sitios = [
         },
         fotos: [
             {
+                _id: new mongoose.Types.ObjectId(),
                 usuarioId: "user1",
                 base64: "base64_encoded_image_string",
                 alternativeText: "A cozy corner in the café"
@@ -115,13 +116,14 @@ export const sitios = [
         calificacionGoogle: 4.8,
         location: {
             type: "Point",
-            coordinates: [-99.135208, 19.4327087]
+            coordinates: [-80.135208, 19.4327087]
         },
         types: ["library", "store"],
         comentarios: [],
         valoraciones: {},
         fotos: [
             {
+                _id: new mongoose.Types.ObjectId(),
                 usuarioId: "user2",
                 base64: "base64_encoded_image_string_of_books",
                 alternativeText: "Shelves full of colorful books"
@@ -133,8 +135,7 @@ export const sitios = [
 // Datos iniciales para Valoraciones
 export const valoraciones: Valoracion[] = [
     {
-        placeId: "place1",
-        userId: "user1",
+        placeId: sitios[0].placeId,
         fisica: {
             entrada: 4,
             rampas: 5,
@@ -171,6 +172,7 @@ export const seedUsuarios = async () => {
         _id: new mongoose.Types.ObjectId(), // Generar un nuevo ObjectId para cada usuario
     }));
     usuarios = newUsuarios;
+    valoraciones[0].userId = usuarios[0]._id?.toString(); // Asignar el ID del usuario a la valoración
 
     // Encriptar las contraseñas de los usuarios
     const usuariosConPasswordsEncriptadas = await hashUserPasswords(newUsuarios);
