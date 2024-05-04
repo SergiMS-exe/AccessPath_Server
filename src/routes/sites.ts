@@ -20,6 +20,7 @@ const router = Router();
 router.get("/", sitesIndexController);
 router.get("/close", getClosePlacesController, convertToClientMiddleware);
 router.get("/search", getPlacesByTextController, convertToClientMiddleware);
+router.get("/search/scrapped",)
 router.get("/comments", getCommentsController);
 router.post("/comment", convertToServerMiddleware, postCommentController);
 router.put("/comment/:placeId", editCommentController);

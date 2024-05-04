@@ -7,6 +7,7 @@ const router = (0, express_1.Router)();
 router.get("/", sitiosController_1.sitesIndexController);
 router.get("/close", sitiosController_1.getClosePlacesController, locationConvert_1.convertToClientMiddleware);
 router.get("/search", sitiosController_1.getPlacesByTextController, locationConvert_1.convertToClientMiddleware);
+router.get("/search/scrapped");
 router.get("/comments", sitiosController_1.getCommentsController);
 router.post("/comment", locationConvert_1.convertToServerMiddleware, sitiosController_1.postCommentController);
 router.put("/comment/:placeId", sitiosController_1.editCommentController);

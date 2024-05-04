@@ -4,8 +4,9 @@ import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
 import { Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
-import { handleFindSitesByTextGoogle } from "../utils/google.handle";
+import { handleFindSitesByTextGoogle, handleScrapGoogleMaps } from "../utils/google.handle";
 import { updateAverages } from "../utils/auxiliar.handle";
+import { ScrappedSite } from "../interfaces/ScrappedSite";
 
 
 const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
@@ -36,14 +37,15 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
 const getPlacesByTextService = async (text: string) => {
     let sitesFromGooglePlaces: Site[] = [];
     let sitesFromDB: Site[] = [];
-
     try {
+        // Buscamos los sitios en Google Places
         sitesFromGooglePlaces = await handleFindSitesByTextGoogle(text);
     } catch (error: any) {
         return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
     }
 
     try {
+        // Buscamos los sitios en la base de datos
         sitesFromDB = await SitioModel.find({ placeId: { $in: sitesFromGooglePlaces.map(site => site.placeId) } });
     } catch (error: any) {
         return { error: "Error al buscar sitios en la base de datos: " + error.message, status: 500 };
@@ -59,6 +61,18 @@ const getPlacesByTextService = async (text: string) => {
     }
 
     return { sitios: sitesFromGooglePlaces };
+}
+
+const getScrappedSitesService = async (text: string) => {
+    let scrappedSites: ScrappedSite[] = [];
+
+    try {
+        scrappedSites = await handleScrapGoogleMaps(text);
+    } catch (error: any) {
+        return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
+    }
+
+    return { sitios: scrappedSites };
 }
 
 //Comentarios-------------------------------------------------------------------------------------------
@@ -316,6 +330,7 @@ const deletePhotoService = async (photoId: string) => {
 export {
     getClosePlacesService,
     getPlacesByTextService,
+    getScrappedSitesService,
     postCommentService,
     editCommentService,
     deleteCommentService,

@@ -81,7 +81,7 @@ exports.sitios = [
         comentarios: [
             {
                 _id: new mongoose_1.default.Types.ObjectId(),
-                usuarioId: new mongoose_1.default.Types.ObjectId(),
+                usuarioId: new mongoose_1.default.Types.ObjectId(), // ID de usuario de ejemplo, posiblemente inexistente
                 texto: "Great place to have a coffee!",
                 date: new Date()
             }

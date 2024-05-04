@@ -128,7 +128,7 @@ const registerUserController = (req, res, next) => __awaiter(void 0, void 0, voi
         const responseReg = yield (0, usuariosService_1.registerUsuarioService)({
             email: email,
             password: password,
-            saved: saved ? saved : [],
+            saved: saved ? saved : [], //TODO quitar
             nombre: nombre,
             apellidos: apellidos,
             tipoDiscapacidad: tipoDiscapacidad,

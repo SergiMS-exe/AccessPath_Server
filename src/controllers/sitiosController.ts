@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, getPlacesByTextService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, getPlacesByTextService, getScrappedSitesService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
+import { ScrappedSite } from "../interfaces/ScrappedSite";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -121,7 +122,8 @@ const getPlacesByTextController = async (req: Request, res: Response, next: Next
             return handleHttp(res, "El formato del texto es incorrecto", 400)
         }
 
-        const getPlacesByTextResponse = await getPlacesByTextService(text);
+        //const getPlacesByTextResponse = await getPlacesByTextService(text);
+        const getPlacesByTextResponse = await getScrappedSitesService(text);
 
         if (getPlacesByTextResponse.error) {
             res.status(getPlacesByTextResponse.status).send({ msg: getPlacesByTextResponse.error });

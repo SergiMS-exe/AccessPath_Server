@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
+exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getScrappedSitesService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
@@ -48,12 +48,14 @@ const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, funct
     let sitesFromGooglePlaces = [];
     let sitesFromDB = [];
     try {
+        // Buscamos los sitios en Google Places
         sitesFromGooglePlaces = yield (0, google_handle_1.handleFindSitesByTextGoogle)(text);
     }
     catch (error) {
         return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
     }
     try {
+        // Buscamos los sitios en la base de datos
         sitesFromDB = yield sitioModel_1.default.find({ placeId: { $in: sitesFromGooglePlaces.map(site => site.placeId) } });
     }
     catch (error) {
@@ -70,6 +72,17 @@ const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, funct
     return { sitios: sitesFromGooglePlaces };
 });
 exports.getPlacesByTextService = getPlacesByTextService;
+const getScrappedSitesService = (text) => __awaiter(void 0, void 0, void 0, function* () {
+    let scrappedSites = [];
+    try {
+        scrappedSites = yield (0, google_handle_1.handleScrapGoogleMaps)(text);
+    }
+    catch (error) {
+        return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
+    }
+    return { sitios: scrappedSites };
+});
+exports.getScrappedSitesService = getScrappedSitesService;
 //Comentarios-------------------------------------------------------------------------------------------
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
     try {

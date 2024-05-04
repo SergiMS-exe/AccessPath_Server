@@ -27,7 +27,7 @@ const registerUsuarioService = (usuario) => __awaiter(void 0, void 0, void 0, fu
     return { usuario: responseInsert };
 });
 exports.registerUsuarioService = registerUsuarioService;
-const logInUserService = ({ email, password }) => __awaiter(void 0, void 0, void 0, function* () {
+const logInUserService = (_a) => __awaiter(void 0, [_a], void 0, function* ({ email, password }) {
     const userFound = yield usuarioModel_1.default.findOne({ email: email });
     if (!userFound)
         return { error: "No hay un usuario registrado con ese email", status: 404 };
