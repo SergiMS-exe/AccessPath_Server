@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getCommentsService, getPlacesByTextService, getScrappedSitesService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getLocationByLinkService, getCommentsService, getPlacesByTextService, getScrappedSitesService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
-import { ScrappedSite } from "../interfaces/ScrappedSite";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -137,6 +136,23 @@ const getPlacesByTextController = async (req: Request, res: Response, next: Next
         handleHttp(res, "Error en la obtencion de sitios por texto: " + e.message)
     } finally {
         next()
+    }
+}
+
+const getLocationByLinkController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const link = req.query.link;
+        if (!link) {
+            return handleHttp(res, "Faltan datos en la query", 400)
+        } else if (typeof link !== "string") {
+            return handleHttp(res, "El formato del link es incorrecto", 400)
+        }
+
+        const getLocationByLinkResponse = await getLocationByLinkService(link);
+    } catch (e: any) {
+        handleHttp(res, "Error en la obtencion de ubicacion por link: " + e.message)
+    } finally {
+        next();
     }
 }
 
@@ -341,6 +357,7 @@ export {
     sitesIndexController,
     getClosePlacesController,
     getPlacesByTextController,
+    getLocationByLinkController,
     postCommentController,
     editCommentController,
     deleteCommentController,

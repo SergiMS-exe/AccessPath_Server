@@ -12,6 +12,7 @@ import {
     postPhotoController,
     deletePhotoController,
     getPlacesByTextController,
+    getLocationByLinkController
 } from "../controllers/sitiosController";
 import { convertToClientMiddleware, convertToServerMiddleware } from "../middleware/locationConvert";
 
@@ -20,7 +21,7 @@ const router = Router();
 router.get("/", sitesIndexController);
 router.get("/close", getClosePlacesController, convertToClientMiddleware);
 router.get("/search", getPlacesByTextController, convertToClientMiddleware);
-router.get("/search/scrapped",)
+router.get("/location", getLocationByLinkController);
 router.get("/comments", getCommentsController);
 router.post("/comment", convertToServerMiddleware, postCommentController);
 router.put("/comment/:placeId", editCommentController);

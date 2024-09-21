@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getScrappedSitesService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
+exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getLocationByLinkService = exports.getScrappedSitesService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
@@ -83,6 +83,15 @@ const getScrappedSitesService = (text) => __awaiter(void 0, void 0, void 0, func
     return { sitios: scrappedSites };
 });
 exports.getScrappedSitesService = getScrappedSitesService;
+const getLocationByLinkService = (link) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield (0, google_handle_1.handleGetLocationByLink)(link);
+    }
+    catch (error) {
+        return { error: "Error al buscar la localización del enlace: " + error.message, status: 500 };
+    }
+});
+exports.getLocationByLinkService = getLocationByLinkService;
 //Comentarios-------------------------------------------------------------------------------------------
 const postCommentService = (comment, place) => __awaiter(void 0, void 0, void 0, function* () {
     try {

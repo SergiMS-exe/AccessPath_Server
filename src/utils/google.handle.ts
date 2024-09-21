@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { Site, SiteLocation } from "../interfaces/Site";
 import puppeteer from "puppeteer";
+import chromium from "chrome-aws-lambda";
 import * as pluscodes from "pluscodes";
 import { ScrappedSite } from "../interfaces/ScrappedSite";
+import e from "express";
 
 export const handleFindSitesByTextGoogle = async (text: string) => {
     const centro: SiteLocation = {
@@ -62,8 +64,22 @@ async function makeRequestGooglePlaces(query: string, location: SiteLocation, ra
     }
 }
 
+export const handleGetLocationByLink = async (link: string) => {
+    const browser = await puppeteer.launch({});
+    const page = await browser.newPage();
+
+    await page.goto(link);
+
+
+}
+
 export const handleScrapGoogleMaps = async (query: string) => {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+        args: chromium.args,               // Argumentos optimizados para Lambda
+        defaultViewport: chromium.defaultViewport,  // Configuración del viewport
+        executablePath: await chromium.executablePath,  // Ruta al binario de Chromium
+        headless: chromium.headless,       // Modo sin cabeza (sin interfaz gráfica)
+    });
     const page = await browser.newPage();
 
     //sustituir espacios por +
@@ -95,7 +111,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
     // Espera a que cualquier redirección potencial o recarga de la página termine
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
 
-    const sitesData = await page.evaluate(selector => {
+    const sitesData = await page.evaluate((selector: any) => {
         const elements = Array.from(document.querySelectorAll(selector));
         return elements.map(el => {
             const nombre = el.querySelector('.qBF1Pd')?.textContent || '';
@@ -108,7 +124,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
     }, selectorResultList);
 
     // Ahora, fuera de page.evaluate, crea instancias de ScrappedSite con los datos recolectados.
-    const sites = sitesData.map(siteData => new ScrappedSite(siteData.nombre, siteData.direccion, siteData.rating, siteData.tipos, siteData.link));
+    const sites = sitesData.map((siteData: any) => new ScrappedSite(siteData.nombre, siteData.direccion, siteData.rating, siteData.tipos, siteData.link));
 
     console.log(sites);
 

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhotoController = exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getPlacesByTextController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
+exports.deletePhotoController = exports.postPhotoController = exports.deleteReviewController = exports.editReviewController = exports.postReviewController = exports.getCommentsController = exports.deleteCommentController = exports.editCommentController = exports.postCommentController = exports.getLocationByLinkController = exports.getPlacesByTextController = exports.getClosePlacesController = exports.sitesIndexController = void 0;
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
 const mongodb_1 = require("mongodb");
@@ -146,6 +146,25 @@ const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, 
     }
 });
 exports.getPlacesByTextController = getPlacesByTextController;
+const getLocationByLinkController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const link = req.query.link;
+        if (!link) {
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en la query", 400);
+        }
+        else if (typeof link !== "string") {
+            return (0, error_handle_1.handleHttp)(res, "El formato del link es incorrecto", 400);
+        }
+        const getLocationByLinkResponse = yield (0, sitiosService_1.getLocationByLinkService)(link);
+    }
+    catch (e) {
+        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de ubicacion por link: " + e.message);
+    }
+    finally {
+        next();
+    }
+});
+exports.getLocationByLinkController = getLocationByLinkController;
 const postCommentController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.body.comment || !req.body.site || !req.body.comment.usuarioId || !req.body.comment.texto || req.body.comment.texto.trim().length < 1) {

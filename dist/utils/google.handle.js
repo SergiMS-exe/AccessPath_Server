@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleScrapGoogleMaps = exports.handleFindSitesByTextGoogle = void 0;
+exports.handleScrapGoogleMaps = exports.handleGetLocationByLink = exports.handleFindSitesByTextGoogle = void 0;
 require("dotenv/config");
 const Site_1 = require("../interfaces/Site");
 const puppeteer_1 = __importDefault(require("puppeteer"));
+const chrome_aws_lambda_1 = __importDefault(require("chrome-aws-lambda"));
 const ScrappedSite_1 = require("../interfaces/ScrappedSite");
 const handleFindSitesByTextGoogle = (text) => __awaiter(void 0, void 0, void 0, function* () {
     const centro = {
@@ -68,8 +69,19 @@ function makeRequestGooglePlaces(query_1, location_1) {
         }
     });
 }
+const handleGetLocationByLink = (link) => __awaiter(void 0, void 0, void 0, function* () {
+    const browser = yield puppeteer_1.default.launch({});
+    const page = yield browser.newPage();
+    yield page.goto(link);
+});
+exports.handleGetLocationByLink = handleGetLocationByLink;
 const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const browser = yield puppeteer_1.default.launch({ headless: true });
+    const browser = yield puppeteer_1.default.launch({
+        args: chrome_aws_lambda_1.default.args, // Argumentos optimizados para Lambda
+        defaultViewport: chrome_aws_lambda_1.default.defaultViewport, // Configuración del viewport
+        executablePath: yield chrome_aws_lambda_1.default.executablePath, // Ruta al binario de Chromium
+        headless: chrome_aws_lambda_1.default.headless, // Modo sin cabeza (sin interfaz gráfica)
+    });
     const page = yield browser.newPage();
     //sustituir espacios por +
     query = query.replace(' ', '+');
@@ -93,7 +105,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     yield page.click(selectorRejectCookies);
     // Espera a que cualquier redirección potencial o recarga de la página termine
     yield page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-    const sitesData = yield page.evaluate(selector => {
+    const sitesData = yield page.evaluate((selector) => {
         const elements = Array.from(document.querySelectorAll(selector));
         return elements.map(el => {
             var _a, _b, _c, _d, _e;
@@ -106,7 +118,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
         });
     }, selectorResultList);
     // Ahora, fuera de page.evaluate, crea instancias de ScrappedSite con los datos recolectados.
-    const sites = sitesData.map(siteData => new ScrappedSite_1.ScrappedSite(siteData.nombre, siteData.direccion, siteData.rating, siteData.tipos, siteData.link));
+    const sites = sitesData.map((siteData) => new ScrappedSite_1.ScrappedSite(siteData.nombre, siteData.direccion, siteData.rating, siteData.tipos, siteData.link));
     console.log(sites);
     yield browser.close();
     return sites;

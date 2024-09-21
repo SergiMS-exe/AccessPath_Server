@@ -4,7 +4,7 @@ import SitioModel from "../models/sitioModel";
 import UsuarioModel from "../models/usuarioModel";
 import { Valoracion } from '../interfaces/Valoracion';
 import ValoracionModel from "../models/valoracionModel";
-import { handleFindSitesByTextGoogle, handleScrapGoogleMaps } from "../utils/google.handle";
+import { handleFindSitesByTextGoogle, handleGetLocationByLink, handleScrapGoogleMaps } from "../utils/google.handle";
 import { updateAverages } from "../utils/auxiliar.handle";
 import { ScrappedSite } from "../interfaces/ScrappedSite";
 
@@ -73,6 +73,14 @@ const getScrappedSitesService = async (text: string) => {
     }
 
     return { sitios: scrappedSites };
+}
+
+const getLocationByLinkService = async (link: string) => {
+    try {
+        const result = await handleGetLocationByLink(link);
+    } catch (error: any) {
+        return { error: "Error al buscar la localización del enlace: " + error.message, status: 500 };
+    }
 }
 
 //Comentarios-------------------------------------------------------------------------------------------
@@ -331,6 +339,7 @@ export {
     getClosePlacesService,
     getPlacesByTextService,
     getScrappedSitesService,
+    getLocationByLinkService,
     postCommentService,
     editCommentService,
     deleteCommentService,
