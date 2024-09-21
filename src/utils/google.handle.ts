@@ -75,10 +75,9 @@ export const handleGetLocationByLink = async (link: string) => {
 
 export const handleScrapGoogleMaps = async (query: string) => {
     const browser = await puppeteer.launch({
-        args: chromium.args,               // Argumentos optimizados para Lambda
-        defaultViewport: chromium.defaultViewport,  // Configuración del viewport
+        args: chromium.args,
         executablePath: await chromium.executablePath,  // Ruta al binario de Chromium
-        headless: chromium.headless,       // Modo sin cabeza (sin interfaz gráfica)
+        headless: true,  // Asegura que se ejecute en modo sin interfaz gráfica
     });
     const page = await browser.newPage();
 

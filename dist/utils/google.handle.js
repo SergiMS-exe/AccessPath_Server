@@ -77,10 +77,9 @@ const handleGetLocationByLink = (link) => __awaiter(void 0, void 0, void 0, func
 exports.handleGetLocationByLink = handleGetLocationByLink;
 const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const browser = yield puppeteer_1.default.launch({
-        args: chrome_aws_lambda_1.default.args, // Argumentos optimizados para Lambda
-        defaultViewport: chrome_aws_lambda_1.default.defaultViewport, // Configuración del viewport
+        args: chrome_aws_lambda_1.default.args,
         executablePath: yield chrome_aws_lambda_1.default.executablePath, // Ruta al binario de Chromium
-        headless: chrome_aws_lambda_1.default.headless, // Modo sin cabeza (sin interfaz gráfica)
+        headless: true, // Asegura que se ejecute en modo sin interfaz gráfica
     });
     const page = yield browser.newPage();
     //sustituir espacios por +
