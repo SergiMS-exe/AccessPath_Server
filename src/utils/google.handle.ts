@@ -86,7 +86,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
 
     //sustituir espacios por +
     query = query.replace(' ', '+');
-    const url = 'https://www.google.com/maps/search/'.concat(query);
+    const url = 'https://www.google.com/maps/search/'.concat(query) + '?hl=en';
 
     // Evita que se carguen las hojas de estilo e imagenes innecesarias
     // await page.setRequestInterception(true);
@@ -102,7 +102,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
 
     // Selector que encuentra un div con un aria-label que contiene la palabra clave
     const selectorResultList = '.Nv2PK';
-    const selectorRejectCookies = '[aria-label*="Rechazar todo"]';
+    const selectorRejectCookies = '[aria-label*="Reject all"]';
 
     // Espera a que el botón de rechazo de cookies sea detectable
     await page.waitForSelector(selectorRejectCookies, { timeout: 10000 });
