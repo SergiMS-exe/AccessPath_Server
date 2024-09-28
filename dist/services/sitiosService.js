@@ -76,6 +76,9 @@ const getScrappedSitesService = (text) => __awaiter(void 0, void 0, void 0, func
     let scrappedSites = [];
     try {
         scrappedSites = yield (0, google_handle_1.handleScrapGoogleMaps)(text);
+        scrappedSites = scrappedSites.map(site => {
+            return Object.assign({ placeId: generateCustomId() }, site);
+        });
     }
     catch (error) {
         return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
@@ -83,6 +86,9 @@ const getScrappedSitesService = (text) => __awaiter(void 0, void 0, void 0, func
     return { sitios: scrappedSites };
 });
 exports.getScrappedSitesService = getScrappedSitesService;
+const generateCustomId = () => {
+    return `id_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+};
 const getLocationByLinkService = (link) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield (0, google_handle_1.handleGetLocationByLink)(link);

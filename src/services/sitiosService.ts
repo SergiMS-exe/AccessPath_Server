@@ -68,12 +68,22 @@ const getScrappedSitesService = async (text: string) => {
 
     try {
         scrappedSites = await handleScrapGoogleMaps(text);
+        scrappedSites = scrappedSites.map(site => {
+            return {
+                placeId: generateCustomId(),
+                ...site
+            };
+        });
     } catch (error: any) {
         return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
     }
 
     return { sitios: scrappedSites };
 }
+
+const generateCustomId = () => {
+    return `id_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+};
 
 const getLocationByLinkService = async (link: string) => {
     try {
