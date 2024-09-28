@@ -20,6 +20,7 @@ export class Site {
     public comentarios?: CommentType[];
     public location: SiteLocation;
     public types: string[];
+    public link?: string;
     public valoraciones?: Valoracion;
     public fotos?: Photo[];
 
@@ -30,6 +31,7 @@ export class Site {
         calificacionGoogle: number,
         location: SiteLocation,
         types: string[],
+        link?: string,
         valoraciones?: Valoracion,
         comentarios?: CommentType[],
         fotos?: Photo[]
@@ -40,6 +42,7 @@ export class Site {
         this.calificacionGoogle = calificacionGoogle;
         this.location = location;
         this.types = types;
+        this.link = link;
         this.valoraciones = valoraciones;
         this.comentarios = comentarios;
         this.fotos = fotos;

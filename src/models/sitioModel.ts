@@ -74,6 +74,7 @@ const SitioSchema = new Schema<Site>(
         nombre: { type: String, required: true },
         direccion: { type: String, required: true },
         calificacionGoogle: { type: Number, required: true },
+        link: { type: String, required: false },
         location: {
             type: LocationSchema,
             required: true,

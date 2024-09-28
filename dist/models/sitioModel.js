@@ -63,6 +63,7 @@ const SitioSchema = new mongoose_1.Schema({
     nombre: { type: String, required: true },
     direccion: { type: String, required: true },
     calificacionGoogle: { type: Number, required: true },
+    link: { type: String, required: false },
     location: {
         type: LocationSchema,
         required: true,

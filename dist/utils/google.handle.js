@@ -122,10 +122,10 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
             const longitudRegex = /!4d(-?\d+(\.\d+)?)/;
             const latitudMatch = link.match(latitudRegex);
             const longitudMatch = link.match(longitudRegex);
-            const latitud = latitudMatch ? parseFloat(latitudMatch[1]) : null;
-            const longitud = longitudMatch ? parseFloat(longitudMatch[1]) : null;
+            const latitude = latitudMatch ? parseFloat(latitudMatch[1]) : null;
+            const longitude = longitudMatch ? parseFloat(longitudMatch[1]) : null;
             // Crear el objeto location si se encuentran coordenadas
-            const location = (latitud !== null && longitud !== null) ? { latitud, longitud } : undefined;
+            const location = (latitude !== null && longitude !== null) ? { latitude, longitude } : undefined;
             return {
                 nombre,
                 direccion,
