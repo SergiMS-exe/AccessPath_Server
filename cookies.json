@@ -1,0 +1,46 @@
+[
+  {
+    "name": "OTZ",
+    "value": "7752732_48_52_123900_48_436380",
+    "domain": "consent.google.com",
+    "path": "/",
+    "expires": 1730059923,
+    "size": 33,
+    "httpOnly": false,
+    "secure": true,
+    "session": false,
+    "sameParty": false,
+    "sourceScheme": "Secure",
+    "sourcePort": 443
+  },
+  {
+    "name": "__Secure-ENID",
+    "value": "22.SE=ismJYLSlIRrCl9-EaJVFlTCKZCMHCofmOxq8fTekUVlYEHm435r9PBxL7Zpnj4Po0HvNv4tl3ZrlCpBrUCu38wqtF-XqqFAKHJkIuZ2ahOIb6_-WGV7lt2ZGYzuXBrR--ZFgw7cZ2K9cOo-CxQKvitldXjeUTWG6AV1eRH4PUIRe5FR3Ep9OkKUsZY96Hh4Qab5NZ99YGLuP9iKfv4YGZOcGMzsYW2xzhdONtXM",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1761654620.477308,
+    "size": 250,
+    "httpOnly": true,
+    "secure": true,
+    "session": false,
+    "sameSite": "Lax",
+    "sameParty": false,
+    "sourceScheme": "Secure",
+    "sourcePort": 443
+  },
+  {
+    "name": "SOCS",
+    "value": "CAAaBgiA69e3Bg",
+    "domain": ".google.com",
+    "path": "/",
+    "expires": 1761595922.477072,
+    "size": 18,
+    "httpOnly": false,
+    "secure": true,
+    "session": false,
+    "sameSite": "Lax",
+    "sameParty": false,
+    "sourceScheme": "Secure",
+    "sourcePort": 443
+  }
+]
