@@ -1,6 +1,7 @@
 import { SiteLocation } from "./Site";
 
 export class ScrappedSite {
+    public placeId?: string;
     public nombre: string;
     public direccion: string;
     public calificacionGoogle: number;
@@ -17,9 +18,11 @@ export class ScrappedSite {
         types: string[],
         link: string,
         location?: SiteLocation,
+        placeId?: string,
         rating?: number,
         tipos?: string[]
     ) {
+        this.placeId = placeId;
         this.nombre = nombre;
         this.direccion = direccion;
         this.calificacionGoogle = calificacionGoogle;

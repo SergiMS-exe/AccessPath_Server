@@ -35,11 +35,19 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
 }
 
 const getPlacesByTextService = async (text: string) => {
-    let sitesFromGooglePlaces: Site[] = [];
+    // let sitesFromGooglePlaces: Site[] = [];
+    let sitesFromGooglePlaces: ScrappedSite[] = [];
     let sitesFromDB: Site[] = [];
     try {
         // Buscamos los sitios en Google Places
-        sitesFromGooglePlaces = await handleFindSitesByTextGoogle(text);
+        // sitesFromGooglePlaces = await handleFindSitesByTextGoogle(text);
+        sitesFromGooglePlaces = await handleScrapGoogleMaps(text);
+        sitesFromGooglePlaces = sitesFromGooglePlaces.map(site => {
+            return {
+                placeId: generateCustomId(site.nombre, site.location?.latitude, site.location?.longitude),
+                ...site
+            };
+        });
     } catch (error: any) {
         return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
     }
@@ -55,7 +63,7 @@ const getPlacesByTextService = async (text: string) => {
         sitesFromGooglePlaces.forEach((siteFromGooglePlaces, index) => {
             const siteFromDB = sitesFromDB.find(site => site.placeId === siteFromGooglePlaces.placeId);
             if (siteFromDB) {
-                sitesFromGooglePlaces[index] = siteFromDB;
+                sitesFromGooglePlaces[index] = { ...siteFromGooglePlaces, ...siteFromDB };
             }
         });
     }
@@ -63,26 +71,9 @@ const getPlacesByTextService = async (text: string) => {
     return { sitios: sitesFromGooglePlaces };
 }
 
-const getScrappedSitesService = async (text: string) => {
-    let scrappedSites: ScrappedSite[] = [];
 
-    try {
-        scrappedSites = await handleScrapGoogleMaps(text);
-        scrappedSites = scrappedSites.map(site => {
-            return {
-                placeId: generateCustomId(),
-                ...site
-            };
-        });
-    } catch (error: any) {
-        return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
-    }
-
-    return { sitios: scrappedSites };
-}
-
-const generateCustomId = () => {
-    return `id_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+const generateCustomId = (name: string | undefined, latitude: number | undefined, longitude: number | undefined) => {
+    return `id_${name ? name : Date.now()}_${latitude ? latitude : Math.floor(Math.random() * 1000)}_${longitude ? longitude : Math.floor(Math.random() * 1000)}`;
 };
 
 const getLocationByLinkService = async (link: string) => {
@@ -348,7 +339,6 @@ const deletePhotoService = async (photoId: string) => {
 export {
     getClosePlacesService,
     getPlacesByTextService,
-    getScrappedSitesService,
     getLocationByLinkService,
     postCommentService,
     editCommentService,

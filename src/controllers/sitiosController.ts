@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getLocationByLinkService, getCommentsService, getPlacesByTextService, getScrappedSitesService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
+import { deleteCommentService, deletePhotoService, deleteReviewService, editCommentService, editReviewService, getClosePlacesService, getLocationByLinkService, getCommentsService, getPlacesByTextService, postCommentService, postPhotoService, postReviewService } from "../services/sitiosService";
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
@@ -122,7 +122,7 @@ const getPlacesByTextController = async (req: Request, res: Response, next: Next
         }
 
         //const getPlacesByTextResponse = await getPlacesByTextService(text);
-        const getPlacesByTextResponse = await getScrappedSitesService(text);
+        const getPlacesByTextResponse = await getPlacesByTextService(text);
 
         if (getPlacesByTextResponse.error) {
             res.status(getPlacesByTextResponse.status).send({ msg: getPlacesByTextResponse.error });

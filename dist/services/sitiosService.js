@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getLocationByLinkService = exports.getScrappedSitesService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
+exports.deletePhotoService = exports.postPhotoService = exports.deleteReviewService = exports.editReviewService = exports.postReviewService = exports.getCommentsService = exports.deleteCommentService = exports.editCommentService = exports.postCommentService = exports.getLocationByLinkService = exports.getPlacesByTextService = exports.getClosePlacesService = void 0;
 const mongodb_1 = require("mongodb");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
@@ -45,11 +45,17 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
 });
 exports.getClosePlacesService = getClosePlacesService;
 const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, function* () {
+    // let sitesFromGooglePlaces: Site[] = [];
     let sitesFromGooglePlaces = [];
     let sitesFromDB = [];
     try {
         // Buscamos los sitios en Google Places
-        sitesFromGooglePlaces = yield (0, google_handle_1.handleFindSitesByTextGoogle)(text);
+        // sitesFromGooglePlaces = await handleFindSitesByTextGoogle(text);
+        sitesFromGooglePlaces = yield (0, google_handle_1.handleScrapGoogleMaps)(text);
+        sitesFromGooglePlaces = sitesFromGooglePlaces.map(site => {
+            var _a, _b;
+            return Object.assign({ placeId: generateCustomId(site.nombre, (_a = site.location) === null || _a === void 0 ? void 0 : _a.latitude, (_b = site.location) === null || _b === void 0 ? void 0 : _b.longitude) }, site);
+        });
     }
     catch (error) {
         return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
@@ -65,29 +71,15 @@ const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, funct
         sitesFromGooglePlaces.forEach((siteFromGooglePlaces, index) => {
             const siteFromDB = sitesFromDB.find(site => site.placeId === siteFromGooglePlaces.placeId);
             if (siteFromDB) {
-                sitesFromGooglePlaces[index] = siteFromDB;
+                sitesFromGooglePlaces[index] = Object.assign(Object.assign({}, siteFromGooglePlaces), siteFromDB);
             }
         });
     }
     return { sitios: sitesFromGooglePlaces };
 });
 exports.getPlacesByTextService = getPlacesByTextService;
-const getScrappedSitesService = (text) => __awaiter(void 0, void 0, void 0, function* () {
-    let scrappedSites = [];
-    try {
-        scrappedSites = yield (0, google_handle_1.handleScrapGoogleMaps)(text);
-        scrappedSites = scrappedSites.map(site => {
-            return Object.assign({ placeId: generateCustomId() }, site);
-        });
-    }
-    catch (error) {
-        return { error: "Error al buscar sitios en Google Places: " + error.message, status: 500 };
-    }
-    return { sitios: scrappedSites };
-});
-exports.getScrappedSitesService = getScrappedSitesService;
-const generateCustomId = () => {
-    return `id_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+const generateCustomId = (name, latitude, longitude) => {
+    return `id_${name ? name : Date.now()}_${latitude ? latitude : Math.floor(Math.random() * 1000)}_${longitude ? longitude : Math.floor(Math.random() * 1000)}`;
 };
 const getLocationByLinkService = (link) => __awaiter(void 0, void 0, void 0, function* () {
     try {

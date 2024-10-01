@@ -128,7 +128,7 @@ const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, 
             return (0, error_handle_1.handleHttp)(res, "El formato del texto es incorrecto", 400);
         }
         //const getPlacesByTextResponse = await getPlacesByTextService(text);
-        const getPlacesByTextResponse = yield (0, sitiosService_1.getScrappedSitesService)(text);
+        const getPlacesByTextResponse = yield (0, sitiosService_1.getPlacesByTextService)(text);
         if (getPlacesByTextResponse.error) {
             res.status(getPlacesByTextResponse.status).send({ msg: getPlacesByTextResponse.error });
         }
