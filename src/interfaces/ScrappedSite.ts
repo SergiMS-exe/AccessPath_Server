@@ -8,8 +8,6 @@ export class ScrappedSite {
     public location?: SiteLocation;
     public types: string[];
     public link: string;
-    public rating: number;
-    public tipos: string[];
 
     constructor(
         nombre: string,
@@ -19,8 +17,6 @@ export class ScrappedSite {
         link: string,
         location?: SiteLocation,
         placeId?: string,
-        rating?: number,
-        tipos?: string[]
     ) {
         this.placeId = placeId;
         this.nombre = nombre;
@@ -29,7 +25,5 @@ export class ScrappedSite {
         this.types = types;
         this.link = link;
         this.location = location;
-        this.rating = rating || 0;
-        this.tipos = tipos || [];
     }
 }

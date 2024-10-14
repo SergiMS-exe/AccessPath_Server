@@ -85,29 +85,23 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
         executablePath: yield chrome_aws_lambda_1.default.executablePath, // Ruta al binario de Chromium
         headless: true, // Asegura que se ejecute en modo sin interfaz gráfica
     });
-    //sustituir espacios por +
+    // Reemplazar espacios por '+'
     query = query.replace(' ', '+');
     const url = 'https://www.google.com/maps/search/'.concat(query) + '?hl=es';
     const page = yield browser.newPage();
     yield page.goto(url);
-    // const cookiesLoaded = await loadCookiesFromFile(page, COOKIES_FILE_PATH);
-    // Selector que encuentra un div con un aria-label que contiene la palabra clave
-    const selectorResultList = '.Nv2PK';
+    const selectorResultList = '.Nv2PK'; // Selector para lista de resultados múltiples
+    const selectorSingleResult = '#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div'; // Selector para un solo resultado
     const selectorAcceptCookies = '[aria-label*="Aceptar todo"]';
-    // if (!cookiesLoaded || cookiesLoaded.length === 0 || areCookiesExpired(cookiesLoaded).hasExpired) {
-    // console.log("first time");
-    // Espera a que el botón de rechazo de cookies sea detectable
+    // Espera y clic en el botón de aceptación de cookies
     yield page.waitForSelector(selectorAcceptCookies, { timeout: 5000 });
-    // Hace clic en el botón de rechazo de cookies
     yield page.click(selectorAcceptCookies);
-    // Guardar cookies en un archivo
-    // await saveCookiesToFile(page, COOKIES_FILE_PATH);
-    // Espera a que cualquier redirección potencial o recarga de la página termine
     yield page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-    // }
-    // console.log("cookies loaded");
-    const sitesData = yield page.evaluate((selector) => {
+    // Intentamos obtener una lista de resultados múltiples
+    let sitesData = yield page.evaluate((selector) => {
         const elements = Array.from(document.querySelectorAll(selector));
+        if (elements.length === 0)
+            return null; // No hay resultados múltiples
         return elements.map(el => {
             var _a, _b, _c, _d, _e;
             const nombre = ((_a = el.querySelector('.qBF1Pd')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
@@ -115,16 +109,13 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
             const tipo = ((_c = el.querySelector('.W4Efsd .W4Efsd > span > span')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
             const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
             const link = ((_e = el.querySelector('.hfpxzc')) === null || _e === void 0 ? void 0 : _e.getAttribute('href')) || '';
-            // Eliminar todos los " . " de la dirección
             direccion = direccion.replace(' · ', '').trim();
-            // Extraer latitud y longitud del enlace usando !3d para latitud y !4d para longitud
             const latitudRegex = /!3d(-?\d+(\.\d+)?)/;
             const longitudRegex = /!4d(-?\d+(\.\d+)?)/;
             const latitudMatch = link.match(latitudRegex);
             const longitudMatch = link.match(longitudRegex);
             const latitude = latitudMatch ? parseFloat(latitudMatch[1]) : null;
             const longitude = longitudMatch ? parseFloat(longitudMatch[1]) : null;
-            // Crear el objeto location si se encuentran coordenadas
             const location = (latitude !== null && longitude !== null) ? { latitude, longitude } : undefined;
             return {
                 nombre,
@@ -136,11 +127,49 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
             };
         });
     }, selectorResultList);
-    // Crear instancias de ScrappedSite con los datos recolectados.
-    const sites = sitesData.map((siteData) => new ScrappedSite_1.ScrappedSite(siteData.nombre, siteData.direccion, siteData.calificacionGoogle, siteData.tipos, siteData.link, siteData.location, // Se pasa el objeto de ubicación (latitud, longitud)
-    siteData.calificacionGoogle, // Se usa calificacionGoogle también para rating
-    siteData.tipos // Se pasa la lista de tipos dos veces (types y tipos)
-    ));
+    // Si no hay resultados múltiples, intentar extraer un único resultado
+    if (!sitesData || sitesData.length === 0) {
+        while (page.url().includes('search') && page.url().includes('hl=es')) {
+            yield page.waitForTimeout(500); // TODO: Poner una condición de salida para evitar bucle infinito
+        }
+        sitesData = yield page.evaluate((selector) => {
+            var _a, _b, _c, _d;
+            const el = document.querySelector(selector);
+            if (!el)
+                return null; // No hay un solo resultado
+            const nombre = ((_a = el.querySelector('h1.DUwDvf.lfPIob')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
+            let direccion = ((_b = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _b === void 0 ? void 0 : _b.textContent) || '';
+            const tipo = ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
+            const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
+            direccion = direccion.replace(' · ', '').trim();
+            return [{
+                    nombre,
+                    direccion,
+                    calificacionGoogle: parseFloat(calificacionGoogle),
+                    tipos: [tipo],
+                    link: undefined,
+                    location: undefined
+                }];
+        }, selectorSingleResult);
+        if (sitesData && sitesData.length > 0) {
+            const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+            let latitude, longitude = undefined;
+            if (coordenadasMatch) {
+                latitude = parseFloat(coordenadasMatch[1]);
+                longitude = parseFloat(coordenadasMatch[2]);
+            }
+            const location = (latitude && longitude) ? { latitude, longitude } : undefined;
+            sitesData[0].location = location;
+            sitesData[0].link = page.url();
+        }
+    }
+    // Si no hay datos en absoluto, devuelve un array vacío
+    if (!sitesData) {
+        yield browser.close();
+        return [];
+    }
+    // Crear instancias de ScrappedSite con los datos recolectados
+    const sites = sitesData.map((siteData) => new ScrappedSite_1.ScrappedSite(siteData.nombre, siteData.direccion, siteData.calificacionGoogle, siteData.tipos, siteData.link, siteData.location));
     yield browser.close();
     return sites;
 });

@@ -44,8 +44,8 @@ const getPlacesByTextService = async (text: string) => {
         sitesFromGooglePlaces = await handleScrapGoogleMaps(text);
         sitesFromGooglePlaces = sitesFromGooglePlaces.map(site => {
             return {
+                ...site,
                 placeId: generateCustomId(site.nombre, site.location?.latitude, site.location?.longitude),
-                ...site
             };
         });
     } catch (error: any) {
@@ -73,7 +73,7 @@ const getPlacesByTextService = async (text: string) => {
 
 
 const generateCustomId = (name: string | undefined, latitude: number | undefined, longitude: number | undefined) => {
-    return `id_${name ? name : Date.now()}_${latitude ? latitude : Math.floor(Math.random() * 1000)}_${longitude ? longitude : Math.floor(Math.random() * 1000)}`;
+    return `id_${name ? name : Date.now().toString()}_${latitude ? latitude : Math.floor(Math.random() * 1000).toString()}_${longitude ? longitude : Math.floor(Math.random() * 1000).toString()}`;
 };
 
 const getLocationByLinkService = async (link: string) => {

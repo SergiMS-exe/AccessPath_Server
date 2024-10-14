@@ -54,7 +54,7 @@ const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, funct
         sitesFromGooglePlaces = yield (0, google_handle_1.handleScrapGoogleMaps)(text);
         sitesFromGooglePlaces = sitesFromGooglePlaces.map(site => {
             var _a, _b;
-            return Object.assign({ placeId: generateCustomId(site.nombre, (_a = site.location) === null || _a === void 0 ? void 0 : _a.latitude, (_b = site.location) === null || _b === void 0 ? void 0 : _b.longitude) }, site);
+            return Object.assign(Object.assign({}, site), { placeId: generateCustomId(site.nombre, (_a = site.location) === null || _a === void 0 ? void 0 : _a.latitude, (_b = site.location) === null || _b === void 0 ? void 0 : _b.longitude) });
         });
     }
     catch (error) {
@@ -79,7 +79,7 @@ const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.getPlacesByTextService = getPlacesByTextService;
 const generateCustomId = (name, latitude, longitude) => {
-    return `id_${name ? name : Date.now()}_${latitude ? latitude : Math.floor(Math.random() * 1000)}_${longitude ? longitude : Math.floor(Math.random() * 1000)}`;
+    return `id_${name ? name : Date.now().toString()}_${latitude ? latitude : Math.floor(Math.random() * 1000).toString()}_${longitude ? longitude : Math.floor(Math.random() * 1000).toString()}`;
 };
 const getLocationByLinkService = (link) => __awaiter(void 0, void 0, void 0, function* () {
     try {
