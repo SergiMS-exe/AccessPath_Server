@@ -271,8 +271,8 @@ const deleteReviewService = async (placeId: string, userId: string) => {
         //delete from userId and placeId
         const deleteResult = await ValoracionModel.findOneAndDelete({ placeId: placeId, userId: userId });
 
-        if (deleteResult) {
-            const newAveragesResult = await updateAverages(deleteResult.placeId);
+        if (deleteResult && deleteResult.value) {
+            const newAveragesResult = await updateAverages(deleteResult.value.placeId);
 
             if (newAveragesResult && !newAveragesResult.error) {
                 return { newPlace: newAveragesResult.newPlace, status: 200 };

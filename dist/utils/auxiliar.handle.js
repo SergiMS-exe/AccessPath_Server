@@ -12,14 +12,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAverages = exports.transformToServerFormatArray = exports.transformToServerFormat = exports.transformToClientFormat = exports.transformValoracionSiteArray = exports.transformArrayToClientFormat = void 0;
+exports.updateAverages = void 0;
+exports.transformArrayToClientFormat = transformArrayToClientFormat;
+exports.transformValoracionSiteArray = transformValoracionSiteArray;
+exports.transformToClientFormat = transformToClientFormat;
+exports.transformToServerFormat = transformToServerFormat;
+exports.transformToServerFormatArray = transformToServerFormatArray;
 const Valoracion_1 = require("../interfaces/Valoracion");
 const sitioModel_1 = __importDefault(require("../models/sitioModel"));
 const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
 function transformArrayToClientFormat(sites) {
     return sites.map(transformToClientFormat);
 }
-exports.transformArrayToClientFormat = transformArrayToClientFormat;
 function transformValoracionSiteArray(array) {
     //filter those which dooes not have valoracion or site
     //array = array.filter(item => item.valoracion && item.site);
@@ -33,7 +37,6 @@ function transformValoracionSiteArray(array) {
         };
     });
 }
-exports.transformValoracionSiteArray = transformValoracionSiteArray;
 function transformToClientFormat(site) {
     const actualSite = site._doc ? site._doc : site;
     const { location } = actualSite;
@@ -45,7 +48,6 @@ function transformToClientFormat(site) {
     }
     return actualSite;
 }
-exports.transformToClientFormat = transformToClientFormat;
 function checkLocationFormat(location) {
     if (location && location.type && location.coordinates && location.type === "Point" && Array.isArray(location.coordinates)) {
         return true;
@@ -64,11 +66,9 @@ function transformToServerFormat(site) {
     }
     return actualSite;
 }
-exports.transformToServerFormat = transformToServerFormat;
 function transformToServerFormatArray(sites) {
     return sites.map(transformToServerFormat);
 }
-exports.transformToServerFormatArray = transformToServerFormatArray;
 // Actualizacion de las valoraciones de un sitio
 const updateAverages = (input) => __awaiter(void 0, void 0, void 0, function* () {
     let placeId;

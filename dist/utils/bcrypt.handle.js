@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hashUserPasswords = exports.verified = exports.encrypt = void 0;
+exports.verified = exports.encrypt = void 0;
+exports.hashUserPasswords = hashUserPasswords;
 const bcryptjs_1 = require("bcryptjs");
 const encrypt = (pass) => __awaiter(void 0, void 0, void 0, function* () {
     const passwordHash = yield (0, bcryptjs_1.hash)(pass, 8);
@@ -31,4 +32,3 @@ function hashUserPasswords(users) {
         return usersWithHashedPasswords;
     });
 }
-exports.hashUserPasswords = hashUserPasswords;

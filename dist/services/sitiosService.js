@@ -219,7 +219,7 @@ const postReviewService = (userId, place, valoracion) => __awaiter(void 0, void 
 });
 exports.postReviewService = postReviewService;
 const editReviewService = (placeId, userId, valoracion) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
+    var _a;
     try {
         const update = {};
         if (valoracion.fisica !== undefined) {
@@ -242,7 +242,7 @@ const editReviewService = (placeId, userId, valoracion) => __awaiter(void 0, voi
         }
         const editResult = yield valoracionModel_1.default.findOneAndUpdate({ placeId: placeId, userId: userId }, update, { new: true, rawResult: true });
         if (editResult.ok && editResult.value) {
-            const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)((_c = editResult.value) === null || _c === void 0 ? void 0 : _c.placeId);
+            const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)((_a = editResult.value) === null || _a === void 0 ? void 0 : _a.placeId);
             if (newAveragesResult && !newAveragesResult.error) {
                 return { newPlace: newAveragesResult.newPlace, status: 200 };
             }
@@ -264,8 +264,8 @@ const deleteReviewService = (placeId, userId) => __awaiter(void 0, void 0, void 
     try {
         //delete from userId and placeId
         const deleteResult = yield valoracionModel_1.default.findOneAndDelete({ placeId: placeId, userId: userId });
-        if (deleteResult) {
-            const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)(deleteResult.placeId);
+        if (deleteResult && deleteResult.value) {
+            const newAveragesResult = yield (0, auxiliar_handle_1.updateAverages)(deleteResult.value.placeId);
             if (newAveragesResult && !newAveragesResult.error) {
                 return { newPlace: newAveragesResult.newPlace, status: 200 };
             }

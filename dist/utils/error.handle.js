@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handle404Error = exports.handleHttp = void 0;
 const handleHttp = (res, errorMessage, status) => {
     // console.error(errorMessage)
-    res.status(status || 500).send({ msg: errorMessage } || { msg: "Error en el servidor" });
+    res.status(status || 500).send({ msg: errorMessage ? errorMessage : "Error en el servidor" });
 };
 exports.handleHttp = handleHttp;
 const handle404Error = (res) => {

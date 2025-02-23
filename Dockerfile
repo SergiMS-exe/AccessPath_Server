@@ -1,26 +1,29 @@
-# Utiliza una imagen base de Node.js. Aquí usamos la versión "slim" para un tamaño de imagen reducido
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
-# Establece el directorio de trabajo en el contenedor
-WORKDIR /usr/src/app
+# Establecer el directorio de trabajo dentro del contenedor
+WORKDIR /app
 
-# Copia el archivo 'package.json' (y 'package-lock.json' si existe) al directorio de trabajo
+# Copiar package.json y package-lock.json (si existe) e instalar dependencias
 COPY package*.json ./
+RUN npm install --omit-dev
 
-# Instala todas las dependencias, incluyendo las de desarrollo para la transpilación
-RUN npm install --verbose
-
-# Copia los archivos y directorios del proyecto al directorio de trabajo en el contenedor
+# Copiar el resto del código fuente
 COPY . .
 
-# Transpila el código TypeScript a JavaScript
+# Transpilar TypeScript a JavaScript
 RUN npm run build
 
-# Elimina las dependencias de desarrollo para reducir el tamaño de la imagen
-RUN npm prune --production
+# Fase final para una imagen más liviana
+FROM node:18-alpine AS runtime
+WORKDIR /app
 
-# Expone el puerto en el que se ejecutará tu aplicación
-EXPOSE 3000
+# Copiar solo los archivos necesarios de la fase de compilación
+COPY --from=builder /app/package*.json ./
+RUN npm install --omit-dev
+COPY --from=builder /app/dist ./dist
 
-# Define el comando para ejecutar tu aplicación
-CMD ["npm", "start"]
+# Exponer el puerto en el que corre la aplicación
+EXPOSE 3001
+
+# Comando de inicio
+CMD ["npm", "run", "start"]
