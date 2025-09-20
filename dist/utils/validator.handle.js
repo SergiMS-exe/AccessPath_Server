@@ -23,7 +23,7 @@ const checkPassword = (password) => {
 };
 exports.checkPassword = checkPassword;
 const isValidEmail = (email) => {
-    const emailRegex = /^(?:[a-z\d]+(?:[_\.-][a-z\d]+)*)@(?:[a-z\d]+(?:-?[a-z\d]+)*\.[a-z]{2,})$/i;
+    const emailRegex = /^(?:[a-z\d]+(?:[_\.-][a-z\d]+)*)@(?:[a-z\d]+(?:-?[a-z\d]+)*(?:\.[a-z\d]+(?:-?[a-z\d]+)*)*\.[a-z]{2,})$/i;
     return emailRegex.test(email);
 };
 const isValidPassword = (password) => {
