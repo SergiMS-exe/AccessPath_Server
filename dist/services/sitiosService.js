@@ -20,23 +20,30 @@ const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
 const google_handle_1 = require("../utils/google.handle");
 const auxiliar_handle_1 = require("../utils/auxiliar.handle");
 const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, void 0, void 0, function* () {
-    const closePlaces = yield sitioModel_1.default.find({
-        $or: [
-            { "valoraciones": { $exists: true, $ne: {} } },
-            { "comentarios": { $exists: true, $ne: [] } },
-            { "fotos": { $exists: true, $ne: [] } }
-        ],
-        location: {
-            $near: {
-                $geometry: {
+    const closePlaces = yield sitioModel_1.default.aggregate([
+        {
+            $geoNear: {
+                near: {
                     type: "Point",
                     coordinates: [location.longitude, location.latitude]
                 },
-                $maxDistance: radius
+                distanceField: "distance",
+                maxDistance: radius,
+                spherical: true,
+                query: {
+                    $or: [
+                        { "valoraciones": { $exists: true, $ne: {} } },
+                        { "comentarios": { $exists: true, $ne: [] } },
+                        { "fotos": { $exists: true, $ne: [] } }
+                    ]
+                }
             }
+        },
+        {
+            $limit: limit
         }
-    }).limit(limit);
-    if (closePlaces) {
+    ]);
+    if (closePlaces && closePlaces.length > 0) {
         return { sitios: closePlaces };
     }
     else {

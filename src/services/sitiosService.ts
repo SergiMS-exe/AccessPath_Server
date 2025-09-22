@@ -10,24 +10,31 @@ import { ScrappedSite } from "../interfaces/ScrappedSite";
 
 
 const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
-    const closePlaces = await SitioModel.find({
-        $or: [
-            { "valoraciones": { $exists: true, $ne: {} } },
-            { "comentarios": { $exists: true, $ne: [] } },
-            { "fotos": { $exists: true, $ne: [] } }
-        ],
-        location: {
-            $near: {
-                $geometry: {
+    const closePlaces = await SitioModel.aggregate([
+        {
+            $geoNear: {
+                near: {
                     type: "Point",
                     coordinates: [location.longitude, location.latitude]
                 },
-                $maxDistance: radius
+                distanceField: "distance",
+                maxDistance: radius,
+                spherical: true,
+                query: {
+                    $or: [
+                        { "valoraciones": { $exists: true, $ne: {} } },
+                        { "comentarios": { $exists: true, $ne: [] } },
+                        { "fotos": { $exists: true, $ne: [] } }
+                    ]
+                }
             }
+        },
+        {
+            $limit: limit
         }
-    }).limit(limit);
+    ]);
 
-    if (closePlaces) {
+    if (closePlaces && closePlaces.length > 0) {
         return { sitios: closePlaces };
     } else {
         return { error: "No se pudo encontrar ningun lugar cercano", status: 404 };
