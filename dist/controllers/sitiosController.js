@@ -139,6 +139,7 @@ const getPlacesByTextController = (req, res, next) => __awaiter(void 0, void 0, 
         }
     }
     catch (e) {
+        console.error(e);
         (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios por texto: " + e.message);
     }
     finally {

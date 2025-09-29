@@ -1,7 +1,7 @@
 services:
   # Servicio de MongoDB
   mongodb:
-    image: mongo:7.0
+    image: mongo:4.4
     container_name: mongodb
     restart: unless-stopped
     environment:
@@ -14,17 +14,15 @@ services:
       - mongodb_data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
     networks:
-      - app-network
+      - access_path_network
 
   # Servicio de tu aplicación Node.js
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: node-app
+    container_name: access_path_server
     restart: unless-stopped
-    ports:
-      - "${APP_PORT}:3001"
     environment:
       - NODE_ENV=${NODE_ENV}
       - DB_URI=${DB_URI}
@@ -32,17 +30,17 @@ services:
     depends_on:
       - mongodb
     networks:
-      - app-network
+      - access_path_network
+      - proxy
     volumes:
       - ./logs:/app/logs  # Para logs si los necesitas
+    shm_size: '1g'
 
   # MongoDB Express (interfaz web opcional para administrar MongoDB)
   mongo-express:
     image: mongo-express:1.0.0
     container_name: mongo-express
     restart: unless-stopped
-    ports:
-      - "${MONGOEXPRESS_PORT}:8081"
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD}
@@ -52,12 +50,15 @@ services:
     depends_on:
       - mongodb
     networks:
-      - app-network
+      - access_path_network
+      - proxy
 
 volumes:
   mongodb_data:
     driver: local
 
 networks:
-  app-network:
+  access_path_network:
     driver: bridge
+  proxy:
+    external: true

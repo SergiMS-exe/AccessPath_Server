@@ -77,12 +77,21 @@ export const handleGetLocationByLink = async (link: string) => {
 
 export const handleScrapGoogleMaps = async (query: string) => {
     const browser = await puppeteer.launch({
+        headless: true, // Para que no abra la ventana del navegador
         args: [
-            ...chromium.args,
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--single-process",
+            "--disable-gpu",
+            ...chromium?.args || []
         ],
-        executablePath: await chromium.executablePath,  // Ruta al binario de Chromium
-        headless: true,  // Asegura que se ejecute en modo sin interfaz gráfica
+        // executablePath: '/usr/bin/chromium-browser'// await chromium.executablePath, // usa esto solo si sabes que chromium.executablePath existe
     });
+
 
     // Reemplazar espacios por '+'
     query = query.replace(' ', '+');
