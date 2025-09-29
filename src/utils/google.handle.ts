@@ -152,7 +152,10 @@ export const handleScrapGoogleMaps = async (query: string) => {
             const el = document.querySelector(selector);
             if (!el) return null;  // No hay un solo resultado
             const nombre = el.querySelector('h1.DUwDvf.lfPIob')?.textContent || '';
-            let direccion = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent || '';
+            let direccion = 
+                el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent 
+                || el.querySelector('#QA0Szd > div > div > div.w6VYqd > div:nth-child(2) > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(16) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent
+                || '';
             const tipo = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')?.textContent || '';
             const calificacionGoogle = el.querySelector('.MW4etd')?.textContent || '0';
 

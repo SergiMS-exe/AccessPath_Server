@@ -141,14 +141,16 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
             yield page.waitForTimeout(500); // TODO: Poner una condición de salida para evitar bucle infinito
         }
         sitesData = yield page.evaluate((selector) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             const el = document.querySelector(selector);
             if (!el)
                 return null; // No hay un solo resultado
             const nombre = ((_a = el.querySelector('h1.DUwDvf.lfPIob')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
-            let direccion = ((_b = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _b === void 0 ? void 0 : _b.textContent) || '';
-            const tipo = ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
-            const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
+            let direccion = ((_b = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _b === void 0 ? void 0 : _b.textContent)
+                || ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div:nth-child(2) > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(16) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _c === void 0 ? void 0 : _c.textContent)
+                || '';
+            const tipo = ((_d = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')) === null || _d === void 0 ? void 0 : _d.textContent) || '';
+            const calificacionGoogle = ((_e = el.querySelector('.MW4etd')) === null || _e === void 0 ? void 0 : _e.textContent) || '0';
             direccion = direccion.replace(' · ', '').trim();
             return [{
                     nombre,
