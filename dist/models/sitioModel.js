@@ -61,7 +61,7 @@ const PhotoSchema = new mongoose_1.Schema({
 const SitioSchema = new mongoose_1.Schema({
     placeId: { type: String, required: true },
     nombre: { type: String, required: true },
-    direccion: { type: String, required: true },
+    direccion: { type: String, required: false },
     calificacionGoogle: { type: Number, required: true },
     link: { type: String, required: false },
     location: {

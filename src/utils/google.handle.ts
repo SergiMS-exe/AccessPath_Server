@@ -108,9 +108,18 @@ export const handleScrapGoogleMaps = async (query: string) => {
     await page.waitForSelector(selectorAcceptCookies, { timeout: 5000 });
     await page.click(selectorAcceptCookies);
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    
+    // Espera a que cargue alguno de los selectores de resultados
+    const winner = await Promise.race([
+        page.waitForSelector(selectorResultList, { timeout: 15000 }).then(() => "list").catch(() => null),
+        page.waitForSelector(selectorSingleResult, { timeout: 15000 }).then(() => "single").catch(() => null)
+    ]);
 
     // Intentamos obtener una lista de resultados múltiples
-    let sitesData = await page.evaluate((selector: any) => {
+    let sitesData;
+
+    if (winner === "list") {
+        sitesData = await page.evaluate((selector: any) => {
         const elements = Array.from(document.querySelectorAll(selector));
         if (elements.length === 0) return null;  // No hay resultados múltiples
 
@@ -142,19 +151,16 @@ export const handleScrapGoogleMaps = async (query: string) => {
             };
         });
     }, selectorResultList);
-
+    }
+    else if (winner === "single") {
     // Si no hay resultados múltiples, intentar extraer un único resultado
-    if (!sitesData || sitesData.length === 0) {
-        while (page.url().includes('search') && page.url().includes('hl=es')) {
-            await page.waitForTimeout(500); // TODO: Poner una condición de salida para evitar bucle infinito
-        }
         sitesData = await page.evaluate((selector: any) => {
             const el = document.querySelector(selector);
             if (!el) return null;  // No hay un solo resultado
             const nombre = el.querySelector('h1.DUwDvf.lfPIob')?.textContent || '';
             let direccion = 
                 el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent 
-                || el.querySelector('#QA0Szd > div > div > div.w6VYqd > div:nth-child(2) > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(16) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent
+                || el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(11) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent
                 || '';
             const tipo = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')?.textContent || '';
             const calificacionGoogle = el.querySelector('.MW4etd')?.textContent || '0';
@@ -170,21 +176,22 @@ export const handleScrapGoogleMaps = async (query: string) => {
                 location: undefined
             }];
         }, selectorSingleResult);
-
-        if (sitesData && sitesData.length > 0) {
-            const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-
-            let latitude, longitude: number | undefined = undefined;
-            if (coordenadasMatch) {
-                latitude = parseFloat(coordenadasMatch[1]);
-                longitude = parseFloat(coordenadasMatch[2]);
-            }
-            const location = (latitude && longitude) ? { latitude, longitude } : undefined;
-
-            sitesData[0].location = location;
-            sitesData[0].link = page.url();
-        }
     }
+
+    if (sitesData && sitesData.length > 0) {
+        const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+        let latitude, longitude: number | undefined = undefined;
+        if (coordenadasMatch) {
+            latitude = parseFloat(coordenadasMatch[1]);
+            longitude = parseFloat(coordenadasMatch[2]);
+        }
+        const location = (latitude && longitude) ? { latitude, longitude } : undefined;
+
+        sitesData[0].location = location;
+        sitesData[0].link = page.url();
+    }
+    
 
     // Si no hay datos en absoluto, devuelve un array vacío
     if (!sitesData) {

@@ -105,41 +105,46 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     yield page.waitForSelector(selectorAcceptCookies, { timeout: 5000 });
     yield page.click(selectorAcceptCookies);
     yield page.waitForNavigation({ waitUntil: 'domcontentloaded' });
+    // Espera a que cargue alguno de los selectores de resultados
+    const winner = yield Promise.race([
+        page.waitForSelector(selectorResultList, { timeout: 15000 }).then(() => "list").catch(() => null),
+        page.waitForSelector(selectorSingleResult, { timeout: 15000 }).then(() => "single").catch(() => null)
+    ]);
     // Intentamos obtener una lista de resultados múltiples
-    let sitesData = yield page.evaluate((selector) => {
-        const elements = Array.from(document.querySelectorAll(selector));
-        if (elements.length === 0)
-            return null; // No hay resultados múltiples
-        return elements.map(el => {
-            var _a, _b, _c, _d, _e;
-            const nombre = ((_a = el.querySelector('.qBF1Pd')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
-            let direccion = ((_b = el.querySelector('.W4Efsd .W4Efsd > span:nth-child(3)')) === null || _b === void 0 ? void 0 : _b.textContent) || '';
-            const tipo = ((_c = el.querySelector('.W4Efsd .W4Efsd > span > span')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
-            const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
-            const link = ((_e = el.querySelector('.hfpxzc')) === null || _e === void 0 ? void 0 : _e.getAttribute('href')) || '';
-            direccion = direccion.replace(' · ', '').trim();
-            const latitudRegex = /!3d(-?\d+(\.\d+)?)/;
-            const longitudRegex = /!4d(-?\d+(\.\d+)?)/;
-            const latitudMatch = link.match(latitudRegex);
-            const longitudMatch = link.match(longitudRegex);
-            const latitude = latitudMatch ? parseFloat(latitudMatch[1]) : null;
-            const longitude = longitudMatch ? parseFloat(longitudMatch[1]) : null;
-            const location = (latitude !== null && longitude !== null) ? { latitude, longitude } : undefined;
-            return {
-                nombre,
-                direccion,
-                calificacionGoogle: parseFloat(calificacionGoogle),
-                tipos: [tipo],
-                link,
-                location
-            };
-        });
-    }, selectorResultList);
-    // Si no hay resultados múltiples, intentar extraer un único resultado
-    if (!sitesData || sitesData.length === 0) {
-        while (page.url().includes('search') && page.url().includes('hl=es')) {
-            yield page.waitForTimeout(500); // TODO: Poner una condición de salida para evitar bucle infinito
-        }
+    let sitesData;
+    if (winner === "list") {
+        sitesData = yield page.evaluate((selector) => {
+            const elements = Array.from(document.querySelectorAll(selector));
+            if (elements.length === 0)
+                return null; // No hay resultados múltiples
+            return elements.map(el => {
+                var _a, _b, _c, _d, _e;
+                const nombre = ((_a = el.querySelector('.qBF1Pd')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
+                let direccion = ((_b = el.querySelector('.W4Efsd .W4Efsd > span:nth-child(3)')) === null || _b === void 0 ? void 0 : _b.textContent) || '';
+                const tipo = ((_c = el.querySelector('.W4Efsd .W4Efsd > span > span')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
+                const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
+                const link = ((_e = el.querySelector('.hfpxzc')) === null || _e === void 0 ? void 0 : _e.getAttribute('href')) || '';
+                direccion = direccion.replace(' · ', '').trim();
+                const latitudRegex = /!3d(-?\d+(\.\d+)?)/;
+                const longitudRegex = /!4d(-?\d+(\.\d+)?)/;
+                const latitudMatch = link.match(latitudRegex);
+                const longitudMatch = link.match(longitudRegex);
+                const latitude = latitudMatch ? parseFloat(latitudMatch[1]) : null;
+                const longitude = longitudMatch ? parseFloat(longitudMatch[1]) : null;
+                const location = (latitude !== null && longitude !== null) ? { latitude, longitude } : undefined;
+                return {
+                    nombre,
+                    direccion,
+                    calificacionGoogle: parseFloat(calificacionGoogle),
+                    tipos: [tipo],
+                    link,
+                    location
+                };
+            });
+        }, selectorResultList);
+    }
+    else if (winner === "single") {
+        // Si no hay resultados múltiples, intentar extraer un único resultado
         sitesData = yield page.evaluate((selector) => {
             var _a, _b, _c, _d, _e;
             const el = document.querySelector(selector);
@@ -147,7 +152,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
                 return null; // No hay un solo resultado
             const nombre = ((_a = el.querySelector('h1.DUwDvf.lfPIob')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
             let direccion = ((_b = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _b === void 0 ? void 0 : _b.textContent)
-                || ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div:nth-child(2) > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(16) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _c === void 0 ? void 0 : _c.textContent)
+                || ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(11) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _c === void 0 ? void 0 : _c.textContent)
                 || '';
             const tipo = ((_d = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')) === null || _d === void 0 ? void 0 : _d.textContent) || '';
             const calificacionGoogle = ((_e = el.querySelector('.MW4etd')) === null || _e === void 0 ? void 0 : _e.textContent) || '0';
@@ -161,17 +166,17 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
                     location: undefined
                 }];
         }, selectorSingleResult);
-        if (sitesData && sitesData.length > 0) {
-            const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-            let latitude, longitude = undefined;
-            if (coordenadasMatch) {
-                latitude = parseFloat(coordenadasMatch[1]);
-                longitude = parseFloat(coordenadasMatch[2]);
-            }
-            const location = (latitude && longitude) ? { latitude, longitude } : undefined;
-            sitesData[0].location = location;
-            sitesData[0].link = page.url();
+    }
+    if (sitesData && sitesData.length > 0) {
+        const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        let latitude, longitude = undefined;
+        if (coordenadasMatch) {
+            latitude = parseFloat(coordenadasMatch[1]);
+            longitude = parseFloat(coordenadasMatch[2]);
         }
+        const location = (latitude && longitude) ? { latitude, longitude } : undefined;
+        sitesData[0].location = location;
+        sitesData[0].link = page.url();
     }
     // Si no hay datos en absoluto, devuelve un array vacío
     if (!sitesData) {
