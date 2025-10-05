@@ -98,7 +98,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     const url = 'https://www.google.com/maps/search/'.concat(query) + '?hl=es';
     const page = yield browser.newPage();
     yield page.goto(url);
-    const selectorResultList = '.Nv2PK'; // Selector para lista de resultados múltiples
+    const selectorResultList = '.m6QErb.DxyBCb.kA9KIf.dS8AEf.XiKgde.ecceSd'; // Selector para lista de resultados múltiples
     const selectorSingleResult = '#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div'; // Selector para un solo resultado
     const selectorAcceptCookies = '[aria-label*="Aceptar todo"]';
     // Espera y clic en el botón de aceptación de cookies
@@ -114,28 +114,23 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     let sitesData;
     if (winner === "list") {
         sitesData = yield page.evaluate((selector) => {
-            const elements = Array.from(document.querySelectorAll(selector));
+            const elements = Array.from(document.querySelectorAll(`${selector} .bfdHYd.Ppzolf.OFBs3e`));
             if (elements.length === 0)
-                return null; // No hay resultados múltiples
+                return null;
             return elements.map(el => {
-                var _a, _b, _c, _d, _e;
-                const nombre = ((_a = el.querySelector('.qBF1Pd')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
-                let direccion = ((_b = el.querySelector('.W4Efsd .W4Efsd > span:nth-child(3)')) === null || _b === void 0 ? void 0 : _b.textContent) || '';
-                const tipo = ((_c = el.querySelector('.W4Efsd .W4Efsd > span > span')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
-                const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
-                const link = ((_e = el.querySelector('.hfpxzc')) === null || _e === void 0 ? void 0 : _e.getAttribute('href')) || '';
-                direccion = direccion.replace(' · ', '').trim();
-                const latitudRegex = /!3d(-?\d+(\.\d+)?)/;
-                const longitudRegex = /!4d(-?\d+(\.\d+)?)/;
-                const latitudMatch = link.match(latitudRegex);
-                const longitudMatch = link.match(longitudRegex);
-                const latitude = latitudMatch ? parseFloat(latitudMatch[1]) : null;
-                const longitude = longitudMatch ? parseFloat(longitudMatch[1]) : null;
-                const location = (latitude !== null && longitude !== null) ? { latitude, longitude } : undefined;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                const nombre = ((_b = (_a = el.querySelector('.qBF1Pd')) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.trim()) || '';
+                const direccion = ((_d = (_c = el.querySelector('.W4Efsd .W4Efsd > span:last-child > span:last-child')) === null || _c === void 0 ? void 0 : _c.textContent) === null || _d === void 0 ? void 0 : _d.replace(/^·\s*/, '').trim()) || '';
+                const tipo = ((_f = (_e = el.querySelector('.W4Efsd .W4Efsd > span:first-child')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.trim()) || '';
+                const calificacionGoogle = parseFloat(((_h = (_g = el.querySelector('.MW4etd')) === null || _g === void 0 ? void 0 : _g.textContent) === null || _h === void 0 ? void 0 : _h.replace(',', '.')) || '0');
+                const link = ((_k = (_j = el.closest('.Nv2PK')) === null || _j === void 0 ? void 0 : _j.querySelector('a.hfpxzc')) === null || _k === void 0 ? void 0 : _k.getAttribute('href')) || '';
+                const latitudMatch = link === null || link === void 0 ? void 0 : link.match(/!3d(-?\d+(\.\d+)?)/);
+                const longitudMatch = link === null || link === void 0 ? void 0 : link.match(/!4d(-?\d+(\.\d+)?)/);
+                const location = latitudMatch && longitudMatch ? { latitude: parseFloat(latitudMatch[1]), longitude: parseFloat(longitudMatch[1]) } : undefined;
                 return {
                     nombre,
                     direccion,
-                    calificacionGoogle: parseFloat(calificacionGoogle),
+                    calificacionGoogle,
                     tipos: [tipo],
                     link,
                     location
@@ -146,16 +141,14 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     else if (winner === "single") {
         // Si no hay resultados múltiples, intentar extraer un único resultado
         sitesData = yield page.evaluate((selector) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             const el = document.querySelector(selector);
             if (!el)
                 return null; // No hay un solo resultado
             const nombre = ((_a = el.querySelector('h1.DUwDvf.lfPIob')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
-            let direccion = ((_b = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _b === void 0 ? void 0 : _b.textContent)
-                || ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(11) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _c === void 0 ? void 0 : _c.textContent)
-                || '';
-            const tipo = ((_d = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')) === null || _d === void 0 ? void 0 : _d.textContent) || '';
-            const calificacionGoogle = ((_e = el.querySelector('.MW4etd')) === null || _e === void 0 ? void 0 : _e.textContent) || '0';
+            let direccion = ((_b = el.querySelector('.Io6YTe.fontBodyMedium.kR99db.fdkmkc')) === null || _b === void 0 ? void 0 : _b.textContent.trim()) || '';
+            const tipo = ((_c = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
+            const calificacionGoogle = ((_d = el.querySelector('.MW4etd')) === null || _d === void 0 ? void 0 : _d.textContent) || '0';
             direccion = direccion.replace(' · ', '').trim();
             return [{
                     nombre,

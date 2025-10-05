@@ -100,7 +100,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
     const page = await browser.newPage();
     await page.goto(url);
 
-    const selectorResultList = '.Nv2PK';  // Selector para lista de resultados múltiples
+    const selectorResultList = '.m6QErb.DxyBCb.kA9KIf.dS8AEf.XiKgde.ecceSd';  // Selector para lista de resultados múltiples
     const selectorSingleResult = '#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div';  // Selector para un solo resultado
     const selectorAcceptCookies = '[aria-label*="Aceptar todo"]';
 
@@ -108,7 +108,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
     await page.waitForSelector(selectorAcceptCookies, { timeout: 5000 });
     await page.click(selectorAcceptCookies);
     await page.waitForNavigation({ waitUntil: 'domcontentloaded' });
-    
+
     // Espera a que cargue alguno de los selectores de resultados
     const winner = await Promise.race([
         page.waitForSelector(selectorResultList, { timeout: 15000 }).then(() => "list").catch(() => null),
@@ -119,49 +119,40 @@ export const handleScrapGoogleMaps = async (query: string) => {
     let sitesData;
 
     if (winner === "list") {
-        sitesData = await page.evaluate((selector: any) => {
-        const elements = Array.from(document.querySelectorAll(selector));
-        if (elements.length === 0) return null;  // No hay resultados múltiples
+        sitesData = await page.evaluate((selector) => {
+            const elements = Array.from(document.querySelectorAll(`${selector} .bfdHYd.Ppzolf.OFBs3e`));
+            if (elements.length === 0) return null;
 
-        return elements.map(el => {
-            const nombre = el.querySelector('.qBF1Pd')?.textContent || '';
-            let direccion = el.querySelector('.W4Efsd .W4Efsd > span:nth-child(3)')?.textContent || '';
-            const tipo = el.querySelector('.W4Efsd .W4Efsd > span > span')?.textContent || '';
-            const calificacionGoogle = el.querySelector('.MW4etd')?.textContent || '0';
-            const link = el.querySelector('.hfpxzc')?.getAttribute('href') || '';
+            return elements.map(el => {
+                const nombre = el.querySelector('.qBF1Pd')?.textContent?.trim() || '';
+                const direccion = el.querySelector('.W4Efsd .W4Efsd > span:last-child > span:last-child')?.textContent?.replace(/^·\s*/, '').trim() || '';
+                const tipo = el.querySelector('.W4Efsd .W4Efsd > span:first-child')?.textContent?.trim() || '';
+                const calificacionGoogle = parseFloat(el.querySelector('.MW4etd')?.textContent?.replace(',', '.') || '0');
+                const link = el.closest('.Nv2PK')?.querySelector('a.hfpxzc')?.getAttribute('href') || '';
 
-            direccion = direccion.replace(' · ', '').trim();
+                const latitudMatch = link?.match(/!3d(-?\d+(\.\d+)?)/);
+                const longitudMatch = link?.match(/!4d(-?\d+(\.\d+)?)/);
+                const location = latitudMatch && longitudMatch ? { latitude: parseFloat(latitudMatch[1]), longitude: parseFloat(longitudMatch[1]) } : undefined;
 
-            const latitudRegex = /!3d(-?\d+(\.\d+)?)/;
-            const longitudRegex = /!4d(-?\d+(\.\d+)?)/;
-            const latitudMatch = link.match(latitudRegex);
-            const longitudMatch = link.match(longitudRegex);
+                return {
+                    nombre,
+                    direccion,
+                    calificacionGoogle,
+                    tipos: [tipo],
+                    link,
+                    location
+                };
+            });
+        }, selectorResultList);
 
-            const latitude = latitudMatch ? parseFloat(latitudMatch[1]) : null;
-            const longitude = longitudMatch ? parseFloat(longitudMatch[1]) : null;
-            const location = (latitude !== null && longitude !== null) ? { latitude, longitude } : undefined;
-
-            return {
-                nombre,
-                direccion,
-                calificacionGoogle: parseFloat(calificacionGoogle),
-                tipos: [tipo],
-                link,
-                location
-            };
-        });
-    }, selectorResultList);
     }
     else if (winner === "single") {
-    // Si no hay resultados múltiples, intentar extraer un único resultado
+        // Si no hay resultados múltiples, intentar extraer un único resultado
         sitesData = await page.evaluate((selector: any) => {
             const el = document.querySelector(selector);
             if (!el) return null;  // No hay un solo resultado
             const nombre = el.querySelector('h1.DUwDvf.lfPIob')?.textContent || '';
-            let direccion = 
-                el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(9) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent 
-                || el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div:nth-child(11) > div:nth-child(3) > button > div > div.rogA2c > div.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent
-                || '';
+            let direccion = el.querySelector('.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent.trim() || '';
             const tipo = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')?.textContent || '';
             const calificacionGoogle = el.querySelector('.MW4etd')?.textContent || '0';
 
@@ -191,7 +182,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
         sitesData[0].location = location;
         sitesData[0].link = page.url();
     }
-    
+
 
     // Si no hay datos en absoluto, devuelve un array vacío
     if (!sitesData) {
