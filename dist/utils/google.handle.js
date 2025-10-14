@@ -79,7 +79,7 @@ const handleGetLocationByLink = (link) => __awaiter(void 0, void 0, void 0, func
 exports.handleGetLocationByLink = handleGetLocationByLink;
 const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const browser = yield puppeteer_1.default.launch({
-        headless: false, // Para que no abra la ventana del navegador
+        headless: true, // Para que no abra la ventana del navegador
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -112,10 +112,11 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     ]);
     // Intentamos obtener una lista de resultados múltiples
     let sitesData;
+    // page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+    yield page.waitForTimeout(4000); //Se espera porque si no el primer link no lo carga bien
     if (winner === "list") {
-        yield page.waitForTimeout(4000); //Se espera porque si no el primer link no lo carga bien
         sitesData = yield page.evaluate((selector) => {
-            const elements = Array.from(document.querySelectorAll(`${selector} .Nv2PK.THOPZb.CpccDe`));
+            const elements = Array.from(document.querySelectorAll(`${selector} .Nv2PK.THOPZb`));
             if (elements.length === 0)
                 return null;
             return elements.map(el => {
@@ -124,7 +125,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
                 const direccion = ((_d = (_c = el.querySelector('.W4Efsd .W4Efsd > span:last-child > span:last-child')) === null || _c === void 0 ? void 0 : _c.textContent) === null || _d === void 0 ? void 0 : _d.replace(/^·\s*/, '').trim()) || '';
                 const tipo = ((_f = (_e = el.querySelector('.W4Efsd .W4Efsd > span:first-child')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.trim()) || '';
                 const calificacionGoogle = parseFloat(((_h = (_g = el.querySelector('.MW4etd')) === null || _g === void 0 ? void 0 : _g.textContent) === null || _h === void 0 ? void 0 : _h.replace(',', '.')) || '0');
-                const link = ((_k = (_j = el.closest('.Nv2PK.THOPZb.CpccDe')) === null || _j === void 0 ? void 0 : _j.querySelector('a.hfpxzc')) === null || _k === void 0 ? void 0 : _k.getAttribute('href')) || '';
+                const link = ((_k = (_j = el.closest('.Nv2PK.THOPZb')) === null || _j === void 0 ? void 0 : _j.querySelector('a.hfpxzc')) === null || _k === void 0 ? void 0 : _k.getAttribute('href')) || '';
                 const latitudMatch = link === null || link === void 0 ? void 0 : link.match(/!3d(-?\d+(\.\d+)?)/);
                 const longitudMatch = link === null || link === void 0 ? void 0 : link.match(/!4d(-?\d+(\.\d+)?)/);
                 const location = latitudMatch && longitudMatch ? { latitude: parseFloat(latitudMatch[1]), longitude: parseFloat(longitudMatch[1]) } : undefined;

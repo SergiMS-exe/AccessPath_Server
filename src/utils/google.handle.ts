@@ -77,7 +77,7 @@ export const handleGetLocationByLink = async (link: string) => {
 
 export const handleScrapGoogleMaps = async (query: string) => {
     const browser = await puppeteer.launch({
-        headless: false, // Para que no abra la ventana del navegador
+        headless: true, // Para que no abra la ventana del navegador
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -118,10 +118,12 @@ export const handleScrapGoogleMaps = async (query: string) => {
     // Intentamos obtener una lista de resultados múltiples
     let sitesData;
 
+    // page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+
+    await page.waitForTimeout(4000); //Se espera porque si no el primer link no lo carga bien
     if (winner === "list") {
-        await page.waitForTimeout(4000); //Se espera porque si no el primer link no lo carga bien
         sitesData = await page.evaluate((selector) => {
-            const elements = Array.from(document.querySelectorAll(`${selector} .Nv2PK.THOPZb.CpccDe`));
+            const elements = Array.from(document.querySelectorAll(`${selector} .Nv2PK.THOPZb`));
             if (elements.length === 0) return null;
 
             return elements.map(el => {
@@ -129,7 +131,7 @@ export const handleScrapGoogleMaps = async (query: string) => {
                 const direccion = el.querySelector('.W4Efsd .W4Efsd > span:last-child > span:last-child')?.textContent?.replace(/^·\s*/, '').trim() || '';
                 const tipo = el.querySelector('.W4Efsd .W4Efsd > span:first-child')?.textContent?.trim() || '';
                 const calificacionGoogle = parseFloat(el.querySelector('.MW4etd')?.textContent?.replace(',', '.') || '0');
-                const link = el.closest('.Nv2PK.THOPZb.CpccDe')?.querySelector('a.hfpxzc')?.getAttribute('href') || '';
+                const link = el.closest('.Nv2PK.THOPZb')?.querySelector('a.hfpxzc')?.getAttribute('href') || '';
 
                 const latitudMatch = link?.match(/!3d(-?\d+(\.\d+)?)/);
                 const longitudMatch = link?.match(/!4d(-?\d+(\.\d+)?)/);
