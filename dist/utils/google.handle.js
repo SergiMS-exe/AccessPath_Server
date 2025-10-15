@@ -79,7 +79,7 @@ const handleGetLocationByLink = (link) => __awaiter(void 0, void 0, void 0, func
 exports.handleGetLocationByLink = handleGetLocationByLink;
 const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const browser = yield puppeteer_1.default.launch({
-        headless: true, // Para que no abra la ventana del navegador
+        headless: false, // Para que no abra la ventana del navegador
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -112,8 +112,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     ]);
     // Intentamos obtener una lista de resultados múltiples
     let sitesData;
-    // page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
-    yield page.waitForTimeout(4000); //Se espera porque si no el primer link no lo carga bien
+    page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
     if (winner === "list") {
         sitesData = yield page.evaluate((selector) => {
             const elements = Array.from(document.querySelectorAll(`${selector} .Nv2PK.THOPZb`));
@@ -142,6 +141,7 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     }
     else if (winner === "single") {
         // Si no hay resultados múltiples, intentar extraer un único resultado
+        yield page.waitForTimeout(4000); //Se espera porque el link y coordenadas se sacan de la URL que tarda un poco en actualizarse
         sitesData = yield page.evaluate((selector) => {
             var _a, _b, _c, _d;
             const el = document.querySelector(selector);
@@ -157,21 +157,16 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
                     direccion,
                     calificacionGoogle: parseFloat(calificacionGoogle),
                     tipos: [tipo],
-                    link: undefined,
+                    link: '',
                     location: undefined
                 }];
         }, selectorSingleResult);
-    }
-    if (sitesData && sitesData.length > 0) {
-        const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-        let latitude, longitude = undefined;
-        if (coordenadasMatch) {
-            latitude = parseFloat(coordenadasMatch[1]);
-            longitude = parseFloat(coordenadasMatch[2]);
+        // Obtener la URL actual para extraer el link y las coordenadas
+        const currentUrl = page.url();
+        if (sitesData && sitesData.length > 0) {
+            sitesData[0].link = currentUrl;
+            sitesData[0].location = getLocationFromLink(currentUrl);
         }
-        const location = (latitude && longitude) ? { latitude, longitude } : undefined;
-        sitesData[0].location = location;
-        sitesData[0].link = page.url();
     }
     // Si no hay datos en absoluto, devuelve un array vacío
     if (!sitesData) {
@@ -184,6 +179,17 @@ const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, funct
     return sites;
 });
 exports.handleScrapGoogleMaps = handleScrapGoogleMaps;
+function getLocationFromLink(link) {
+    const latMatch = link.match(/!3d(-?\d+(\.\d+)?)/);
+    const lngMatch = link.match(/!4d(-?\d+(\.\d+)?)/);
+    if (latMatch && lngMatch) {
+        return {
+            latitude: parseFloat(latMatch[1]),
+            longitude: parseFloat(lngMatch[1])
+        };
+    }
+    return undefined;
+}
 function convertToSite(placeResponse) {
     return placeResponse.results.map(result => {
         const { place_id, name, formatted_address, geometry, types, rating } = result;

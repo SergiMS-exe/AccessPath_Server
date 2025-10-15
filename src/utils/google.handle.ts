@@ -5,6 +5,7 @@ import fs from 'fs';
 import chromium from "chrome-aws-lambda";
 import * as pluscodes from "pluscodes";
 import { ScrappedSite } from "../interfaces/ScrappedSite";
+import { get } from "http";
 
 const COOKIES_FILE_PATH = './cookies.json';  // Archivo donde se guarda la sesión (cookies y localStorage)
 
@@ -77,7 +78,7 @@ export const handleGetLocationByLink = async (link: string) => {
 
 export const handleScrapGoogleMaps = async (query: string) => {
     const browser = await puppeteer.launch({
-        headless: true, // Para que no abra la ventana del navegador
+        headless: false, // Para que no abra la ventana del navegador
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -118,21 +119,20 @@ export const handleScrapGoogleMaps = async (query: string) => {
     // Intentamos obtener una lista de resultados múltiples
     let sitesData;
 
-    // page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+    page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
 
-    await page.waitForTimeout(4000); //Se espera porque si no el primer link no lo carga bien
     if (winner === "list") {
         sitesData = await page.evaluate((selector) => {
             const elements = Array.from(document.querySelectorAll(`${selector} .Nv2PK.THOPZb`));
             if (elements.length === 0) return null;
-
+            
             return elements.map(el => {
                 const nombre = el.querySelector('.qBF1Pd')?.textContent?.trim() || '';
                 const direccion = el.querySelector('.W4Efsd .W4Efsd > span:last-child > span:last-child')?.textContent?.replace(/^·\s*/, '').trim() || '';
                 const tipo = el.querySelector('.W4Efsd .W4Efsd > span:first-child')?.textContent?.trim() || '';
                 const calificacionGoogle = parseFloat(el.querySelector('.MW4etd')?.textContent?.replace(',', '.') || '0');
                 const link = el.closest('.Nv2PK.THOPZb')?.querySelector('a.hfpxzc')?.getAttribute('href') || '';
-
+                
                 const latitudMatch = link?.match(/!3d(-?\d+(\.\d+)?)/);
                 const longitudMatch = link?.match(/!4d(-?\d+(\.\d+)?)/);
                 const location = latitudMatch && longitudMatch ? { latitude: parseFloat(latitudMatch[1]), longitude: parseFloat(longitudMatch[1]) } : undefined;
@@ -147,10 +147,11 @@ export const handleScrapGoogleMaps = async (query: string) => {
                 };
             });
         }, selectorResultList);
-
+        
     }
     else if (winner === "single") {
         // Si no hay resultados múltiples, intentar extraer un único resultado
+        await page.waitForTimeout(4000); //Se espera porque el link y coordenadas se sacan de la URL que tarda un poco en actualizarse
         sitesData = await page.evaluate((selector: any) => {
             const el = document.querySelector(selector);
             if (!el) return null;  // No hay un solo resultado
@@ -158,32 +159,24 @@ export const handleScrapGoogleMaps = async (query: string) => {
             let direccion = el.querySelector('.Io6YTe.fontBodyMedium.kR99db.fdkmkc')?.textContent.trim() || '';
             const tipo = el.querySelector('#QA0Szd > div > div > div.w6VYqd > div.bJzME.tTVLSc > div > div.e07Vkf.kA9KIf > div > div > div.TIHn2 > div > div.lMbq3e > div.LBgpqf > div > div:nth-child(2) > span:nth-child(1) > span > button')?.textContent || '';
             const calificacionGoogle = el.querySelector('.MW4etd')?.textContent || '0';
-
+            
             direccion = direccion.replace(' · ', '').trim();
-
+            
             return [{
                 nombre,
                 direccion,
                 calificacionGoogle: parseFloat(calificacionGoogle),
                 tipos: [tipo],
-                link: undefined,
-                location: undefined
+                link: '',
+                location: undefined as SiteLocation | undefined
             }];
         }, selectorSingleResult);
-    }
-
-    if (sitesData && sitesData.length > 0) {
-        const coordenadasMatch = page.url().match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-
-        let latitude, longitude: number | undefined = undefined;
-        if (coordenadasMatch) {
-            latitude = parseFloat(coordenadasMatch[1]);
-            longitude = parseFloat(coordenadasMatch[2]);
+        // Obtener la URL actual para extraer el link y las coordenadas
+        const currentUrl = page.url();
+        if (sitesData && sitesData.length > 0) {
+            sitesData[0].link = currentUrl;
+            sitesData[0].location = getLocationFromLink(currentUrl);
         }
-        const location = (latitude && longitude) ? { latitude, longitude } : undefined;
-
-        sitesData[0].location = location;
-        sitesData[0].link = page.url();
     }
 
 
@@ -208,6 +201,17 @@ export const handleScrapGoogleMaps = async (query: string) => {
     return sites;
 };
 
+function getLocationFromLink(link: string): SiteLocation | undefined {
+    const latMatch = link.match(/!3d(-?\d+(\.\d+)?)/);
+    const lngMatch = link.match(/!4d(-?\d+(\.\d+)?)/);
+    if (latMatch && lngMatch) {
+        return {
+            latitude: parseFloat(latMatch[1]),
+            longitude: parseFloat(lngMatch[1])
+        };
+    }
+    return undefined;
+}
 
 function convertToSite(placeResponse: PlaceResponse): Site[] {
     return placeResponse.results.map(result => {
