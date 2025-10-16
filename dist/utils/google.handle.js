@@ -79,7 +79,7 @@ const handleGetLocationByLink = (link) => __awaiter(void 0, void 0, void 0, func
 exports.handleGetLocationByLink = handleGetLocationByLink;
 const handleScrapGoogleMaps = (query) => __awaiter(void 0, void 0, void 0, function* () {
     const browser = yield puppeteer_1.default.launch({
-        headless: false, // Para que no abra la ventana del navegador
+        headless: true, // Para que no abra la ventana del navegador
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",

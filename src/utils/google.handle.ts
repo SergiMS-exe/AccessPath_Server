@@ -78,7 +78,7 @@ export const handleGetLocationByLink = async (link: string) => {
 
 export const handleScrapGoogleMaps = async (query: string) => {
     const browser = await puppeteer.launch({
-        headless: false, // Para que no abra la ventana del navegador
+        headless: true, // Para que no abra la ventana del navegador
         args: [
             "--no-sandbox",
             "--disable-setuid-sandbox",
