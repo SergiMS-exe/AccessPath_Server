@@ -13,6 +13,7 @@ exports.dummyController = exports.editPasswordController = exports.editUserContr
 const error_handle_1 = require("../utils/error.handle");
 const usuariosService_1 = require("../services/usuariosService");
 const validator_handle_1 = require("../utils/validator.handle");
+const pagination_middleware_1 = require("../middleware/pagination.middleware");
 const usersIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
@@ -205,17 +206,18 @@ const unsaveSiteController = (req, res, next) => __awaiter(void 0, void 0, void 
 exports.unsaveSiteController = unsaveSiteController;
 const getSavedSitesController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.params.userId)
+        if (!req.params.userId) {
             return (0, error_handle_1.handleHttp)(res, "Falta el userId en los parametros", 400);
-        const responseGetSaved = yield (0, usuariosService_1.getSavedSitesService)(req.params.userId);
+        }
+        const paginationParams = (0, pagination_middleware_1.extractPaginationParams)(req.query);
+        const responseGetSaved = yield (0, usuariosService_1.getSavedSitesService)(req.params.userId, paginationParams);
         if (responseGetSaved.error) {
-            res.status(responseGetSaved.status).send({ msg: responseGetSaved.error });
+            return res.status(responseGetSaved.status).send({ msg: responseGetSaved.error });
         }
-        else {
-            res.locals.sitios = responseGetSaved.savedSites;
-            res.locals.mensaje = "Sitios guardados obtenidos correctamente";
-            res.status(200);
-        }
+        res.locals.sitios = responseGetSaved.savedSites;
+        res.locals.pagination = responseGetSaved.pagination;
+        res.locals.mensaje = "Sitios guardados obtenidos correctamente";
+        res.status(200);
     }
     catch (e) {
         (0, error_handle_1.handleHttp)(res, "Error en guardado de sitio: " + e.message);
@@ -227,12 +229,14 @@ const getSavedSitesController = (req, res, next) => __awaiter(void 0, void 0, vo
 exports.getSavedSitesController = getSavedSitesController;
 const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const responseGetComments = yield (0, usuariosService_1.getUserCommentsService)(req.params.userId);
+        const paginationParams = (0, pagination_middleware_1.extractPaginationParams)(req.query);
+        const responseGetComments = yield (0, usuariosService_1.getUserCommentsService)(req.params.userId, paginationParams);
         if (responseGetComments.error) {
             res.status(responseGetComments.status).send({ msg: responseGetComments.error });
         }
         else {
             res.locals.sitios = responseGetComments.sites;
+            res.locals.pagination = responseGetComments.pagination;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
             res.status(200);
         }
@@ -247,12 +251,14 @@ const getUserCommentsController = (req, res, next) => __awaiter(void 0, void 0, 
 exports.getUserCommentsController = getUserCommentsController;
 const getUserRatingsController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const responseGetRatings = yield (0, usuariosService_1.getUserRatingsService)(req.params.userId);
+        const paginationParams = (0, pagination_middleware_1.extractPaginationParams)(req.query);
+        const responseGetRatings = yield (0, usuariosService_1.getUserRatingsService)(req.params.userId, paginationParams);
         if (responseGetRatings.error) {
             res.status(responseGetRatings.status).send({ msg: responseGetRatings.error });
         }
         else {
             res.locals.sitiosConValoracion = responseGetRatings.sitesWithValoracion;
+            res.locals.pagination = responseGetRatings.pagination;
             res.locals.mensaje = "Valoraciones obtenidas correctamente";
             res.status(200);
         }
@@ -267,12 +273,14 @@ const getUserRatingsController = (req, res, next) => __awaiter(void 0, void 0, v
 exports.getUserRatingsController = getUserRatingsController;
 const getUserPhotosController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const responseGetPhotos = yield (0, usuariosService_1.getUserPhotosService)(req.params.userId);
+        const paginationParams = (0, pagination_middleware_1.extractPaginationParams)(req.query);
+        const responseGetPhotos = yield (0, usuariosService_1.getUserPhotosService)(req.params.userId, paginationParams);
         if (responseGetPhotos.error) {
             res.status(responseGetPhotos.status).send({ msg: responseGetPhotos.error });
         }
         else {
             res.locals.sitios = responseGetPhotos.sites;
+            res.locals.pagination = responseGetPhotos;
             res.locals.mensaje = "Fotos obtenidas correctamente";
             res.status(200);
         }

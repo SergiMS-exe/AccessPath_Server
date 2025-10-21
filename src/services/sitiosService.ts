@@ -7,10 +7,20 @@ import ValoracionModel from "../models/valoracionModel";
 import { handleFindSitesByTextGoogle, handleGetLocationByLink, handleScrapGoogleMaps } from "../utils/google.handle";
 import { updateAverages } from "../utils/auxiliar.handle";
 import { ScrappedSite } from "../interfaces/ScrappedSite";
+import { PaginationParams } from "../interfaces/Pagination";
 
 
-const getClosePlacesService = async (location: SiteLocation, radius: number, limit: number) => {
-    const closePlaces = await SitioModel.aggregate([
+const getClosePlacesService = async (
+    location: SiteLocation,
+    radius: number,
+    paginationParams: PaginationParams
+) => {
+    const page = Math.max(1, paginationParams.page || 1);
+    const limit = Math.min(100, Math.max(1, paginationParams.limit || 10));
+    const skip = (page - 1) * limit;
+
+    // Pipeline base de búsqueda por cercanía
+    const pipeline: any[] = [
         {
             $geoNear: {
                 near: {
@@ -29,17 +39,56 @@ const getClosePlacesService = async (location: SiteLocation, radius: number, lim
                 }
             }
         },
-        {
-            $limit: limit
-        }
+        { $sort: { distance: 1 } }, // más cercanos primero
+        { $skip: skip },
+        { $limit: limit }
+    ];
+
+    // Ejecutar consulta y contar total
+    const [closePlaces, totalCount] = await Promise.all([
+        SitioModel.aggregate(pipeline),
+        SitioModel.aggregate([
+            {
+                $geoNear: {
+                    near: {
+                        type: "Point",
+                        coordinates: [location.longitude, location.latitude]
+                    },
+                    distanceField: "distance",
+                    maxDistance: radius,
+                    spherical: true,
+                    query: {
+                        $or: [
+                            { "valoraciones": { $exists: true, $ne: {} } },
+                            { "comentarios": { $exists: true, $ne: [] } },
+                            { "fotos": { $exists: true, $ne: [] } }
+                        ]
+                    }
+                }
+            },
+            { $count: "total" }
+        ])
     ]);
 
-    if (closePlaces && closePlaces.length > 0) {
-        return { sitios: closePlaces };
-    } else {
-        return { error: "No se pudo encontrar ningun lugar cercano", status: 404 };
+    const totalItems = totalCount[0]?.total || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    if (!closePlaces || closePlaces.length === 0) {
+        return { error: "No se pudo encontrar ningún lugar cercano", status: 404 };
     }
-}
+
+    return {
+        sitios: closePlaces,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        }
+    };
+};
 
 const getPlacesByTextService = async (text: string) => {
     // let sitesFromGooglePlaces: Site[] = [];

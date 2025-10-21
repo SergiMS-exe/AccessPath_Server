@@ -5,11 +5,17 @@ const auxiliar_handle_1 = require("../utils/auxiliar.handle");
 const convertToClientMiddleware = (req, res, next) => {
     if (res.locals.sitios && res.locals.mensaje) {
         res.locals.sitios = (0, auxiliar_handle_1.transformArrayToClientFormat)(res.locals.sitios);
-        res.status(res.statusCode).send({ msg: res.locals.mensaje, sites: res.locals.sitios });
+        if (res.locals.pagination)
+            res.status(res.statusCode).send({ msg: res.locals.mensaje, sites: res.locals.sitios, pagination: res.locals.pagination });
+        else
+            res.status(res.statusCode).send({ msg: res.locals.mensaje, sites: res.locals.sitios });
     }
     else if (res.locals.newPlace && res.locals.mensaje) {
         res.locals.newPlace = (0, auxiliar_handle_1.transformToClientFormat)(res.locals.newPlace);
-        res.status(res.statusCode).send({ msg: res.locals.mensaje, newPlace: res.locals.newPlace });
+        if (res.locals.pagination)
+            res.status(res.statusCode).send({ msg: res.locals.mensaje, newPlace: res.locals.newPlace, pagination: res.locals.pagination });
+        else
+            res.status(res.statusCode).send({ msg: res.locals.mensaje, newPlace: res.locals.newPlace });
     }
     next();
 };
@@ -19,7 +25,10 @@ const convertValoracionSiteMiddleware = (req, res, next) => {
         // De tipo { Valoracion, Site }[]
         res.locals.sitiosConValoracion = (0, auxiliar_handle_1.transformValoracionSiteArray)(res.locals.sitiosConValoracion);
         // Envía la respuesta con los sitios transformados
-        res.status(res.statusCode).send({ msg: res.locals.mensaje, sitesWRating: res.locals.sitiosConValoracion });
+        if (res.locals.pagination)
+            res.status(res.statusCode).send({ msg: res.locals.mensaje, sitesWRating: res.locals.sitiosConValoracion, pagination: res.locals.pagination });
+        else
+            res.status(res.statusCode).send({ msg: res.locals.mensaje, sitesWRating: res.locals.sitiosConValoracion, pagination: res.locals.pagination });
     }
     else {
         next();

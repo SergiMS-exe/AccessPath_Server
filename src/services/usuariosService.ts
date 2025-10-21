@@ -6,6 +6,8 @@ import SitioModel from "../models/sitioModel";
 import { Site } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
 import ValoracionModel from "../models/valoracionModel";
+import { PaginationParams } from "../interfaces/Pagination";
+import { paginateArray } from "../utils/pagination.util";
 
 const registerUsuarioService = async (usuario: Person) => {
     if (await UsuarioModel.findOne({ email: usuario.email })) return { error: "Ya hay un usuario con ese email", status: 409 };
@@ -46,7 +48,7 @@ const saveSiteService = async (usuarioId: string, site: Site) => {
     );
 
     if (savedPlaces?.includes(site.placeId))
-        return { error: "El sitio ya está guardado", status: 409 };
+        return { error: "El sitio ya esta guardado", status: 409 };
     else {
         const updateResult = await UsuarioModel.updateOne({ _id: usuarioId }, { $push: { saved: site.placeId } });
         if (updateResult.modifiedCount === 1)
@@ -73,95 +75,221 @@ const unsaveSiteService = async (usuarioId: string, placeId: string) => {
     }
 }
 
-const getSavedSitesService = async (usuarioId: string) => {
+const getSavedSitesService = async (
+    usuarioId: string,
+    paginationParams: PaginationParams
+) => {
     const userFound = await getUserInDB(usuarioId);
-    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+    if (!userFound) {
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    }
 
-    const savedPlaces = userFound.saved;
-    // if (!savedPlaces) return [];
+    const savedPlaces = userFound.saved || [];
 
-    const savedSites = await SitioModel.find({ placeId: { $in: savedPlaces } });
-    return { savedSites };
-}
-
-const getUserCommentsService = async (usuarioId: string) => {
-    const userFound = await getUserInDB(usuarioId);
-    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
-
-    //Obtain commentrs from all sites where userId in comment is the same as the one in the params
-    const sites = await SitioModel.aggregate([
-        { $unwind: "$comentarios" },
-        { $match: { "comentarios.usuarioId": usuarioId } },
-        {
-            $group: {
-                _id: "$_id",
-                comentarios: { $push: "$comentarios" },
-                sitio: { $first: "$$ROOT" }
+    // Si no hay sitios guardados, devolver respuesta vacía con paginacion
+    if (savedPlaces.length === 0) {
+        return {
+            savedSites: [],
+            pagination: {
+                currentPage: 1,
+                totalPages: 0,
+                totalItems: 0,
+                itemsPerPage: paginationParams.limit || 10,
+                hasNextPage: false,
+                hasPrevPage: false
             }
-        },
-        {
-            $replaceRoot: {
-                newRoot: {
-                    $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]
+        };
+    }
+
+    // Paginar primero los IDs
+    const paginatedIds = paginateArray(savedPlaces, paginationParams);
+
+    // Buscar solo los sitios de la pagina actual
+    const savedSites = await SitioModel.find({
+        placeId: { $in: paginatedIds.data }
+    }).lean();
+
+    return {
+        savedSites,
+        pagination: paginatedIds.pagination
+    };
+};
+
+const getUserCommentsService = async (
+    usuarioId: string,
+    paginationParams: PaginationParams
+) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) {
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    }
+
+    const page = Math.max(1, paginationParams.page || 1);
+    const limit = Math.min(100, Math.max(1, paginationParams.limit || 10));
+    const skip = (page - 1) * limit;
+
+    // Agregacion con paginacion
+    const [sites, totalCount] = await Promise.all([
+        SitioModel.aggregate([
+            { $unwind: "$comentarios" },
+            { $match: { "comentarios.usuarioId": usuarioId } },
+            {
+                $group: {
+                    _id: "$_id",
+                    comentarios: { $push: "$comentarios" },
+                    sitio: { $first: "$$ROOT" }
                 }
-            }
-        },
-        { $project: { _id: 0 } }
+            },
+            {
+                $replaceRoot: {
+                    newRoot: {
+                        $mergeObjects: ["$sitio", { comentarios: "$comentarios" }]
+                    }
+                }
+            },
+            { $project: { _id: 0 } },
+            { $sort: { "comentarios.date": -1 } }, // Mas recientes primero
+            { $skip: skip },
+            { $limit: limit }
+        ]),
+        // Contar total de sitios con comentarios del usuario
+        SitioModel.aggregate([
+            { $unwind: "$comentarios" },
+            { $match: { "comentarios.usuarioId": usuarioId } },
+            { $group: { _id: "$_id" } },
+            { $count: "total" }
+        ])
     ]);
 
+    const totalItems = totalCount[0]?.total || 0;
+    const totalPages = Math.ceil(totalItems / limit);
 
-    if (!sites) return { error: "No hay comentarios", status: 404 }; //TODO esto no tiene porque ser un error
+    return {
+        sites,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        }
+    };
+};
 
-    return { sites };
-}
-
-const getUserRatingsService = async (usuarioId: string) => {
+const getUserRatingsService = async (
+    usuarioId: string,
+    paginationParams: PaginationParams
+) => {
     const userFound = await getUserInDB(usuarioId);
-    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
+    if (!userFound) {
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    }
 
-    const valoraciones = await ValoracionModel.find({ userId: usuarioId });
-    //For each valoracion, get the site and group each valoracion with its site
-    const sitesWithValoracion = await Promise.all(valoraciones.map(async (valoracion) => {
-        const site = await SitioModel.findOne({ placeId: valoracion.placeId });
-        //if there is no site, dont return the valoracion
-        if (site)
-            return { valoracion, site };
-        else
-            await ValoracionModel.findOneAndDelete({ _id: valoracion._id });
-    })).then((sites) => sites.filter((value) => value !== undefined));
+    const page = Math.max(1, paginationParams.page || 1);
+    const limit = Math.min(100, Math.max(1, paginationParams.limit || 10));
+    const skip = (page - 1) * limit;
 
-    if (!sitesWithValoracion) return { error: "No hay valoraciones", status: 404 };
-
-    return { sitesWithValoracion };
-}
-
-const getUserPhotosService = async (usuarioId: string) => {
-    const userFound = await getUserInDB(usuarioId);
-    if (!userFound) return { error: "No hay un usuario registrado con ese id", status: 404 };
-
-    //Obtain photos from all sites where userId in photo is the same as the one in the params
-    const sites = await SitioModel.aggregate([
-        { $unwind: "$fotos" },
-        { $match: { "fotos.usuarioId": usuarioId } },
-        {
-            $group: {
-                _id: "$_id",
-                fotos: { $push: "$fotos" },
-                sitio: { $first: "$$ROOT" }
-            }
-        },
-        {
-            $replaceRoot: {
-                newRoot: {
-                    $mergeObjects: ["$sitio", { fotos: "$fotos" }]
-                }
-            }
-        },
-        { $project: { _id: 0 } }
+    // Obtener valoraciones paginadas
+    const [valoraciones, totalItems] = await Promise.all([
+        ValoracionModel.find({ userId: usuarioId })
+            .sort({ _id: -1 }) // Más recientes primero
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        ValoracionModel.countDocuments({ userId: usuarioId })
     ]);
 
-    return { sites };
-}
+    // Para cada valoración, obtener el sitio
+    const sitesWithValoracion = await Promise.all(
+        valoraciones.map(async (valoracion) => {
+            const site = await SitioModel.findOne({ placeId: valoracion.placeId }).lean();
+            
+            if (site) {
+                return { valoracion, site };
+            } else {
+                // Eliminar valoración huérfana
+                await ValoracionModel.findOneAndDelete({ _id: valoracion._id });
+                return null;
+            }
+        })
+    ).then((sites) => sites.filter((value) => value !== null));
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+        sitesWithValoracion,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        }
+    };
+};
+
+const getUserPhotosService = async (
+    usuarioId: string,
+    paginationParams: PaginationParams
+) => {
+    const userFound = await getUserInDB(usuarioId);
+    if (!userFound) {
+        return { error: "No hay un usuario registrado con ese id", status: 404 };
+    }
+
+    const page = Math.max(1, paginationParams.page || 1);
+    const limit = Math.min(100, Math.max(1, paginationParams.limit || 10));
+    const skip = (page - 1) * limit;
+
+    // Agregación con paginación
+    const [sites, totalCount] = await Promise.all([
+        SitioModel.aggregate([
+            { $unwind: "$fotos" },
+            { $match: { "fotos.usuarioId": usuarioId } },
+            {
+                $group: {
+                    _id: "$_id",
+                    fotos: { $push: "$fotos" },
+                    sitio: { $first: "$$ROOT" }
+                }
+            },
+            {
+                $replaceRoot: {
+                    newRoot: {
+                        $mergeObjects: ["$sitio", { fotos: "$fotos" }]
+                    }
+                }
+            },
+            { $project: { _id: 0 } },
+            { $skip: skip },
+            { $limit: limit }
+        ]),
+        // Contar total de sitios con fotos del usuario
+        SitioModel.aggregate([
+            { $unwind: "$fotos" },
+            { $match: { "fotos.usuarioId": usuarioId } },
+            { $group: { _id: "$_id" } },
+            { $count: "total" }
+        ])
+    ]);
+
+    const totalItems = totalCount[0]?.total || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+        sites,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        }
+    };
+};
 
 const editUserService = async (usuario: Person) => {
     const userFound = await getUserInDB(usuario._id!.toString());

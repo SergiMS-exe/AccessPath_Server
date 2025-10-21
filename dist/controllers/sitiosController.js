@@ -13,6 +13,7 @@ exports.deletePhotoController = exports.postPhotoController = exports.deleteRevi
 const error_handle_1 = require("../utils/error.handle");
 const sitiosService_1 = require("../services/sitiosService");
 const mongodb_1 = require("mongodb");
+const pagination_middleware_1 = require("../middleware/pagination.middleware");
 const sitesIndexController = (req, res, next) => {
     res.json({
         availableSubendpoints: [
@@ -90,28 +91,29 @@ const sitesIndexController = (req, res, next) => {
 exports.sitesIndexController = sitesIndexController;
 const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.query.location)
-            (0, error_handle_1.handleHttp)(res, "Faltan datos en la query", 400);
-        else if (typeof req.query.location !== "string" || !req.query.location.includes('%'))
-            (0, error_handle_1.handleHttp)(res, "El formato de la ubicacion es incorrecto", 400);
+        if (!req.query.location) {
+            return (0, error_handle_1.handleHttp)(res, "Faltan datos en la query", 400);
+        }
+        if (typeof req.query.location !== "string" || !req.query.location.includes('%')) {
+            return (0, error_handle_1.handleHttp)(res, "El formato de la ubicación es incorrecto", 400);
+        }
         const location = {
             latitude: parseFloat(req.query.location.split('%')[0]),
             longitude: parseFloat(req.query.location.split('%')[1])
         };
         const radius = req.query.radius ? parseInt(req.query.radius) : 100000; // 100km
-        const limit = req.query.limit ? parseInt(req.query.limit) : 30;
-        const closePlacesResponse = yield (0, sitiosService_1.getClosePlacesService)(location, radius, limit);
+        const paginationParams = (0, pagination_middleware_1.extractPaginationParams)(req.query);
+        const closePlacesResponse = yield (0, sitiosService_1.getClosePlacesService)(location, radius, paginationParams);
         if (closePlacesResponse.error) {
-            res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
+            return res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
         }
-        else {
-            res.locals.sitios = closePlacesResponse.sitios;
-            res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
-            res.status(200);
-        }
+        res.locals.sitios = closePlacesResponse.sitios;
+        res.locals.pagination = closePlacesResponse.pagination;
+        res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
+        res.status(200);
     }
     catch (e) {
-        (0, error_handle_1.handleHttp)(res, "Error en la obtencion de sitios cercanos: " + e.message);
+        (0, error_handle_1.handleHttp)(res, "Error en la obtención de sitios cercanos: " + e.message);
     }
     finally {
         next();

@@ -15,6 +15,7 @@ import {
 } from "../services/usuariosService"
 import Person from "../interfaces/Person";
 import { checkEmail, checkPassword, checkPasswordsConfirm } from '../utils/validator.handle';
+import { extractPaginationParams } from "../middleware/pagination.middleware";
 
 const usersIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -195,31 +196,41 @@ const unsaveSiteController = async (req: Request, res: Response, next: NextFunct
 
 const getSavedSitesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.params.userId) return handleHttp(res, "Falta el userId en los parametros", 400)
-
-        const responseGetSaved = await getSavedSitesService(req.params.userId);
-        if (responseGetSaved.error) {
-            res.status(responseGetSaved.status).send({ msg: responseGetSaved.error })
-        } else {
-            res.locals.sitios = responseGetSaved.savedSites;
-            res.locals.mensaje = "Sitios guardados obtenidos correctamente";
-            res.status(200);
+        if (!req.params.userId) {
+            return handleHttp(res, "Falta el userId en los parametros", 400);
         }
+
+        const paginationParams = extractPaginationParams(req.query);
+        const responseGetSaved = await getSavedSitesService(
+            req.params.userId,
+            paginationParams
+        );
+        
+        if (responseGetSaved.error) {
+            return res.status(responseGetSaved.status).send({ msg: responseGetSaved.error });
+        }
+        
+        res.locals.sitios = responseGetSaved.savedSites;
+        res.locals.pagination = responseGetSaved.pagination;
+        res.locals.mensaje = "Sitios guardados obtenidos correctamente";
+        res.status(200);
     } catch (e: any) {
-        handleHttp(res, "Error en guardado de sitio: " + e.message)
+        handleHttp(res, "Error en guardado de sitio: " + e.message);
     } finally {
-        next()
+        next();
     }
-}
+};
 
 const getUserCommentsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const responseGetComments = await getUserCommentsService(req.params.userId);
-
+        const paginationParams = extractPaginationParams(req.query);
+        const responseGetComments = await getUserCommentsService(req.params.userId, paginationParams);
+        
         if (responseGetComments.error) {
             res.status(responseGetComments.status).send({ msg: responseGetComments.error })
         } else {
             res.locals.sitios = responseGetComments.sites;
+            res.locals.pagination = responseGetComments.pagination;
             res.locals.mensaje = "Comentarios obtenidos correctamente";
             res.status(200);
         }
@@ -232,12 +243,14 @@ const getUserCommentsController = async (req: Request, res: Response, next: Next
 
 const getUserRatingsController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const responseGetRatings = await getUserRatingsService(req.params.userId);
-
+        const paginationParams = extractPaginationParams(req.query);
+        const responseGetRatings = await getUserRatingsService(req.params.userId, paginationParams);
+        
         if (responseGetRatings.error) {
             res.status(responseGetRatings.status).send({ msg: responseGetRatings.error })
         } else {
             res.locals.sitiosConValoracion = responseGetRatings.sitesWithValoracion;
+            res.locals.pagination = responseGetRatings.pagination;
             res.locals.mensaje = "Valoraciones obtenidas correctamente";
             res.status(200);
         }
@@ -250,12 +263,14 @@ const getUserRatingsController = async (req: Request, res: Response, next: NextF
 
 const getUserPhotosController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const responseGetPhotos = await getUserPhotosService(req.params.userId);
+        const paginationParams = extractPaginationParams(req.query);
+        const responseGetPhotos = await getUserPhotosService(req.params.userId, paginationParams);
 
         if (responseGetPhotos.error) {
             res.status(responseGetPhotos.status).send({ msg: responseGetPhotos.error })
         } else {
             res.locals.sitios = responseGetPhotos.sites;
+            res.locals.pagination = responseGetPhotos
             res.locals.mensaje = "Fotos obtenidas correctamente";
             res.status(200);
         }

@@ -4,6 +4,7 @@ import { deleteCommentService, deletePhotoService, deleteReviewService, editComm
 import { Valoracion } from "../interfaces/Valoracion";
 import { Photo, Site, SiteLocation } from "../interfaces/Site";
 import { ObjectId } from "mongodb";
+import { extractPaginationParams } from "../middleware/pagination.middleware";
 
 const sitesIndexController = (req: Request, res: Response, next: NextFunction) => {
     res.json({
@@ -83,10 +84,13 @@ const sitesIndexController = (req: Request, res: Response, next: NextFunction) =
 
 const getClosePlacesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.query.location)
-            handleHttp(res, "Faltan datos en la query", 400);
-        else if (typeof req.query.location !== "string" || !req.query.location.includes('%'))
-            handleHttp(res, "El formato de la ubicacion es incorrecto", 400);
+        if (!req.query.location) {
+            return handleHttp(res, "Faltan datos en la query", 400);
+        }
+
+        if (typeof req.query.location !== "string" || !req.query.location.includes('%')) {
+            return handleHttp(res, "El formato de la ubicación es incorrecto", 400);
+        }
 
         const location: SiteLocation = {
             latitude: parseFloat((req.query.location as string).split('%')[0]),
@@ -94,23 +98,25 @@ const getClosePlacesController = async (req: Request, res: Response, next: NextF
         };
 
         const radius = req.query.radius ? parseInt(req.query.radius as string) : 100000; // 100km
-        const limit = req.query.limit ? parseInt(req.query.limit as string) : 30;
+        const paginationParams = extractPaginationParams(req.query);
 
-        const closePlacesResponse = await getClosePlacesService(location, radius, limit);
+        const closePlacesResponse = await getClosePlacesService(location, radius, paginationParams);
 
         if (closePlacesResponse.error) {
-            res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
-        } else {
-            res.locals.sitios = closePlacesResponse.sitios;
-            res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
-            res.status(200);
+            return res.status(closePlacesResponse.status).send({ msg: closePlacesResponse.error });
         }
+
+        res.locals.sitios = closePlacesResponse.sitios;
+        res.locals.pagination = closePlacesResponse.pagination;
+        res.locals.mensaje = "Sitios cercanos obtenidos correctamente";
+        res.status(200);
     } catch (e: any) {
-        handleHttp(res, "Error en la obtencion de sitios cercanos: " + e.message)
+        handleHttp(res, "Error en la obtención de sitios cercanos: " + e.message);
     } finally {
-        next()
+        next();
     }
-}
+};
+
 
 const getPlacesByTextController = async (req: Request, res: Response, next: NextFunction) => {
     try {

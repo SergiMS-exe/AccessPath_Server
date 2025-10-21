@@ -19,8 +19,13 @@ const usuarioModel_1 = __importDefault(require("../models/usuarioModel"));
 const valoracionModel_1 = __importDefault(require("../models/valoracionModel"));
 const google_handle_1 = require("../utils/google.handle");
 const auxiliar_handle_1 = require("../utils/auxiliar.handle");
-const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, void 0, void 0, function* () {
-    const closePlaces = yield sitioModel_1.default.aggregate([
+const getClosePlacesService = (location, radius, paginationParams) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const page = Math.max(1, paginationParams.page || 1);
+    const limit = Math.min(100, Math.max(1, paginationParams.limit || 10));
+    const skip = (page - 1) * limit;
+    // Pipeline base de búsqueda por cercanía
+    const pipeline = [
         {
             $geoNear: {
                 near: {
@@ -39,16 +44,51 @@ const getClosePlacesService = (location, radius, limit) => __awaiter(void 0, voi
                 }
             }
         },
-        {
-            $limit: limit
-        }
+        { $sort: { distance: 1 } }, // más cercanos primero
+        { $skip: skip },
+        { $limit: limit }
+    ];
+    // Ejecutar consulta y contar total
+    const [closePlaces, totalCount] = yield Promise.all([
+        sitioModel_1.default.aggregate(pipeline),
+        sitioModel_1.default.aggregate([
+            {
+                $geoNear: {
+                    near: {
+                        type: "Point",
+                        coordinates: [location.longitude, location.latitude]
+                    },
+                    distanceField: "distance",
+                    maxDistance: radius,
+                    spherical: true,
+                    query: {
+                        $or: [
+                            { "valoraciones": { $exists: true, $ne: {} } },
+                            { "comentarios": { $exists: true, $ne: [] } },
+                            { "fotos": { $exists: true, $ne: [] } }
+                        ]
+                    }
+                }
+            },
+            { $count: "total" }
+        ])
     ]);
-    if (closePlaces && closePlaces.length > 0) {
-        return { sitios: closePlaces };
+    const totalItems = ((_a = totalCount[0]) === null || _a === void 0 ? void 0 : _a.total) || 0;
+    const totalPages = Math.ceil(totalItems / limit);
+    if (!closePlaces || closePlaces.length === 0) {
+        return { error: "No se pudo encontrar ningún lugar cercano", status: 404 };
     }
-    else {
-        return { error: "No se pudo encontrar ningun lugar cercano", status: 404 };
-    }
+    return {
+        sitios: closePlaces,
+        pagination: {
+            currentPage: page,
+            totalPages,
+            totalItems,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1
+        }
+    };
 });
 exports.getClosePlacesService = getClosePlacesService;
 const getPlacesByTextService = (text) => __awaiter(void 0, void 0, void 0, function* () {
