@@ -84,17 +84,13 @@ const sitesIndexController = (req: Request, res: Response, next: NextFunction) =
 
 const getClosePlacesController = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if (!req.query.location) {
+        if (!req.query.latitude || !req.query.longitude) {
             return handleHttp(res, "Faltan datos en la query", 400);
         }
 
-        if (typeof req.query.location !== "string" || !req.query.location.includes('%')) {
-            return handleHttp(res, "El formato de la ubicación es incorrecto", 400);
-        }
-
         const location: SiteLocation = {
-            latitude: parseFloat((req.query.location as string).split('%')[0]),
-            longitude: parseFloat((req.query.location as string).split('%')[1])
+            latitude: parseFloat(req.query.latitude as string),
+            longitude: parseFloat(req.query.longitude as string)
         };
 
         const radius = req.query.radius ? parseInt(req.query.radius as string) : 100000; // 100km

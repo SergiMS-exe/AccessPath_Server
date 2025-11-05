@@ -91,15 +91,12 @@ const sitesIndexController = (req, res, next) => {
 exports.sitesIndexController = sitesIndexController;
 const getClosePlacesController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        if (!req.query.location) {
+        if (!req.query.latitude || !req.query.longitude) {
             return (0, error_handle_1.handleHttp)(res, "Faltan datos en la query", 400);
         }
-        if (typeof req.query.location !== "string" || !req.query.location.includes('%')) {
-            return (0, error_handle_1.handleHttp)(res, "El formato de la ubicación es incorrecto", 400);
-        }
         const location = {
-            latitude: parseFloat(req.query.location.split('%')[0]),
-            longitude: parseFloat(req.query.location.split('%')[1])
+            latitude: parseFloat(req.query.latitude),
+            longitude: parseFloat(req.query.longitude)
         };
         const radius = req.query.radius ? parseInt(req.query.radius) : 100000; // 100km
         const paginationParams = (0, pagination_middleware_1.extractPaginationParams)(req.query);
